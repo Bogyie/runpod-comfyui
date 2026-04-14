@@ -24,6 +24,7 @@ ARG COMFYUI_REF=master
 ARG COMFYUI_MANAGER_REF=main
 ARG IMPACT_PACK_REF=main
 ARG CODE_SERVER_VERSION=4.103.2
+ARG XFORMERS_INSTALL_MODE=wheel
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -66,10 +67,16 @@ RUN "${COMFY_VENV}/bin/pip" install \
     "torchaudio==${TORCHAUDIO_VERSION}" \
     --index-url "${PYTORCH_INDEX_URL}" && \
     "${COMFY_VENV}/bin/pip" install \
-    -r "${COMFYUI_DIR}/requirements.txt" && \
-    "${COMFY_VENV}/bin/pip" install \
-    "xformers==${XFORMERS_VERSION}" \
-    --no-deps
+    -r "${COMFYUI_DIR}/requirements.txt"
+
+RUN if [[ "${XFORMERS_INSTALL_MODE}" == "wheel" ]]; then \
+      "${COMFY_VENV}/bin/pip" install "xformers==${XFORMERS_VERSION}" --no-deps; \
+    elif [[ "${XFORMERS_INSTALL_MODE}" == "source" ]]; then \
+      "${COMFY_VENV}/bin/pip" install --no-build-isolation "xformers==${XFORMERS_VERSION}" --no-deps; \
+    else \
+      echo "Unsupported XFORMERS_INSTALL_MODE=${XFORMERS_INSTALL_MODE}" >&2; \
+      exit 1; \
+    fi
 
 RUN mkdir -p "${COMFYUI_DIR}/custom_nodes" && \
     git clone https://github.com/ltdrdata/ComfyUI-Manager.git "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager" && \

@@ -18,7 +18,7 @@ The image is designed to keep the runtime stable and the mutable data outside th
 - CUDA 12.8 base image
 - Python 3.11 virtual environment
 - PyTorch 2.7.1 with `cu128`
-- `xformers`
+- `xformers` with a selectable install mode
 - ComfyUI
 - `ComfyUI-Manager`
 - `ComfyUI-Impact-Pack`
@@ -139,6 +139,7 @@ These let you pin upstream repos during image builds.
 | `IMPACT_PACK_REF` | `main` | Impact Pack git ref |
 | `CODE_SERVER_VERSION` | `4.103.2` | code-server version |
 | `PYTHON_VERSION` | `3.11` | Python minor version |
+| `XFORMERS_INSTALL_MODE` | `wheel` | `wheel` for faster builds, `source` for Blackwell fallback |
 
 ## Runtime environment variables
 
@@ -173,6 +174,44 @@ This image is intentionally aligned to a `CUDA 12.8 + PyTorch cu128` stack becau
 
 Before using the image, confirm the host driver is new enough for CUDA 12.8.
 
+## Compatibility notes
+
+### Python
+
+- Python `3.11` is the default because it is broadly supported by the current PyTorch and xformers releases while staying conservative for ComfyUI custom nodes.
+- Avoid moving to Python `3.12+` until your must-have custom nodes have been validated against it.
+
+### CUDA and driver compatibility
+
+- This template assumes a host driver new enough for CUDA `12.8`.
+- Blackwell GPUs such as RTX 5090 and RTX PRO 6000 are the main reason to prefer a `cu128` stack over older CUDA variants.
+- If you later decide to support older environments first, it is better to publish a separate compatibility image than to weaken the main Blackwell-ready image.
+
+### PyTorch behavior changes
+
+- PyTorch `2.6+` changed the default behavior of `torch.load` toward `weights_only=True`.
+- Some ComfyUI custom nodes and model loaders still assume the older behavior, so you may see checkpoint-loading regressions in specific nodes even when the base image is healthy.
+- When this happens, treat it as a node compatibility issue first, not a signal that the whole CUDA stack is broken.
+
+### xformers
+
+- The image defaults to `XFORMERS_INSTALL_MODE=wheel` because it builds faster.
+- On some Blackwell systems, especially RTX 5090, prebuilt xformers wheels have been reported to fail at runtime with kernel compatibility errors.
+- If that happens, rebuild the image with `--build-arg XFORMERS_INSTALL_MODE=source`. This is slower to build but is often a better fallback for new GPU architectures.
+- Keep xformers pinned and install it without dependency resolution so it does not replace your chosen torch build.
+
+### Triton
+
+- Triton may be useful for certain PyTorch and ComfyUI optimization paths, but it is not treated as a required baseline dependency in this template.
+- A successful Triton install does not guarantee that every ComfyUI optimization path will work cleanly.
+- Add it only after validating your target workflow on the GPUs you care about.
+
+### FlashAttention and other aggressive optimization packages
+
+- Do not bake in `flash-attn` for the first image version.
+- It can provide real speedups, but compatibility is more fragile across Python, CUDA, PyTorch, compiler, and GPU combinations.
+- If you want it later, prefer a second image flavor such as `aggressive-optimizations` instead of changing the base stable image.
+
 ## Next steps
 
 Good follow-up improvements after the first working image:
@@ -181,3 +220,4 @@ Good follow-up improvements after the first working image:
 - Add a healthcheck script that verifies `8188` and `8080`.
 - Add optional helper scripts for downloading from Civitai or Hugging Face into the PV.
 - Add a second image flavor if you later want a more conservative compatibility stack.
+- Add an alternate optimized image once you have validated `xformers source build`, Triton, or FlashAttention on your target GPUs.
