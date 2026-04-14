@@ -188,7 +188,7 @@ These let you pin upstream repos during image builds.
 |---|---|---|
 | `COMFYUI_REF` | `v0.19.0` | ComfyUI git ref |
 | `COMFYUI_MANAGER_REF` | `main` | ComfyUI-Manager git ref |
-| `IMPACT_PACK_REF` | `main` | Impact Pack git ref |
+| `IMPACT_PACK_REF` | `Main` | Impact Pack git ref |
 | `WAN_VIDEO_WRAPPER_REF` | `main` | WanVideoWrapper git ref |
 | `CODE_SERVER_VERSION` | `4.103.2` | code-server version |
 | `PYTHON_VERSION` | `3` | Ubuntu package suffix for distro Python (`python3`, `python3-dev`, `python3-venv`) |
@@ -198,6 +198,12 @@ These let you pin upstream repos during image builds.
 | `ENABLE_AGGRESSIVE_OPTIMIZATIONS` | `0` | Set to `1` to install experimental optimization packages |
 | `TRITON_VERSION` | `3.6.0` | Triton version for aggressive builds |
 | `SAGEATTENTION_VERSION` | `0.1.0` | SageAttention version for aggressive builds |
+
+Custom node refs are resolved defensively during the build:
+
+- Remote branches are checked out from `origin/<ref>` when they exist.
+- Tags and commit SHAs are checked out directly.
+- The build fails fast if a requested ref does not exist for that repository.
 
 ## Runtime environment variables
 

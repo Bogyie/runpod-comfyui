@@ -22,7 +22,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 ARG PYTHON_VERSION=3
 ARG COMFYUI_REF=v0.19.0
 ARG COMFYUI_MANAGER_REF=main
-ARG IMPACT_PACK_REF=main
+ARG IMPACT_PACK_REF=Main
 ARG WAN_VIDEO_WRAPPER_REF=main
 ARG CODE_SERVER_VERSION=4.103.2
 ARG XFORMERS_INSTALL_MODE=source
@@ -90,6 +90,19 @@ RUN "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.
     /opt/bootstrap/protected-package-manifest.json
 
 RUN mkdir -p "${COMFYUI_DIR}/custom_nodes" && \
+    checkout_repo_ref() { \
+      local repo_dir="$1"; \
+      local ref="$2"; \
+      [[ -n "${ref}" ]] || return 0; \
+      if git -C "${repo_dir}" show-ref --verify --quiet "refs/remotes/origin/${ref}"; then \
+        git -C "${repo_dir}" checkout -B "${ref}" "origin/${ref}"; \
+      elif git -C "${repo_dir}" rev-parse --verify --quiet "${ref}^{commit}" >/dev/null; then \
+        git -C "${repo_dir}" checkout "${ref}"; \
+      else \
+        echo "Requested ref '${ref}' was not found for ${repo_dir}" >&2; \
+        exit 1; \
+      fi; \
+    }; \
     git clone "https://github.com/Comfy-Org/ComfyUI-Manager.git" "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager" && \
     if [[ "${INCLUDE_DEFAULT_CUSTOM_NODE_PACK}" == "1" ]]; then \
       declare -A OPTIONAL_NODE_REPOS=( \
@@ -107,16 +120,13 @@ RUN mkdir -p "${COMFYUI_DIR}/custom_nodes" && \
         git clone "${OPTIONAL_NODE_REPOS[$node_name]}" "${COMFYUI_DIR}/custom_nodes/${node_name}"; \
       done; \
     fi && \
-    cd "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager" && \
-    git checkout "${COMFYUI_MANAGER_REF}" && \
+    checkout_repo_ref "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager" "${COMFYUI_MANAGER_REF}" && \
     if [[ -d "${COMFYUI_DIR}/custom_nodes/ComfyUI-Impact-Pack" ]]; then \
-      cd "${COMFYUI_DIR}/custom_nodes/ComfyUI-Impact-Pack" && \
-      git checkout "${IMPACT_PACK_REF}"; \
+      checkout_repo_ref "${COMFYUI_DIR}/custom_nodes/ComfyUI-Impact-Pack" "${IMPACT_PACK_REF}"; \
     fi && \
     if [[ "${INCLUDE_WAN_VIDEO_WRAPPER}" == "1" ]]; then \
       git clone "https://github.com/kijai/ComfyUI-WanVideoWrapper.git" "${COMFYUI_DIR}/custom_nodes/ComfyUI-WanVideoWrapper" && \
-      cd "${COMFYUI_DIR}/custom_nodes/ComfyUI-WanVideoWrapper" && \
-      git checkout "${WAN_VIDEO_WRAPPER_REF}"; \
+      checkout_repo_ref "${COMFYUI_DIR}/custom_nodes/ComfyUI-WanVideoWrapper" "${WAN_VIDEO_WRAPPER_REF}"; \
     fi
 
 RUN source "${COMFY_VENV}/bin/activate" && \
