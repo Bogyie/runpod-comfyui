@@ -19,17 +19,10 @@ jobs:
       matrix:
         target:
           - stable
-          - slim
         plugin_pack:
           - default-pack
-          - manager-only
         optimizations:
-          - safe
           - aggressive
-        exclude:
-          - target: stable
-            plugin_pack: default-pack
-            optimizations: aggressive
     permissions:
       contents: read
       packages: write
