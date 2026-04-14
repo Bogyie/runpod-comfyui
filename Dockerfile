@@ -59,6 +59,8 @@ RUN curl -fsSL https://code-server.dev/install.sh | sh -s -- --version "${CODE_S
 
 RUN mkdir -p "${COMFY_HOME}" "${WORKSPACE_DIR}" /opt/wheels /opt/bootstrap
 
+COPY scripts/ /opt/bootstrap/scripts/
+
 RUN python${PYTHON_VERSION} -m venv "${COMFY_VENV}" && \
     "${COMFY_VENV}/bin/pip" install --upgrade pip wheel setuptools
 
@@ -83,6 +85,10 @@ RUN if [[ "${XFORMERS_INSTALL_MODE}" == "wheel" ]]; then \
       exit 1; \
     fi
 
+RUN "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
+    capture \
+    /opt/bootstrap/protected-package-manifest.json
+
 RUN mkdir -p "${COMFYUI_DIR}/custom_nodes" && \
     git clone "https://github.com/Comfy-Org/ComfyUI-Manager.git" "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager" && \
     if [[ "${INCLUDE_DEFAULT_CUSTOM_NODE_PACK}" == "1" ]]; then \
@@ -91,6 +97,8 @@ RUN mkdir -p "${COMFYUI_DIR}/custom_nodes" && \
         ["ComfyUI_IPAdapter_plus"]="https://github.com/cubiq/ComfyUI_IPAdapter_plus.git" \
         ["ComfyUI-GGUF"]="https://github.com/city96/ComfyUI-GGUF.git" \
         ["ComfyUI-Impact-Pack"]="https://github.com/ltdrdata/ComfyUI-Impact-Pack.git" \
+        ["ComfyUI-SAM3"]="https://github.com/PozzettiAndrea/ComfyUI-SAM3.git" \
+        ["Civicomfy"]="https://github.com/MoonGoblinDev/Civicomfy.git" \
         ["rgthree-comfy"]="https://github.com/rgthree/rgthree-comfy.git" \
         ["ComfyUI-Easy-Use"]="https://github.com/yolain/ComfyUI-Easy-Use.git" \
         ["ComfyUI-KJNodes"]="https://github.com/kijai/ComfyUI-KJNodes.git" \
@@ -120,24 +128,36 @@ RUN source "${COMFY_VENV}/bin/activate" && \
       if [[ -f "${node_dir}/install.py" ]]; then \
         (cd "${node_dir}" && python install.py); \
       fi; \
+      python /opt/bootstrap/scripts/verify_protected_packages.py \
+        verify \
+        /opt/bootstrap/protected-package-manifest.json; \
     done
 
 RUN if [[ "${ENABLE_AGGRESSIVE_OPTIMIZATIONS}" == "1" ]]; then \
       "${COMFY_VENV}/bin/pip" install \
         "triton==${TRITON_VERSION}" \
-        "sageattention==${SAGEATTENTION_VERSION}"; \
+        "sageattention==${SAGEATTENTION_VERSION}" && \
+      "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
+        capture \
+        /opt/bootstrap/protected-package-manifest.json; \
+    else \
+      "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
+        verify \
+        /opt/bootstrap/protected-package-manifest.json; \
     fi
 
 RUN mkdir -p /opt/bootstrap/baked-custom-nodes && \
     cp -a "${COMFYUI_DIR}/custom_nodes/." /opt/bootstrap/baked-custom-nodes/
 
-RUN "${COMFY_VENV}/bin/pip" freeze | tee /opt/bootstrap/base-requirements.lock >/dev/null && \
+RUN "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
+      verify \
+      /opt/bootstrap/protected-package-manifest.json && \
+    "${COMFY_VENV}/bin/pip" freeze | tee /opt/bootstrap/base-requirements.lock >/dev/null && \
     "${COMFY_VENV}/bin/pip" download \
     -r /opt/bootstrap/base-requirements.lock \
     --dest /opt/wheels || true
 
 COPY start.sh /opt/bootstrap/start.sh
-COPY scripts/ /opt/bootstrap/scripts/
 
 RUN chmod +x /opt/bootstrap/start.sh /opt/bootstrap/scripts/*.sh && \
     "${COMFY_VENV}/bin/python" - <<'PY'

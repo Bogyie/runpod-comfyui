@@ -42,9 +42,11 @@ The image is designed to keep the runtime stable and the mutable data outside th
 Included when `INCLUDE_DEFAULT_CUSTOM_NODE_PACK=1`:
 
 - `comfyui_controlnet_aux`
+- `Civicomfy`
 - `ComfyUI_IPAdapter_plus`
 - `ComfyUI-GGUF`
 - `ComfyUI-Impact-Pack`
+- `ComfyUI-SAM3`
 - `rgthree-comfy`
 - `ComfyUI-Easy-Use`
 - `ComfyUI-KJNodes`
@@ -168,6 +170,16 @@ Restore the base image Python environment:
 
 This restores from the baked-in lock file. It is meant to recover the base environment quickly if package changes drift.
 
+## Build-time guardrails
+
+The image build protects the core runtime stack while baked custom nodes are being installed.
+
+- A protected package manifest is captured after the base `torch/torchvision/torchaudio/xformers` install.
+- After each baked custom node install step, the build verifies that critical packages have not drifted.
+- The guarded package set currently includes `torch`, `torchvision`, `torchaudio`, `xformers`, `triton`, and `sageattention`.
+- If a custom node install changes one of those packages unexpectedly, the Docker build fails instead of producing a silently polluted image.
+- `aggressive` variants intentionally install `triton` and `sageattention`, then refresh the protected manifest after that step.
+
 ## Build arguments
 
 These let you pin upstream repos during image builds.
@@ -284,6 +296,7 @@ Before using the image, confirm the host driver is new enough for CUDA 12.8.
 - Several baked custom nodes bring substantial Python dependencies of their own.
 - This improves out-of-the-box usability, but it also means upstream node changes can affect image build stability more than before.
 - `manager-only` variants reduce that surface area and are a good choice for stricter production templates.
+- This repo uses `Civicomfy` as the default Civitai integration node because its documented workflow fits PV-backed cloud setups well, including Runpod-style storage roots.
 - For production use, you will likely want to pin these repos to specific commits once you finish your first validation pass.
 
 ## Next steps
