@@ -192,7 +192,7 @@ These let you pin upstream repos during image builds.
 | `WAN_VIDEO_WRAPPER_REF` | `main` | WanVideoWrapper git ref |
 | `CODE_SERVER_VERSION` | `4.103.2` | code-server version |
 | `PYTHON_VERSION` | `3` | Ubuntu package suffix for distro Python (`python3`, `python3-dev`, `python3-venv`) |
-| `XFORMERS_INSTALL_MODE` | `wheel` | `wheel` for faster builds, `source` for Blackwell fallback |
+| `XFORMERS_INSTALL_MODE` | `source` | `source` for the safest default on current Blackwell-ready builds, `wheel` for faster rebuilds when validated |
 | `INCLUDE_DEFAULT_CUSTOM_NODE_PACK` | `1` | Set to `0` to bake only `ComfyUI-Manager` |
 | `INCLUDE_WAN_VIDEO_WRAPPER` | `0` | Set to `1` to bake in WanVideoWrapper |
 | `ENABLE_AGGRESSIVE_OPTIMIZATIONS` | `0` | Set to `1` to install experimental optimization packages |
@@ -267,9 +267,9 @@ Before using the image, confirm the host driver is new enough for CUDA 12.8.
 
 ### xformers
 
-- The image defaults to `XFORMERS_INSTALL_MODE=wheel` because it builds faster.
-- On some Blackwell systems, especially RTX 5090, prebuilt xformers wheels have been reported to fail at runtime with kernel compatibility errors.
-- If that happens, rebuild the image with `--build-arg XFORMERS_INSTALL_MODE=source`. This is slower to build but is often a better fallback for new GPU architectures.
+- The image now defaults to `XFORMERS_INSTALL_MODE=source` because it is the safer baseline on the current Python 3.12 and CUDA 12.8 stack.
+- On some Blackwell systems, especially RTX 5090, prebuilt xformers wheels have been reported to fail at runtime or load against an incompatible Python or PyTorch build.
+- If you have already validated a compatible prebuilt wheel for your target stack, you can rebuild with `--build-arg XFORMERS_INSTALL_MODE=wheel` to speed up image builds.
 - Keep xformers pinned and install it without dependency resolution so it does not replace your chosen torch build.
 - The `slim` image does not change xformers behavior. It only removes recovery-oriented cache files from the final runtime layer.
 

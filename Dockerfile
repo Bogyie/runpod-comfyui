@@ -25,7 +25,7 @@ ARG COMFYUI_MANAGER_REF=main
 ARG IMPACT_PACK_REF=main
 ARG WAN_VIDEO_WRAPPER_REF=main
 ARG CODE_SERVER_VERSION=4.103.2
-ARG XFORMERS_INSTALL_MODE=wheel
+ARG XFORMERS_INSTALL_MODE=source
 ARG INCLUDE_WAN_VIDEO_WRAPPER=0
 ARG INCLUDE_DEFAULT_CUSTOM_NODE_PACK=1
 ARG ENABLE_AGGRESSIVE_OPTIMIZATIONS=0
@@ -154,6 +154,7 @@ RUN "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.
       /opt/bootstrap/protected-package-manifest.json && \
     "${COMFY_VENV}/bin/pip" freeze | tee /opt/bootstrap/base-requirements.lock >/dev/null && \
     "${COMFY_VENV}/bin/pip" download \
+    --extra-index-url "${PYTORCH_INDEX_URL}" \
     -r /opt/bootstrap/base-requirements.lock \
     --dest /opt/wheels || true
 
@@ -162,6 +163,9 @@ COPY start.sh /opt/bootstrap/start.sh
 RUN chmod +x /opt/bootstrap/start.sh /opt/bootstrap/scripts/*.sh && \
     "${COMFY_VENV}/bin/python" - <<'PY'
 import importlib
+import os
+import sys
+sys.path.insert(0, os.environ["COMFYUI_DIR"])
 for module in ["torch", "xformers", "server", "execution"]:
     importlib.import_module(module)
 print("Smoke test passed.")
@@ -214,6 +218,9 @@ COPY --from=builder /opt/bootstrap /opt/bootstrap
 
 RUN "${COMFY_VENV}/bin/python" - <<'PY'
 import importlib
+import os
+import sys
+sys.path.insert(0, os.environ["COMFYUI_DIR"])
 for module in ["torch", "xformers", "server", "execution"]:
     importlib.import_module(module)
 print("Runtime smoke test passed.")
