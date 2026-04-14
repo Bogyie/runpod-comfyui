@@ -34,6 +34,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Normalize image name
+        run: echo "IMAGE_NAME_LC=${IMAGE_NAME,,}" >> "$GITHUB_ENV"
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -52,7 +55,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_NAME }}
+          images: ${{ env.IMAGE_NAME_LC }}
           tags: |
             type=ref,event=branch,suffix=-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }}
             type=ref,event=tag,suffix=-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }}
@@ -72,7 +75,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ${{ steps.meta.outputs.tags }}
-            ghcr.io/${{ github.repository_owner }}/runpod-comfyui:pr-smoke-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }}
+            ${{ env.IMAGE_NAME_LC }}:pr-smoke-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -80,5 +83,5 @@ jobs:
       - name: Smoke test imports
         if: github.event_name == 'pull_request'
         run: |
-          docker run --rm ghcr.io/${{ github.repository_owner }}/runpod-comfyui:pr-smoke-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }} \
+          docker run --rm ${{ env.IMAGE_NAME_LC }}:pr-smoke-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }} \
             /bin/bash -lc 'source /opt/comfy/venv/bin/activate && python -c "import torch, xformers, server, execution; print(torch.__version__)"'
