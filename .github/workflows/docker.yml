@@ -20,6 +20,12 @@ jobs:
         target:
           - stable
           - slim
+        plugin_pack:
+          - default-pack
+          - manager-only
+        optimizations:
+          - safe
+          - aggressive
     permissions:
       contents: read
       packages: write
@@ -48,10 +54,10 @@ jobs:
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch,suffix=-${{ matrix.target }}
-            type=ref,event=tag,suffix=-${{ matrix.target }}
-            type=sha,prefix=sha-,suffix=-${{ matrix.target }}
-            type=raw,value=latest-${{ matrix.target }},enable={{is_default_branch}}
+            type=ref,event=branch,suffix=-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }}
+            type=ref,event=tag,suffix=-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }}
+            type=sha,prefix=sha-,suffix=-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }}
+            type=raw,value=latest-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }},enable={{is_default_branch}}
 
       - name: Build image
         uses: docker/build-push-action@v6
@@ -59,11 +65,14 @@ jobs:
           context: .
           file: ./Dockerfile
           target: ${{ matrix.target }}
+          build-args: |
+            INCLUDE_DEFAULT_CUSTOM_NODE_PACK=${{ matrix.plugin_pack == 'default-pack' && '1' || '0' }}
+            ENABLE_AGGRESSIVE_OPTIMIZATIONS=${{ matrix.optimizations == 'aggressive' && '1' || '0' }}
           load: ${{ github.event_name == 'pull_request' }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ${{ steps.meta.outputs.tags }}
-            ghcr.io/${{ github.repository_owner }}/runpod-comfyui:pr-smoke-${{ matrix.target }}
+            ghcr.io/${{ github.repository_owner }}/runpod-comfyui:pr-smoke-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -71,5 +80,5 @@ jobs:
       - name: Smoke test imports
         if: github.event_name == 'pull_request'
         run: |
-          docker run --rm ghcr.io/${{ github.repository_owner }}/runpod-comfyui:pr-smoke-${{ matrix.target }} \
+          docker run --rm ghcr.io/${{ github.repository_owner }}/runpod-comfyui:pr-smoke-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }} \
             /bin/bash -lc 'source /opt/comfy/venv/bin/activate && python -c "import torch, xformers, server, execution; print(torch.__version__)"'

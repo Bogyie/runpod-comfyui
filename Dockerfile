@@ -20,11 +20,17 @@ ENV DEBIAN_FRONTEND=noninteractive \
     XFORMERS_VERSION=0.0.35
 
 ARG PYTHON_VERSION=3.11
-ARG COMFYUI_REF=master
+ARG COMFYUI_REF=v0.12.3
 ARG COMFYUI_MANAGER_REF=main
 ARG IMPACT_PACK_REF=main
+ARG WAN_VIDEO_WRAPPER_REF=main
 ARG CODE_SERVER_VERSION=4.103.2
 ARG XFORMERS_INSTALL_MODE=wheel
+ARG INCLUDE_WAN_VIDEO_WRAPPER=0
+ARG INCLUDE_DEFAULT_CUSTOM_NODE_PACK=1
+ARG ENABLE_AGGRESSIVE_OPTIMIZATIONS=0
+ARG TRITON_VERSION=3.6.0
+ARG SAGEATTENTION_VERSION=0.1.0
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -78,17 +84,49 @@ RUN if [[ "${XFORMERS_INSTALL_MODE}" == "wheel" ]]; then \
     fi
 
 RUN mkdir -p "${COMFYUI_DIR}/custom_nodes" && \
-    git clone https://github.com/ltdrdata/ComfyUI-Manager.git "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager" && \
+    git clone "https://github.com/Comfy-Org/ComfyUI-Manager.git" "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager" && \
+    if [[ "${INCLUDE_DEFAULT_CUSTOM_NODE_PACK}" == "1" ]]; then \
+      declare -A OPTIONAL_NODE_REPOS=( \
+        ["comfyui_controlnet_aux"]="https://github.com/Fannovel16/comfyui_controlnet_aux.git" \
+        ["ComfyUI_IPAdapter_plus"]="https://github.com/cubiq/ComfyUI_IPAdapter_plus.git" \
+        ["ComfyUI-GGUF"]="https://github.com/city96/ComfyUI-GGUF.git" \
+        ["ComfyUI-Impact-Pack"]="https://github.com/ltdrdata/ComfyUI-Impact-Pack.git" \
+        ["rgthree-comfy"]="https://github.com/rgthree/rgthree-comfy.git" \
+        ["ComfyUI-Easy-Use"]="https://github.com/yolain/ComfyUI-Easy-Use.git" \
+        ["ComfyUI-KJNodes"]="https://github.com/kijai/ComfyUI-KJNodes.git" \
+      ) && \
+      for node_name in "${!OPTIONAL_NODE_REPOS[@]}"; do \
+        git clone "${OPTIONAL_NODE_REPOS[$node_name]}" "${COMFYUI_DIR}/custom_nodes/${node_name}"; \
+      done; \
+    fi && \
     cd "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager" && \
     git checkout "${COMFYUI_MANAGER_REF}" && \
-    git clone https://github.com/ltdrdata/ComfyUI-Impact-Pack.git "${COMFYUI_DIR}/custom_nodes/ComfyUI-Impact-Pack" && \
-    cd "${COMFYUI_DIR}/custom_nodes/ComfyUI-Impact-Pack" && \
-    git checkout "${IMPACT_PACK_REF}"
+    if [[ -d "${COMFYUI_DIR}/custom_nodes/ComfyUI-Impact-Pack" ]]; then \
+      cd "${COMFYUI_DIR}/custom_nodes/ComfyUI-Impact-Pack" && \
+      git checkout "${IMPACT_PACK_REF}"; \
+    fi && \
+    if [[ "${INCLUDE_WAN_VIDEO_WRAPPER}" == "1" ]]; then \
+      git clone "https://github.com/kijai/ComfyUI-WanVideoWrapper.git" "${COMFYUI_DIR}/custom_nodes/ComfyUI-WanVideoWrapper" && \
+      cd "${COMFYUI_DIR}/custom_nodes/ComfyUI-WanVideoWrapper" && \
+      git checkout "${WAN_VIDEO_WRAPPER_REF}"; \
+    fi
 
-RUN "${COMFY_VENV}/bin/pip" install \
-    -r "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager/requirements.txt" && \
-    "${COMFY_VENV}/bin/pip" install \
-    -r "${COMFYUI_DIR}/custom_nodes/ComfyUI-Impact-Pack/requirements.txt"
+RUN source "${COMFY_VENV}/bin/activate" && \
+    for node_dir in "${COMFYUI_DIR}"/custom_nodes/*; do \
+      [[ -d "${node_dir}" ]] || continue; \
+      if [[ -f "${node_dir}/requirements.txt" ]]; then \
+        pip install -r "${node_dir}/requirements.txt"; \
+      fi; \
+      if [[ -f "${node_dir}/install.py" ]]; then \
+        (cd "${node_dir}" && python install.py); \
+      fi; \
+    done
+
+RUN if [[ "${ENABLE_AGGRESSIVE_OPTIMIZATIONS}" == "1" ]]; then \
+      "${COMFY_VENV}/bin/pip" install \
+        "triton==${TRITON_VERSION}" \
+        "sageattention==${SAGEATTENTION_VERSION}"; \
+    fi
 
 RUN mkdir -p /opt/bootstrap/baked-custom-nodes && \
     cp -a "${COMFYUI_DIR}/custom_nodes/." /opt/bootstrap/baked-custom-nodes/
