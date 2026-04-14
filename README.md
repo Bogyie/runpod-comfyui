@@ -218,7 +218,14 @@ Custom node refs are resolved defensively during the build:
 
 ## GitHub Actions image build
 
-The workflow in [docker.yml](/Users/dev/repo/github/bogyie/runpod-comfyui/.github/workflows/docker.yml) builds the full matrix across `stable/slim`, `default-pack/manager-only`, and `safe/aggressive` with Buildx and publishes them to GHCR on pushes to `main` and version tags.
+The workflow in [docker.yml](/Users/dev/repo/github/bogyie/runpod-comfyui/.github/workflows/docker.yml) currently publishes four explicit `stable` variants:
+
+- `stable-default-aggr`
+- `stable-default-safe`
+- `stable-manager-aggr`
+- `stable-manager-safe`
+
+The workflow is structured around explicit matrix entries so additional variants can be added later without going back to a noisy full cartesian matrix. The `stable-default-aggr` image is treated as the canonical build and also receives the short aliases like `latest`, `main`, and release tags.
 
 Default image name:
 
@@ -228,7 +235,7 @@ ghcr.io/<github-owner>/runpod-comfyui
 
 Recommended Runpod template practice:
 
-- Point the template to a pinned image tag, not `latest-*`.
+- Point the template to a pinned image tag, not just `latest`.
 - Promote a tested version tag after validation on your target GPUs.
 - Keep the persistent volume mounted at `/workspace`.
 - Use `stable` first unless you know you do not need the baked wheel cache.
@@ -238,11 +245,14 @@ Recommended Runpod template practice:
 Example tags:
 
 ```text
-ghcr.io/<github-owner>/runpod-comfyui:latest-stable-default-pack-safe
-ghcr.io/<github-owner>/runpod-comfyui:latest-stable-default-pack-aggressive
-ghcr.io/<github-owner>/runpod-comfyui:latest-stable-manager-only-safe
-ghcr.io/<github-owner>/runpod-comfyui:latest-slim-manager-only-safe
-ghcr.io/<github-owner>/runpod-comfyui:v0.1.0-stable-default-pack-safe
+ghcr.io/<github-owner>/runpod-comfyui:latest
+ghcr.io/<github-owner>/runpod-comfyui:main
+ghcr.io/<github-owner>/runpod-comfyui:stable-default-aggr
+ghcr.io/<github-owner>/runpod-comfyui:stable-default-safe
+ghcr.io/<github-owner>/runpod-comfyui:stable-manager-aggr
+ghcr.io/<github-owner>/runpod-comfyui:stable-manager-safe
+ghcr.io/<github-owner>/runpod-comfyui:sha-<commit>-stable-default-aggr
+ghcr.io/<github-owner>/runpod-comfyui:v0.1.0
 ```
 
 ## Notes on GPU compatibility

@@ -17,12 +17,27 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target:
-          - stable
-        plugin_pack:
-          - default-pack
-        optimizations:
-          - aggressive
+        include:
+          - target: stable
+            plugin_pack: default-pack
+            optimizations: aggressive
+            variant: stable-default-aggr
+            is_canonical: "true"
+          - target: stable
+            plugin_pack: default-pack
+            optimizations: safe
+            variant: stable-default-safe
+            is_canonical: "false"
+          - target: stable
+            plugin_pack: manager-only
+            optimizations: aggressive
+            variant: stable-manager-aggr
+            is_canonical: "false"
+          - target: stable
+            plugin_pack: manager-only
+            optimizations: safe
+            variant: stable-manager-safe
+            is_canonical: "false"
     permissions:
       contents: read
       packages: write
@@ -54,10 +69,11 @@ jobs:
         with:
           images: ${{ env.IMAGE_NAME_LC }}
           tags: |
-            type=ref,event=branch,suffix=-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }}
-            type=ref,event=tag,suffix=-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }}
-            type=sha,prefix=sha-,suffix=-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }}
-            type=raw,value=latest-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }},enable={{is_default_branch}}
+            type=ref,event=branch,enable=${{ matrix.is_canonical == 'true' }}
+            type=ref,event=tag,enable=${{ matrix.is_canonical == 'true' }}
+            type=sha,prefix=sha-,suffix=-${{ matrix.variant }}
+            type=raw,value=${{ matrix.variant }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && matrix.is_canonical == 'true' }}
 
       - name: Build image
         uses: docker/build-push-action@v6
@@ -72,7 +88,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ${{ steps.meta.outputs.tags }}
-            ${{ env.IMAGE_NAME_LC }}:pr-smoke-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }}
+            ${{ env.IMAGE_NAME_LC }}:pr-${{ matrix.variant }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -80,5 +96,5 @@ jobs:
       - name: Smoke test imports
         if: github.event_name == 'pull_request'
         run: |
-          docker run --rm ${{ env.IMAGE_NAME_LC }}:pr-smoke-${{ matrix.target }}-${{ matrix.plugin_pack }}-${{ matrix.optimizations }} \
+          docker run --rm ${{ env.IMAGE_NAME_LC }}:pr-${{ matrix.variant }} \
             /bin/bash -lc 'source /opt/comfy/venv/bin/activate && python -c "import torch, xformers, server, execution; print(torch.__version__)"'
