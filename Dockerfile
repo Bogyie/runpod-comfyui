@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04
+FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04 AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
@@ -29,9 +29,9 @@ ARG XFORMERS_INSTALL_MODE=wheel
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     ca-certificates \
     curl \
-    dumb-init \
     ffmpeg \
     git \
     jq \
@@ -45,7 +45,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python${PYTHON_VERSION}-dev \
     python${PYTHON_VERSION}-venv \
     rsync \
-    tini \
     unzip \
     wget \
     && rm -rf /var/lib/apt/lists/*
@@ -110,7 +109,68 @@ for module in ["torch", "xformers", "server", "execution"]:
 print("Smoke test passed.")
 PY
 
+FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04 AS runtime-base
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    COMFY_HOME=/opt/comfy \
+    COMFYUI_DIR=/opt/comfy/ComfyUI \
+    COMFY_VENV=/opt/comfy/venv \
+    WORKSPACE_DIR=/workspace \
+    STORAGE_DIR=/workspace/storage \
+    CODE_SERVER_PORT=8080 \
+    COMFYUI_PORT=8188 \
+    CLI_ARGS=
+
+ARG PYTHON_VERSION=3.11
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    dumb-init \
+    ffmpeg \
+    git \
+    jq \
+    libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    openssh-client \
+    python${PYTHON_VERSION} \
+    python${PYTHON_VERSION}-venv \
+    rsync \
+    tini \
+    unzip \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /usr/bin/code-server /usr/bin/code-server
+COPY --from=builder /usr/lib/code-server /usr/lib/code-server
+COPY --from=builder /opt/comfy /opt/comfy
+COPY --from=builder /opt/bootstrap /opt/bootstrap
+
+RUN "${COMFY_VENV}/bin/python" - <<'PY'
+import importlib
+for module in ["torch", "xformers", "server", "execution"]:
+    importlib.import_module(module)
+print("Runtime smoke test passed.")
+PY
+
 EXPOSE 8080 8188
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+
+FROM runtime-base AS stable
+
+COPY --from=builder /opt/wheels /opt/wheels
+
+CMD ["/opt/bootstrap/start.sh"]
+
+FROM runtime-base AS slim
+
 CMD ["/opt/bootstrap/start.sh"]

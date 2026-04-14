@@ -15,6 +15,11 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - stable
+          - slim
     permissions:
       contents: read
       packages: write
@@ -43,21 +48,22 @@ jobs:
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=tag
-            type=sha,prefix=sha-
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch,suffix=-${{ matrix.target }}
+            type=ref,event=tag,suffix=-${{ matrix.target }}
+            type=sha,prefix=sha-,suffix=-${{ matrix.target }}
+            type=raw,value=latest-${{ matrix.target }},enable={{is_default_branch}}
 
       - name: Build image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
+          target: ${{ matrix.target }}
           load: ${{ github.event_name == 'pull_request' }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ${{ steps.meta.outputs.tags }}
-            ghcr.io/${{ github.repository_owner }}/runpod-comfyui:pr-smoke
+            ghcr.io/${{ github.repository_owner }}/runpod-comfyui:pr-smoke-${{ matrix.target }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -65,5 +71,5 @@ jobs:
       - name: Smoke test imports
         if: github.event_name == 'pull_request'
         run: |
-          docker run --rm ghcr.io/${{ github.repository_owner }}/runpod-comfyui:pr-smoke \
+          docker run --rm ghcr.io/${{ github.repository_owner }}/runpod-comfyui:pr-smoke-${{ matrix.target }} \
             /bin/bash -lc 'source /opt/comfy/venv/bin/activate && python -c "import torch, xformers, server, execution; print(torch.__version__)"'

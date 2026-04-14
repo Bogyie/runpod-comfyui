@@ -13,6 +13,12 @@ Runpod Pod template for ComfyUI with a fast startup path, persistent volume stor
 
 The image is designed to keep the runtime stable and the mutable data outside the container.
 
+### Image variants
+
+- `stable`: includes the recovery-friendly wheel cache in `/opt/wheels` and is the recommended default for daily use.
+- `slim`: removes the wheel cache to shrink the runtime image size while keeping the same runtime behavior.
+- Both variants share the same ComfyUI, PyTorch, xformers, code-server, and baked custom node stack.
+
 ### Baked into the image
 
 - CUDA 12.8 base image
@@ -24,6 +30,10 @@ The image is designed to keep the runtime stable and the mutable data outside th
 - `ComfyUI-Impact-Pack`
 - `code-server`
 - Recovery scripts in `/opt/bootstrap/scripts`
+
+### Stable-only extras
+
+- Wheel cache in `/opt/wheels` for faster environment restoration
 
 ### Kept on the persistent volume
 
@@ -154,7 +164,7 @@ These let you pin upstream repos during image builds.
 
 ## GitHub Actions image build
 
-The workflow in [docker.yml](/Users/dev/repo/github/bogyie/runpod-comfyui/.github/workflows/docker.yml) builds the image with Buildx and publishes it to GHCR on pushes to `main` and version tags.
+The workflow in [docker.yml](/Users/dev/repo/github/bogyie/runpod-comfyui/.github/workflows/docker.yml) builds both `stable` and `slim` targets with Buildx and publishes them to GHCR on pushes to `main` and version tags.
 
 Default image name:
 
@@ -164,9 +174,19 @@ ghcr.io/<github-owner>/runpod-comfyui
 
 Recommended Runpod template practice:
 
-- Point the template to a pinned image tag, not `latest`.
+- Point the template to a pinned image tag, not `latest-*`.
 - Promote a tested version tag after validation on your target GPUs.
 - Keep the persistent volume mounted at `/workspace`.
+- Use `stable` first unless you know you do not need the baked wheel cache.
+
+Example tags:
+
+```text
+ghcr.io/<github-owner>/runpod-comfyui:latest-stable
+ghcr.io/<github-owner>/runpod-comfyui:latest-slim
+ghcr.io/<github-owner>/runpod-comfyui:v0.1.0-stable
+ghcr.io/<github-owner>/runpod-comfyui:v0.1.0-slim
+```
 
 ## Notes on GPU compatibility
 
@@ -199,6 +219,7 @@ Before using the image, confirm the host driver is new enough for CUDA 12.8.
 - On some Blackwell systems, especially RTX 5090, prebuilt xformers wheels have been reported to fail at runtime with kernel compatibility errors.
 - If that happens, rebuild the image with `--build-arg XFORMERS_INSTALL_MODE=source`. This is slower to build but is often a better fallback for new GPU architectures.
 - Keep xformers pinned and install it without dependency resolution so it does not replace your chosen torch build.
+- The `slim` image does not change xformers behavior. It only removes recovery-oriented cache files from the final runtime layer.
 
 ### Triton
 
