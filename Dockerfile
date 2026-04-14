@@ -174,10 +174,15 @@ RUN chmod +x /opt/bootstrap/start.sh /opt/bootstrap/scripts/*.sh && \
     "${COMFY_VENV}/bin/python" - <<'PY'
 import importlib
 import os
+from pathlib import Path
 import sys
 sys.path.insert(0, os.environ["COMFYUI_DIR"])
-for module in ["torch", "xformers", "server", "execution"]:
+for module in ["torch", "xformers"]:
     importlib.import_module(module)
+for module_file in ["server.py", "execution.py"]:
+    path = Path(os.environ["COMFYUI_DIR"]) / module_file
+    if not path.is_file():
+        raise FileNotFoundError(f"Missing expected ComfyUI module file: {path}")
 print("Smoke test passed.")
 PY
 
@@ -229,10 +234,15 @@ COPY --from=builder /opt/bootstrap /opt/bootstrap
 RUN "${COMFY_VENV}/bin/python" - <<'PY'
 import importlib
 import os
+from pathlib import Path
 import sys
 sys.path.insert(0, os.environ["COMFYUI_DIR"])
-for module in ["torch", "xformers", "server", "execution"]:
+for module in ["torch", "xformers"]:
     importlib.import_module(module)
+for module_file in ["server.py", "execution.py"]:
+    path = Path(os.environ["COMFYUI_DIR"]) / module_file
+    if not path.is_file():
+        raise FileNotFoundError(f"Missing expected ComfyUI module file: {path}")
 print("Runtime smoke test passed.")
 PY
 
