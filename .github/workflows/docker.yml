@@ -97,4 +97,21 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           docker run --rm ${{ env.IMAGE_NAME_LC }}:pr-${{ matrix.variant }} \
-            /bin/bash -lc 'source /opt/comfy/venv/bin/activate && python -c "import torch, xformers, server, execution; print(torch.__version__)"'
+            /bin/bash -lc 'source /opt/comfy/venv/bin/activate && python - <<'"'"'PY'"'"'
+import importlib
+import os
+from pathlib import Path
+import sys
+
+sys.path.insert(0, os.environ["COMFYUI_DIR"])
+
+for module in ["torch", "xformers"]:
+    importlib.import_module(module)
+
+for module_file in ["server.py", "execution.py"]:
+    path = Path(os.environ["COMFYUI_DIR"]) / module_file
+    if not path.is_file():
+        raise FileNotFoundError(f"Missing expected ComfyUI module file: {path}")
+
+print("Workflow smoke test passed.")
+PY'

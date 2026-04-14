@@ -14,18 +14,18 @@ ENV DEBIAN_FRONTEND=noninteractive \
     COMFYUI_PORT=8188 \
     CLI_ARGS= \
     PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cu128 \
-    TORCH_VERSION=2.7.1 \
-    TORCHVISION_VERSION=0.22.1 \
-    TORCHAUDIO_VERSION=2.7.1 \
+    TORCH_VERSION=2.10.0 \
+    TORCHVISION_VERSION=0.25.0 \
+    TORCHAUDIO_VERSION=2.10.0 \
     XFORMERS_VERSION=0.0.35
 
-ARG PYTHON_VERSION=3
+ARG PYTHON_VERSION=3.11.15
 ARG COMFYUI_REF=v0.19.0
 ARG COMFYUI_MANAGER_REF=main
 ARG IMPACT_PACK_REF=Main
 ARG WAN_VIDEO_WRAPPER_REF=main
 ARG CODE_SERVER_VERSION=4.103.2
-ARG XFORMERS_INSTALL_MODE=source
+ARG XFORMERS_INSTALL_MODE=wheel
 ARG INCLUDE_WAN_VIDEO_WRAPPER=0
 ARG INCLUDE_DEFAULT_CUSTOM_NODE_PACK=1
 ARG ENABLE_AGGRESSIVE_OPTIMIZATIONS=0
@@ -41,18 +41,27 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     git \
     jq \
+    libbz2-dev \
+    libffi-dev \
+    libgdbm-dev \
     libgl1 \
     libglib2.0-0 \
+    liblzma-dev \
+    libncursesw5-dev \
+    libnss3-dev \
+    libreadline-dev \
     libsm6 \
+    libsqlite3-dev \
+    libssl-dev \
     libxext6 \
     libxrender1 \
     openssh-client \
-    python${PYTHON_VERSION} \
-    python${PYTHON_VERSION}-dev \
-    python${PYTHON_VERSION}-venv \
     rsync \
+    tk-dev \
     unzip \
     wget \
+    xz-utils \
+    zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL https://code-server.dev/install.sh | sh -s -- --version "${CODE_SERVER_VERSION}"
@@ -61,7 +70,21 @@ RUN mkdir -p "${COMFY_HOME}" "${WORKSPACE_DIR}" /opt/wheels /opt/bootstrap
 
 COPY scripts/ /opt/bootstrap/scripts/
 
-RUN python${PYTHON_VERSION} -m venv "${COMFY_VENV}" && \
+RUN curl -fsSLO "https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz" && \
+    tar -xf "Python-${PYTHON_VERSION}.tar.xz" && \
+    cd "Python-${PYTHON_VERSION}" && \
+    ./configure \
+      --prefix=/opt/python/${PYTHON_VERSION} \
+      --enable-optimizations \
+      --with-lto \
+      --with-ensurepip=install && \
+    make -j"$(nproc)" && \
+    make install && \
+    cd / && \
+    rm -rf "Python-${PYTHON_VERSION}" "Python-${PYTHON_VERSION}.tar.xz" && \
+    ln -s /opt/python/${PYTHON_VERSION} /opt/python/current
+
+RUN /opt/python/current/bin/python3.11 -m venv "${COMFY_VENV}" && \
     "${COMFY_VENV}/bin/pip" install --upgrade pip wheel setuptools
 
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git "${COMFYUI_DIR}" && \
@@ -77,7 +100,10 @@ RUN "${COMFY_VENV}/bin/pip" install \
     -r "${COMFYUI_DIR}/requirements.txt"
 
 RUN if [[ "${XFORMERS_INSTALL_MODE}" == "wheel" ]]; then \
-      "${COMFY_VENV}/bin/pip" install "xformers==${XFORMERS_VERSION}" --no-deps; \
+      "${COMFY_VENV}/bin/pip" install \
+        "xformers==${XFORMERS_VERSION}" \
+        --index-url "${PYTORCH_INDEX_URL}" \
+        --no-deps; \
     elif [[ "${XFORMERS_INSTALL_MODE}" == "source" ]]; then \
       "${COMFY_VENV}/bin/pip" install --no-build-isolation "xformers==${XFORMERS_VERSION}" --no-deps; \
     else \
@@ -202,7 +228,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     COMFYUI_PORT=8188 \
     CLI_ARGS=
 
-ARG PYTHON_VERSION=3
+ARG PYTHON_VERSION=3.11.15
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -212,24 +238,35 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     git \
     jq \
+    libbz2-1.0 \
+    libffi8 \
+    libgdbm6 \
     libgl1 \
     libglib2.0-0 \
+    liblzma5 \
+    libncursesw6 \
+    libnss3 \
+    libreadline8 \
     libsm6 \
+    libsqlite3-0 \
+    libssl3 \
     libxext6 \
     libxrender1 \
+    libuuid1 \
     openssh-client \
-    python${PYTHON_VERSION} \
-    python${PYTHON_VERSION}-venv \
     rsync \
+    tk \
     tini \
     unzip \
     wget \
+    zlib1g \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/bin/code-server /usr/bin/code-server
 COPY --from=builder /usr/lib/code-server /usr/lib/code-server
 COPY --from=builder /opt/comfy /opt/comfy
 COPY --from=builder /opt/bootstrap /opt/bootstrap
+COPY --from=builder /opt/python /opt/python
 
 RUN "${COMFY_VENV}/bin/python" - <<'PY'
 import importlib
