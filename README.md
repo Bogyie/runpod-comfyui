@@ -186,12 +186,12 @@ These let you pin upstream repos during image builds.
 
 | Name | Default | Purpose |
 |---|---|---|
-| `COMFYUI_REF` | `v0.12.3` | ComfyUI git ref |
+| `COMFYUI_REF` | `v0.19.0` | ComfyUI git ref |
 | `COMFYUI_MANAGER_REF` | `main` | ComfyUI-Manager git ref |
 | `IMPACT_PACK_REF` | `main` | Impact Pack git ref |
 | `WAN_VIDEO_WRAPPER_REF` | `main` | WanVideoWrapper git ref |
 | `CODE_SERVER_VERSION` | `4.103.2` | code-server version |
-| `PYTHON_VERSION` | `3.11` | Python minor version |
+| `PYTHON_VERSION` | `3` | Ubuntu package suffix for distro Python (`python3`, `python3-dev`, `python3-venv`) |
 | `XFORMERS_INSTALL_MODE` | `wheel` | `wheel` for faster builds, `source` for Blackwell fallback |
 | `INCLUDE_DEFAULT_CUSTOM_NODE_PACK` | `1` | Set to `0` to bake only `ComfyUI-Manager` |
 | `INCLUDE_WAN_VIDEO_WRAPPER` | `0` | Set to `1` to bake in WanVideoWrapper |
@@ -249,8 +249,9 @@ Before using the image, confirm the host driver is new enough for CUDA 12.8.
 
 ### Python
 
-- Python `3.11` is the default because it is broadly supported by the current PyTorch and xformers releases while staying conservative for ComfyUI custom nodes.
-- Avoid moving to Python `3.12+` until your must-have custom nodes have been validated against it.
+- This image installs Ubuntu 24.04's distro `python3` packages instead of requesting `python3.11` specifically.
+- In practice that means the image will currently use Ubuntu 24.04's default Python runtime.
+- If you later need a strictly pinned Python minor version, it is better to introduce a dedicated image flavor than to depend on distro package naming as if it were a version pin.
 
 ### CUDA and driver compatibility
 
