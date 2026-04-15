@@ -16,4 +16,10 @@ else
   "${COMFY_VENV}/bin/pip" install -r "${LOCK_FILE}"
 fi
 
-echo "Restored environment from ${LOCK_FILE}"
+if [[ -f /opt/bootstrap/protected-package-manifest.json ]]; then
+  "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
+    verify \
+    /opt/bootstrap/protected-package-manifest.json
+fi
+
+echo "Restored and verified environment from ${LOCK_FILE}"

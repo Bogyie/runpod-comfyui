@@ -32,7 +32,8 @@ if [[ -d /opt/bootstrap/baked-custom-nodes ]]; then
   rsync -a --ignore-existing /opt/bootstrap/baked-custom-nodes/ "${STORAGE_DIR}/custom_nodes/"
 fi
 
-cat > "${COMFYUI_DIR}/extra_model_paths.yaml" <<EOF
+if [[ ! -f "${COMFYUI_DIR}/extra_model_paths.yaml" ]]; then
+  cat > "${COMFYUI_DIR}/extra_model_paths.yaml" <<EOF
 runpod:
   base_path: ${STORAGE_DIR}/models
   checkpoints: checkpoints
@@ -50,13 +51,19 @@ runpod:
   unet: unet
   gligen: gligen
 EOF
+fi
 
 link_path() {
   local source="$1"
   local target="$2"
 
-  if [[ -L "${target}" || -e "${target}" ]]; then
+  if [[ -L "${target}" ]]; then
+    rm "${target}"
+  elif [[ -d "${target}" ]]; then
+    rsync -a "${target}/" "${source}/"
     rm -rf "${target}"
+  elif [[ -e "${target}" ]]; then
+    rm -f "${target}"
   fi
   ln -s "${source}" "${target}"
 }

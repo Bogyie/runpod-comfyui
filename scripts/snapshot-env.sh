@@ -8,6 +8,11 @@ TARGET_DIR="${WORKSPACE_DIR}/state/snapshots/${STAMP}"
 
 mkdir -p "${TARGET_DIR}"
 "${COMFY_VENV}/bin/pip" freeze > "${TARGET_DIR}/pip-freeze.txt"
-cp /opt/bootstrap/base-requirements.lock "${TARGET_DIR}/base-requirements.lock"
+
+if [[ -f /opt/bootstrap/base-requirements.lock ]]; then
+  cp /opt/bootstrap/base-requirements.lock "${TARGET_DIR}/base-requirements.lock"
+else
+  echo "Warning: base-requirements.lock not found, skipping" >&2
+fi
 
 echo "Saved environment snapshot to ${TARGET_DIR}"
