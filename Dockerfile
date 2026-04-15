@@ -145,6 +145,9 @@ RUN --mount=type=cache,id=pip-builder,target=/root/.cache/pip \
       exit 1; \
     fi
 
+RUN --mount=type=cache,id=pip-builder,target=/root/.cache/pip \
+    "${COMFY_VENV}/bin/pip" install "huggingface_hub[cli]"
+
 # Moved after heavy pip installs so script edits don't invalidate
 # the Python / PyTorch / xformers layers above.
 COPY scripts/ /opt/bootstrap/scripts/
@@ -303,6 +306,10 @@ RUN --mount=type=cache,id=apt-runtime,target=/var/cache/apt,sharing=locked \
     unzip \
     wget \
     zlib1g
+
+RUN curl -fsSL -o /usr/local/bin/runpodctl \
+      "https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64" && \
+    chmod +x /usr/local/bin/runpodctl
 
 COPY --from=builder /usr/bin/code-server /usr/bin/code-server
 COPY --from=builder /usr/lib/code-server /usr/lib/code-server
