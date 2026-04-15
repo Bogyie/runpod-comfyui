@@ -29,6 +29,12 @@ Before using the image, confirm the host driver is new enough for CUDA 12.8.
 - Keep xformers pinned and install it without dependency resolution so it does not replace your chosen torch build.
 - The `slim` image does not change xformers behavior. It only removes recovery-oriented cache files from the final runtime layer.
 
+## Model path normalization
+
+- `/opt/comfy/ComfyUI/models` is linked to `/workspace/storage/models`, so the persistent volume matches ComfyUI's default model root directly.
+- Common folder aliases are normalized with symlinks so either naming convention works.
+- Current aliases include `diffusion_models -> checkpoints`, `unet -> checkpoints`, `text_encoders -> clip`, and `t2i_adapter -> controlnet`.
+
 ## CUDA and driver compatibility
 
 - This template assumes a host driver new enough for CUDA `12.8`.

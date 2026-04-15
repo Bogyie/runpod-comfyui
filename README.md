@@ -76,6 +76,8 @@ Main custom node path:
 /workspace/storage/custom_nodes
 ```
 
+Model storage also follows the ComfyUI default `models/` layout, and common alias folders such as `diffusion_models`, `unet`, `text_encoders`, and `t2i_adapter` are linked automatically to the matching storage paths.
+
 ## Ports
 
 - `8188` for ComfyUI
