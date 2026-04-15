@@ -101,8 +101,8 @@ jobs:
             ${{ steps.meta.outputs.tags }}
             ${{ github.event_name == 'pull_request' && format('{0}:pr-{1}', env.IMAGE_NAME_LC, matrix.variant) || '' }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=${{ env.IMAGE_NAME_LC }}:cache-${{ matrix.variant }}
+          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}:cache-{1},mode=max', env.IMAGE_NAME_LC, matrix.variant) || '' }}
 
       - name: Smoke test imports
         if: github.event_name == 'pull_request'
