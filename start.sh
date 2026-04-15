@@ -12,6 +12,7 @@ export COMFYUI_HOST="${COMFYUI_HOST:-0.0.0.0}"
 export CODE_SERVER_HOST="${CODE_SERVER_HOST:-0.0.0.0}"
 export CODE_SERVER_AUTH="${CODE_SERVER_AUTH:-none}"
 export CLI_ARGS="${CLI_ARGS:-}"
+export COMFY_ORIGIN="https://${RUNPOD_POD_ID}-${COMFY_PORT}.proxy.runpod.net"
 
 log() {
   printf '[startup] %s\n' "$*"
@@ -52,6 +53,7 @@ log "Starting ComfyUI on port ${COMFYUI_PORT}..."
 python "${COMFYUI_DIR}/main.py" \
   --listen "${COMFYUI_HOST}" \
   --port "${COMFYUI_PORT}" \
+  --enable-cors-header "${COMFY_ORIGIN}" \
   ${CLI_ARGS} \
   > "${WORKSPACE_DIR}/logs/comfyui.log" 2>&1 &
 
