@@ -20,15 +20,17 @@ Runpod Pod template for ComfyUI with fast startup, persistent volume storage, ba
 - `stable-manager-safe`
   Smallest stable baseline. Good when you want most nodes managed on the volume.
 
-Canonical tags:
+Image tags (example for release `v1.0.2`):
 
 ```text
-ghcr.io/<github-owner>/runpod-comfyui:latest
-ghcr.io/<github-owner>/runpod-comfyui:main
-ghcr.io/<github-owner>/runpod-comfyui:stable-default-aggr
+ghcr.io/bogyie/runpod-comfyui:latest
+ghcr.io/bogyie/runpod-comfyui:v1.0.2
+ghcr.io/bogyie/runpod-comfyui:v1.0.2-stable-default-aggr
+ghcr.io/bogyie/runpod-comfyui:py311-pt210-cu128-cf019-stable-default-aggr
+ghcr.io/bogyie/runpod-comfyui:stable-default-aggr
 ```
 
-Use a pinned tag for production templates rather than `latest`.
+Use a pinned release or version-slug tag for production templates rather than `latest`.
 
 ## Included in the image
 
@@ -107,5 +109,5 @@ Restore the baked base environment:
 
 ## More details
 
-- Technical stack and compatibility notes: [docs/technical-details.md](/Users/dev/repo/github/bogyie/runpod-comfyui/docs/technical-details.md)
-- Build arguments and workflow notes: [docs/build-reference.md](/Users/dev/repo/github/bogyie/runpod-comfyui/docs/build-reference.md)
+- Technical stack and compatibility notes: [docs/technical-details.md](docs/technical-details.md)
+- Build arguments and workflow notes: [docs/build-reference.md](docs/build-reference.md)

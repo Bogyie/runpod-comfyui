@@ -26,7 +26,22 @@ The GitHub Actions workflow currently publishes these explicit `stable` variants
 - `stable-manager-aggr`
 - `stable-manager-safe`
 
-`stable-default-aggr` is treated as the canonical build and also receives short aliases like `latest`, `main`, and release tags.
+`stable-default-aggr` is treated as the canonical build and also receives `latest` and bare release tags (e.g. `v1.0.2`).
+
+### Image tags
+
+Each variant receives the following tags on release:
+
+| Tag pattern | Example | Scope |
+|---|---|---|
+| `<release-tag>` | `v1.0.2` | canonical only |
+| `<release-tag>-<variant>` | `v1.0.2-stable-default-aggr` | all variants |
+| `<version-slug>-<variant>` | `py311-pt210-cu128-cf019-stable-default-aggr` | all variants |
+| `<variant>` | `stable-default-aggr` | all variants |
+| `sha-<hash>-<variant>` | `sha-abc1234-stable-default-aggr` | all variants |
+| `latest` | `latest` | canonical only |
+
+The version slug encodes the runtime stack: Python, PyTorch, CUDA, and ComfyUI versions (3 digits each, dots stripped).
 
 ## Build arguments
 
@@ -56,6 +71,35 @@ The GitHub Actions workflow currently publishes these explicit `stable` variants
 | `CODE_SERVER_AUTH` | `none` | code-server auth mode |
 | `CLI_ARGS` | empty | Extra ComfyUI CLI flags |
 
+## Dockerfile architecture
+
+### Multi-stage build
+
+The Dockerfile uses three stages to maximize build cache efficiency:
+
+1. **`python-builder`** -- Compiles CPython from source in an isolated stage. Changes to ComfyUI refs, scripts, or pip dependencies never trigger a Python recompilation.
+2. **`builder`** -- Installs code-server, PyTorch, xformers, ComfyUI, and custom nodes. Uses BuildKit cache mounts for pip and apt.
+3. **`runtime-base`** -- Minimal runtime image based on `cuda:*-runtime` (not `-devel`). Copies only the artifacts needed from builder.
+
+### BuildKit cache mounts
+
+All `pip install` and `apt-get` commands use `--mount=type=cache` with per-stage IDs to avoid cross-contamination between devel and runtime base images:
+
+- `apt-python-builder`, `apt-builder`, `apt-runtime` -- apt package caches
+- `pip-builder` -- pip wheel download cache
+
+### CI cache
+
+The GitHub Actions workflow uses GHCR registry-based caching (`type=registry`) instead of the default GHA cache to avoid the 10 GB repository cache limit. Each matrix variant stores its cache independently:
+
+```text
+ghcr.io/bogyie/runpod-comfyui:cache-stable-default-aggr
+ghcr.io/bogyie/runpod-comfyui:cache-stable-default-safe
+...
+```
+
+Cache writes are skipped on PR builds to avoid permission errors from fork contexts.
+
 ## Build-time guardrails
 
 - A protected package manifest is captured after the base `torch/torchvision/torchaudio/xformers` install.
@@ -70,10 +114,17 @@ Custom node refs are resolved defensively during the build:
 - Tags and commit SHAs are checked out directly.
 - The build fails fast if a requested ref does not exist.
 
+All git clones use `--depth 1` to minimize image size and build time.
+
 ## GitHub Actions notes
 
+- Builds are triggered on **GitHub Release** (published), **pull request**, and **manual dispatch** -- not on push to main.
 - The workflow uses explicit matrix entries instead of a full cartesian matrix so additional variants can be added later without making tags noisy.
+- `fail-fast: false` ensures all variants build independently.
+- `timeout-minutes: 90` prevents hung builds from consuming runner hours.
+- `concurrency` control cancels in-progress builds when a new one is triggered for the same ref and variant.
 - PR smoke tests use a GPU-safe import check so builds can still validate on GitHub-hosted runners without NVIDIA drivers.
+- code-server is installed from the GitHub Releases `.deb` package directly, avoiding the rate-limited `code-server.dev` install script.
 
 ## Suggested next improvements
 

@@ -18,7 +18,8 @@ Before using the image, confirm the host driver is new enough for CUDA 12.8.
 
 - This image builds CPython `3.11.15` from the upstream Python release tarball instead of relying on Ubuntu's distro Python packages.
 - That keeps the interpreter version stable across GitHub Actions runner changes and Ubuntu package updates.
-- The virtual environment is created from `/opt/python/current/bin/python3.11`, so rebuilds preserve the same Python patch version unless you change `PYTHON_VERSION`.
+- The virtual environment is created from `/opt/python/current/bin/python3`, so rebuilds preserve the same Python patch version unless you change `PYTHON_VERSION`.
+- Python compilation is isolated in a dedicated `python-builder` stage so that changes to ComfyUI refs, scripts, or pip dependencies never trigger a recompilation.
 
 ## xformers
 
