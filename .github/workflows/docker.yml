@@ -1,11 +1,8 @@
 name: docker
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - "v*"
+  release:
+    types: [published]
   pull_request:
   workflow_dispatch:
 
@@ -20,7 +17,12 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
+    concurrency:
+      group: docker-${{ github.ref }}-${{ matrix.variant }}
+      cancel-in-progress: true
     strategy:
+      fail-fast: false
       matrix:
         include:
           - target: stable
@@ -77,12 +79,12 @@ jobs:
         with:
           images: ${{ env.IMAGE_NAME_LC }}
           tags: |
-            type=ref,event=branch,enable=${{ matrix.is_canonical == 'true' }}
             type=ref,event=tag,enable=${{ matrix.is_canonical == 'true' }}
+            type=ref,event=tag,suffix=-${{ matrix.variant }}
             type=sha,prefix=sha-,suffix=-${{ matrix.variant }}
             type=raw,value=${{ matrix.variant }}
             type=raw,value=${{ env.VERSION_SLUG }}-${{ matrix.variant }}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && matrix.is_canonical == 'true' }}
+            type=raw,value=latest,enable=${{ github.event_name == 'release' && matrix.is_canonical == 'true' }}
 
       - name: Build image
         uses: docker/build-push-action@v6
@@ -97,7 +99,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ${{ steps.meta.outputs.tags }}
-            ${{ env.IMAGE_NAME_LC }}:pr-${{ matrix.variant }}
+            ${{ github.event_name == 'pull_request' && format('{0}:pr-{1}', env.IMAGE_NAME_LC, matrix.variant) || '' }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

@@ -114,12 +114,11 @@ RUN mkdir -p "${COMFY_HOME}" "${WORKSPACE_DIR}" /opt/wheels /opt/bootstrap
 COPY --from=python-builder /opt/python /opt/python
 
 RUN --mount=type=cache,id=pip-builder,target=/root/.cache/pip \
-    /opt/python/current/bin/python3.11 -m venv "${COMFY_VENV}" && \
+    /opt/python/current/bin/python3 -m venv "${COMFY_VENV}" && \
     "${COMFY_VENV}/bin/pip" install --upgrade pip wheel setuptools
 
-RUN git clone https://github.com/comfyanonymous/ComfyUI.git "${COMFYUI_DIR}" && \
-    cd "${COMFYUI_DIR}" && \
-    git checkout "${COMFYUI_REF}"
+RUN git clone --depth 1 --branch "${COMFYUI_REF}" \
+    https://github.com/comfyanonymous/ComfyUI.git "${COMFYUI_DIR}"
 
 RUN --mount=type=cache,id=pip-builder,target=/root/.cache/pip \
     "${COMFY_VENV}/bin/pip" install \
@@ -165,7 +164,7 @@ RUN mkdir -p "${COMFYUI_DIR}/custom_nodes" && \
         exit 1; \
       fi; \
     }; \
-    git clone "https://github.com/Comfy-Org/ComfyUI-Manager.git" "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager" && \
+    git clone --depth 1 "https://github.com/Comfy-Org/ComfyUI-Manager.git" "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager" && \
     if [[ "${INCLUDE_DEFAULT_CUSTOM_NODE_PACK}" == "1" ]]; then \
       declare -A OPTIONAL_NODE_REPOS=( \
         ["comfyui_controlnet_aux"]="https://github.com/Fannovel16/comfyui_controlnet_aux.git" \
@@ -179,7 +178,7 @@ RUN mkdir -p "${COMFYUI_DIR}/custom_nodes" && \
         ["ComfyUI-KJNodes"]="https://github.com/kijai/ComfyUI-KJNodes.git" \
       ) && \
       for node_name in "${!OPTIONAL_NODE_REPOS[@]}"; do \
-        git clone "${OPTIONAL_NODE_REPOS[$node_name]}" "${COMFYUI_DIR}/custom_nodes/${node_name}"; \
+        git clone --depth 1 "${OPTIONAL_NODE_REPOS[$node_name]}" "${COMFYUI_DIR}/custom_nodes/${node_name}"; \
       done; \
     fi && \
     checkout_repo_ref "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager" "${COMFYUI_MANAGER_REF}" && \
@@ -187,7 +186,7 @@ RUN mkdir -p "${COMFYUI_DIR}/custom_nodes" && \
       checkout_repo_ref "${COMFYUI_DIR}/custom_nodes/ComfyUI-Impact-Pack" "${IMPACT_PACK_REF}"; \
     fi && \
     if [[ "${INCLUDE_WAN_VIDEO_WRAPPER}" == "1" ]]; then \
-      git clone "https://github.com/kijai/ComfyUI-WanVideoWrapper.git" "${COMFYUI_DIR}/custom_nodes/ComfyUI-WanVideoWrapper" && \
+      git clone --depth 1 "https://github.com/kijai/ComfyUI-WanVideoWrapper.git" "${COMFYUI_DIR}/custom_nodes/ComfyUI-WanVideoWrapper" && \
       checkout_repo_ref "${COMFYUI_DIR}/custom_nodes/ComfyUI-WanVideoWrapper" "${WAN_VIDEO_WRAPPER_REF}"; \
     fi
 
@@ -298,7 +297,6 @@ RUN --mount=type=cache,id=apt-runtime,target=/var/cache/apt,sharing=locked \
     openssh-client \
     rsync \
     tk \
-    tini \
     unzip \
     wget \
     zlib1g

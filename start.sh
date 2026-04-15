@@ -23,8 +23,10 @@ log() {
 }
 
 cleanup() {
+  local exit_code=$?
   log "Shutting down background services..."
-  jobs -pr | xargs -r kill
+  jobs -pr | xargs -r kill 2>/dev/null || true
+  exit ${exit_code}
 }
 
 trap cleanup EXIT INT TERM
@@ -50,19 +52,30 @@ code-server \
   --config "${WORKSPACE_DIR}/code-server/config.yaml" \
   "${WORKSPACE_DIR}" \
   > "${WORKSPACE_DIR}/logs/code-server.log" 2>&1 &
+CODE_PID=$!
 
 source "${COMFY_VENV}/bin/activate"
+
+read -ra cli_args <<< "${CLI_ARGS}"
 
 log "Starting ComfyUI on port ${COMFYUI_PORT}..."
 python "${COMFYUI_DIR}/main.py" \
   --listen "${COMFYUI_HOST}" \
   --port "${COMFYUI_PORT}" \
   --enable-cors-header "${COMFY_ORIGIN}" \
-  ${CLI_ARGS} \
+  "${cli_args[@]+"${cli_args[@]}"}" \
   > "${WORKSPACE_DIR}/logs/comfyui.log" 2>&1 &
+COMFY_PID=$!
 
 log "ComfyUI log: ${WORKSPACE_DIR}/logs/comfyui.log"
 log "code-server log: ${WORKSPACE_DIR}/logs/code-server.log"
 log "Waiting for services..."
 
-wait -n
+wait -n ${CODE_PID} ${COMFY_PID} || true
+EXIT_CODE=$?
+if kill -0 ${CODE_PID} 2>/dev/null; then
+  log "ComfyUI (PID ${COMFY_PID}) exited with code ${EXIT_CODE}"
+else
+  log "code-server (PID ${CODE_PID}) exited with code ${EXIT_CODE}"
+fi
+exit ${EXIT_CODE}
