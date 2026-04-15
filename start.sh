@@ -12,7 +12,11 @@ export COMFYUI_HOST="${COMFYUI_HOST:-0.0.0.0}"
 export CODE_SERVER_HOST="${CODE_SERVER_HOST:-0.0.0.0}"
 export CODE_SERVER_AUTH="${CODE_SERVER_AUTH:-none}"
 export CLI_ARGS="${CLI_ARGS:-}"
-export COMFY_ORIGIN="https://${RUNPOD_POD_ID}-${COMFY_PORT}.proxy.runpod.net"
+if [[ -n "${RUNPOD_POD_ID:-}" ]]; then
+  export COMFY_ORIGIN="https://${RUNPOD_POD_ID}-${COMFYUI_PORT}.proxy.runpod.net"
+else
+  export COMFY_ORIGIN="http://localhost:${COMFYUI_PORT}"
+fi
 
 log() {
   printf '[startup] %s\n' "$*"
