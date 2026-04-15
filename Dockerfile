@@ -307,7 +307,7 @@ RUN --mount=type=cache,id=apt-runtime,target=/var/cache/apt,sharing=locked \
     wget \
     zlib1g
 
-RUN curl -fsSL -o /usr/local/bin/runpodctl \
+RUN wget -q -O /usr/local/bin/runpodctl \
       "https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64" && \
     chmod +x /usr/local/bin/runpodctl
 
