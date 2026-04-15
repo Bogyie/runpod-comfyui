@@ -73,9 +73,15 @@ log "Waiting for services..."
 
 wait -n ${CODE_PID} ${COMFY_PID} || true
 EXIT_CODE=$?
-if kill -0 ${CODE_PID} 2>/dev/null; then
-  log "ComfyUI (PID ${COMFY_PID}) exited with code ${EXIT_CODE}"
-else
-  log "code-server (PID ${CODE_PID}) exited with code ${EXIT_CODE}"
+
+if ! kill -0 ${CODE_PID} 2>/dev/null; then
+  log "code-server (PID ${CODE_PID}) exited with code ${EXIT_CODE}, shutting down"
+  exit ${EXIT_CODE}
 fi
-exit ${EXIT_CODE}
+
+log "ComfyUI (PID ${COMFY_PID}) exited with code ${EXIT_CODE}"
+log "code-server is still running — use restart-comfyui.sh to recover:"
+log "  /opt/bootstrap/scripts/restart-comfyui.sh           # restart only"
+log "  /opt/bootstrap/scripts/restart-comfyui.sh --recover  # restore env + restart"
+
+wait ${CODE_PID} || true
