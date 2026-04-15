@@ -107,7 +107,10 @@ RUN --mount=type=cache,id=apt-builder,target=/var/cache/apt,sharing=locked \
     xz-utils \
     zlib1g-dev
 
-RUN curl -fsSL https://code-server.dev/install.sh | sh -s -- --version "${CODE_SERVER_VERSION}"
+RUN curl -fsSL -o /tmp/code-server.deb \
+      "https://github.com/coder/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_amd64.deb" && \
+    dpkg -i /tmp/code-server.deb && \
+    rm /tmp/code-server.deb
 
 RUN mkdir -p "${COMFY_HOME}" "${WORKSPACE_DIR}" /opt/wheels /opt/bootstrap
 
