@@ -1,10 +1,52 @@
+# ── Stage 1: Python build (cached independently) ─────────────────────
+# Isolated so that changes to COMFYUI_REF, scripts/, etc. never
+# trigger a ~20-minute Python recompilation.
+FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04 AS python-builder
+
+ARG PYTHON_VERSION=3.11.15
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN --mount=type=cache,id=apt-python-builder,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=aptlists-python-builder,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    curl \
+    libbz2-dev \
+    libffi-dev \
+    libgdbm-dev \
+    liblzma-dev \
+    libncursesw5-dev \
+    libnss3-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    tk-dev \
+    xz-utils \
+    zlib1g-dev
+
+RUN curl -fsSLO "https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz" && \
+    tar -xf "Python-${PYTHON_VERSION}.tar.xz" && \
+    cd "Python-${PYTHON_VERSION}" && \
+    ./configure \
+      --prefix=/opt/python/${PYTHON_VERSION} \
+      --enable-optimizations \
+      --with-lto \
+      --with-ensurepip=install && \
+    make -j"$(nproc)" && \
+    make install && \
+    cd / && \
+    rm -rf "Python-${PYTHON_VERSION}" "Python-${PYTHON_VERSION}.tar.xz" && \
+    ln -s /opt/python/${PYTHON_VERSION} /opt/python/current
+
+# ── Stage 2: Main builder ────────────────────────────────────────────
 FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04 AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
     COMFY_HOME=/opt/comfy \
     COMFYUI_DIR=/opt/comfy/ComfyUI \
     COMFY_VENV=/opt/comfy/venv \
@@ -34,7 +76,9 @@ ARG SAGEATTENTION_VERSION=0.1.0
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN --mount=type=cache,id=apt-builder,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=aptlists-builder,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
     curl \
@@ -61,37 +105,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     wget \
     xz-utils \
-    zlib1g-dev \
-    && rm -rf /var/lib/apt/lists/*
+    zlib1g-dev
 
 RUN curl -fsSL https://code-server.dev/install.sh | sh -s -- --version "${CODE_SERVER_VERSION}"
 
 RUN mkdir -p "${COMFY_HOME}" "${WORKSPACE_DIR}" /opt/wheels /opt/bootstrap
 
-COPY scripts/ /opt/bootstrap/scripts/
+COPY --from=python-builder /opt/python /opt/python
 
-RUN curl -fsSLO "https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz" && \
-    tar -xf "Python-${PYTHON_VERSION}.tar.xz" && \
-    cd "Python-${PYTHON_VERSION}" && \
-    ./configure \
-      --prefix=/opt/python/${PYTHON_VERSION} \
-      --enable-optimizations \
-      --with-lto \
-      --with-ensurepip=install && \
-    make -j"$(nproc)" && \
-    make install && \
-    cd / && \
-    rm -rf "Python-${PYTHON_VERSION}" "Python-${PYTHON_VERSION}.tar.xz" && \
-    ln -s /opt/python/${PYTHON_VERSION} /opt/python/current
-
-RUN /opt/python/current/bin/python3.11 -m venv "${COMFY_VENV}" && \
+RUN --mount=type=cache,id=pip-builder,target=/root/.cache/pip \
+    /opt/python/current/bin/python3.11 -m venv "${COMFY_VENV}" && \
     "${COMFY_VENV}/bin/pip" install --upgrade pip wheel setuptools
 
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git "${COMFYUI_DIR}" && \
     cd "${COMFYUI_DIR}" && \
     git checkout "${COMFYUI_REF}"
 
-RUN "${COMFY_VENV}/bin/pip" install \
+RUN --mount=type=cache,id=pip-builder,target=/root/.cache/pip \
+    "${COMFY_VENV}/bin/pip" install \
     "torch==${TORCH_VERSION}" \
     "torchvision==${TORCHVISION_VERSION}" \
     "torchaudio==${TORCHAUDIO_VERSION}" \
@@ -99,7 +130,8 @@ RUN "${COMFY_VENV}/bin/pip" install \
     "${COMFY_VENV}/bin/pip" install \
     -r "${COMFYUI_DIR}/requirements.txt"
 
-RUN if [[ "${XFORMERS_INSTALL_MODE}" == "wheel" ]]; then \
+RUN --mount=type=cache,id=pip-builder,target=/root/.cache/pip \
+    if [[ "${XFORMERS_INSTALL_MODE}" == "wheel" ]]; then \
       "${COMFY_VENV}/bin/pip" install \
         "xformers==${XFORMERS_VERSION}" \
         --index-url "${PYTORCH_INDEX_URL}" \
@@ -110,6 +142,10 @@ RUN if [[ "${XFORMERS_INSTALL_MODE}" == "wheel" ]]; then \
       echo "Unsupported XFORMERS_INSTALL_MODE=${XFORMERS_INSTALL_MODE}" >&2; \
       exit 1; \
     fi
+
+# Moved after heavy pip installs so script edits don't invalidate
+# the Python / PyTorch / xformers layers above.
+COPY scripts/ /opt/bootstrap/scripts/
 
 RUN "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
     capture \
@@ -155,7 +191,8 @@ RUN mkdir -p "${COMFYUI_DIR}/custom_nodes" && \
       checkout_repo_ref "${COMFYUI_DIR}/custom_nodes/ComfyUI-WanVideoWrapper" "${WAN_VIDEO_WRAPPER_REF}"; \
     fi
 
-RUN source "${COMFY_VENV}/bin/activate" && \
+RUN --mount=type=cache,id=pip-builder,target=/root/.cache/pip \
+    source "${COMFY_VENV}/bin/activate" && \
     for node_dir in "${COMFYUI_DIR}"/custom_nodes/*; do \
       [[ -d "${node_dir}" ]] || continue; \
       if [[ -f "${node_dir}/requirements.txt" ]]; then \
@@ -169,7 +206,8 @@ RUN source "${COMFY_VENV}/bin/activate" && \
         /opt/bootstrap/protected-package-manifest.json; \
     done
 
-RUN if [[ "${ENABLE_AGGRESSIVE_OPTIMIZATIONS}" == "1" ]]; then \
+RUN --mount=type=cache,id=pip-builder,target=/root/.cache/pip \
+    if [[ "${ENABLE_AGGRESSIVE_OPTIMIZATIONS}" == "1" ]]; then \
       "${COMFY_VENV}/bin/pip" install \
         "triton==${TRITON_VERSION}" \
         "sageattention==${SAGEATTENTION_VERSION}" && \
@@ -185,7 +223,8 @@ RUN if [[ "${ENABLE_AGGRESSIVE_OPTIMIZATIONS}" == "1" ]]; then \
 RUN mkdir -p /opt/bootstrap/baked-custom-nodes && \
     cp -a "${COMFYUI_DIR}/custom_nodes/." /opt/bootstrap/baked-custom-nodes/
 
-RUN "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
+RUN --mount=type=cache,id=pip-builder,target=/root/.cache/pip \
+    "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
       verify \
       /opt/bootstrap/protected-package-manifest.json && \
     "${COMFY_VENV}/bin/pip" freeze | tee /opt/bootstrap/base-requirements.lock >/dev/null && \
@@ -212,6 +251,7 @@ for module_file in ["server.py", "execution.py"]:
 print("Smoke test passed.")
 PY
 
+# ── Stage 3: Runtime base ────────────────────────────────────────────
 FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04 AS runtime-base
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -232,7 +272,9 @@ ARG PYTHON_VERSION=3.11.15
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN --mount=type=cache,id=apt-runtime,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=aptlists-runtime,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     dumb-init \
     ffmpeg \
@@ -259,8 +301,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tini \
     unzip \
     wget \
-    zlib1g \
-    && rm -rf /var/lib/apt/lists/*
+    zlib1g
 
 COPY --from=builder /usr/bin/code-server /usr/bin/code-server
 COPY --from=builder /usr/lib/code-server /usr/lib/code-server
