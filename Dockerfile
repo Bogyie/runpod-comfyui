@@ -177,7 +177,7 @@ RUN mkdir -p "${COMFYUI_DIR}/custom_nodes" && \
         ["ComfyUI_IPAdapter_plus"]="https://github.com/cubiq/ComfyUI_IPAdapter_plus.git" \
         ["ComfyUI-GGUF"]="https://github.com/city96/ComfyUI-GGUF.git" \
         ["ComfyUI-Impact-Pack"]="https://github.com/ltdrdata/ComfyUI-Impact-Pack.git" \
-        ["ComfyUI-SAM3"]="https://github.com/PozzettiAndrea/ComfyUI-SAM3.git" \
+        ["ComfyUI-TBG-SAM3"]="https://github.com/Ltamann/ComfyUI-TBG-SAM3.git" \
         ["Civicomfy"]="https://github.com/MoonGoblinDev/Civicomfy.git" \
         ["rgthree-comfy"]="https://github.com/rgthree/rgthree-comfy.git" \
         ["ComfyUI-Easy-Use"]="https://github.com/yolain/ComfyUI-Easy-Use.git" \
