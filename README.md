@@ -46,7 +46,7 @@ Default baked custom node pack:
 - `ComfyUI_IPAdapter_plus`
 - `ComfyUI-GGUF`
 - `ComfyUI-Impact-Pack`
-- `ComfyUI-SAM3`
+- `ComfyUI-Sapiens2-Easy`
 - `rgthree-comfy`
 - `ComfyUI-Easy-Use`
 - `ComfyUI-KJNodes`
