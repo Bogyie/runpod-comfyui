@@ -175,10 +175,8 @@ RUN mkdir -p "${COMFYUI_DIR}/custom_nodes" && \
       declare -A OPTIONAL_NODE_REPOS=( \
         ["comfyui_controlnet_aux"]="https://github.com/Fannovel16/comfyui_controlnet_aux.git" \
         ["ComfyUI_IPAdapter_plus"]="https://github.com/cubiq/ComfyUI_IPAdapter_plus.git" \
-        ["ComfyUI-GGUF"]="https://github.com/city96/ComfyUI-GGUF.git" \
         ["ComfyUI-Impact-Pack"]="https://github.com/ltdrdata/ComfyUI-Impact-Pack.git" \
         ["ComfyUI-Sapiens2-Easy"]="https://github.com/Bogyie/ComfyUI-Sapiens2-Easy.git" \
-        ["Civicomfy"]="https://github.com/MoonGoblinDev/Civicomfy.git" \
         ["rgthree-comfy"]="https://github.com/rgthree/rgthree-comfy.git" \
         ["ComfyUI-Easy-Use"]="https://github.com/yolain/ComfyUI-Easy-Use.git" \
         ["ComfyUI-KJNodes"]="https://github.com/kijai/ComfyUI-KJNodes.git" \

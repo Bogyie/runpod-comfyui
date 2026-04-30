@@ -33,7 +33,7 @@ Before using the image, confirm the host driver is new enough for CUDA 12.8.
 
 - `/opt/comfy/ComfyUI/models` is linked to `/workspace/storage/models`, so the persistent volume matches ComfyUI's default model root directly.
 - Common folder aliases are normalized with symlinks so either naming convention works.
-- Current aliases include `diffusion_models -> checkpoints`, `unet -> checkpoints`, `text_encoders -> clip`, and `t2i_adapter -> controlnet`.
+- Current aliases include `unet -> diffusion_models`, `text_encoders -> clip`, and `t2i_adapter -> controlnet`.
 
 ## CUDA and driver compatibility
 
@@ -73,5 +73,4 @@ Before using the image, confirm the host driver is new enough for CUDA 12.8.
 - Several baked custom nodes bring substantial Python dependencies of their own.
 - This improves out-of-the-box usability, but it also means upstream node changes can affect image build stability more than before.
 - `manager-only` variants reduce that surface area and are a good choice for stricter production templates.
-- This repo uses `Civicomfy` as the default Civitai integration node because its documented workflow fits PV-backed cloud setups well.
 - For production use, you will likely want to pin ComfyUI and baked node repos to specific commits after your first validation pass.

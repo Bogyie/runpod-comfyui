@@ -5,29 +5,6 @@ COMFYUI_DIR="${COMFYUI_DIR:-/opt/comfy/ComfyUI}"
 WORKSPACE_DIR="${WORKSPACE_DIR:-/workspace}"
 STORAGE_DIR="${STORAGE_DIR:-/workspace/storage}"
 
-mkdir -p \
-  "${STORAGE_DIR}/custom_nodes" \
-  "${STORAGE_DIR}/custom_nodes.disabled" \
-  "${STORAGE_DIR}/input" \
-  "${STORAGE_DIR}/output" \
-  "${STORAGE_DIR}/temp" \
-  "${STORAGE_DIR}/user/default/workflows" \
-  "${STORAGE_DIR}/models/checkpoints" \
-  "${STORAGE_DIR}/models/clip" \
-  "${STORAGE_DIR}/models/clip_vision" \
-  "${STORAGE_DIR}/models/configs" \
-  "${STORAGE_DIR}/models/controlnet" \
-  "${STORAGE_DIR}/models/diffusers" \
-  "${STORAGE_DIR}/models/embeddings" \
-  "${STORAGE_DIR}/models/gligen" \
-  "${STORAGE_DIR}/models/hypernetworks" \
-  "${STORAGE_DIR}/models/loras" \
-  "${STORAGE_DIR}/models/style_models" \
-  "${STORAGE_DIR}/models/unet" \
-  "${STORAGE_DIR}/models/upscale_models" \
-  "${STORAGE_DIR}/models/vae" \
-  "${WORKSPACE_DIR}/logs"
-
 link_path() {
   local source="$1"
   local target="$2"
@@ -43,15 +20,43 @@ link_path() {
   ln -s "${source}" "${target}"
 }
 
+ensure_model_dir() {
+  local path="$1"
+  local migration_dir
+
+  mkdir -p "$(dirname "${path}")"
+  if [[ -L "${path}" ]]; then
+    migration_dir="$(mktemp -d "${path}.migration.XXXXXX")"
+    if [[ -d "${path}" ]]; then
+      rsync -a --ignore-existing "${path}/" "${migration_dir}/"
+    fi
+    rm "${path}"
+    mkdir -p "${path}"
+    rsync -a --ignore-existing "${migration_dir}/" "${path}/"
+    rm -rf "${migration_dir}"
+  else
+    mkdir -p "${path}"
+  fi
+}
+
 link_model_alias() {
   local canonical="$1"
   local alias_name="$2"
   local canonical_path="${STORAGE_DIR}/models/${canonical}"
   local alias_path="${STORAGE_DIR}/models/${alias_name}"
+  local alias_real
+  local canonical_real
 
-  mkdir -p "${canonical_path}"
+  ensure_model_dir "${canonical_path}"
 
   if [[ -L "${alias_path}" ]]; then
+    if [[ -d "${alias_path}" ]]; then
+      alias_real="$(cd "${alias_path}" && pwd -P)"
+      canonical_real="$(cd "${canonical_path}" && pwd -P)"
+      if [[ "${alias_real}" != "${canonical_real}" ]]; then
+        rsync -a --ignore-existing "${alias_path}/" "${canonical_path}/"
+      fi
+    fi
     rm "${alias_path}"
   elif [[ -d "${alias_path}" ]]; then
     rsync -a "${alias_path}/" "${canonical_path}/"
@@ -63,13 +68,39 @@ link_model_alias() {
   ln -s "${canonical_path}" "${alias_path}"
 }
 
+mkdir -p \
+  "${STORAGE_DIR}/custom_nodes" \
+  "${STORAGE_DIR}/custom_nodes.disabled" \
+  "${STORAGE_DIR}/input" \
+  "${STORAGE_DIR}/output" \
+  "${STORAGE_DIR}/temp" \
+  "${STORAGE_DIR}/user/default/workflows" \
+  "${WORKSPACE_DIR}/logs"
+
+for model_dir in \
+  checkpoints \
+  clip \
+  clip_vision \
+  configs \
+  controlnet \
+  diffusion_models \
+  diffusers \
+  embeddings \
+  gligen \
+  hypernetworks \
+  loras \
+  style_models \
+  upscale_models \
+  vae; do
+  ensure_model_dir "${STORAGE_DIR}/models/${model_dir}"
+done
+
 if [[ -d /opt/bootstrap/baked-custom-nodes ]]; then
   rsync -a --ignore-existing /opt/bootstrap/baked-custom-nodes/ "${STORAGE_DIR}/custom_nodes/"
 fi
 
 # Normalize common model folder aliases so either naming convention works.
-link_model_alias "checkpoints" "diffusion_models"
-link_model_alias "checkpoints" "unet"
+link_model_alias "diffusion_models" "unet"
 link_model_alias "clip" "text_encoders"
 link_model_alias "controlnet" "t2i_adapter"
 
@@ -77,8 +108,9 @@ cat > "${COMFYUI_DIR}/extra_model_paths.yaml" <<EOF
 runpod:
   base_path: ${STORAGE_DIR}/models
   checkpoints: checkpoints
-  diffusion_models: diffusion_models
-  unet: unet
+  diffusion_models: |
+    diffusion_models
+    unet
   configs: configs
   vae: vae
   loras: loras
