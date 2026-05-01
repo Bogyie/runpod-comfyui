@@ -317,6 +317,8 @@ RUN --mount=type=cache,id=apt-runtime,target=/var/cache/apt,sharing=locked \
     libuuid1 \
     rsync \
     tk \
+    unzip \
+    wget \
     zlib1g
 
 COPY --from=builder /opt/comfy /opt/comfy
@@ -348,9 +350,7 @@ RUN --mount=type=cache,id=apt-runtime-stable,target=/var/cache/apt,sharing=locke
     --mount=type=cache,id=aptlists-runtime-stable,target=/var/lib/apt/lists,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
       jq \
-      openssh-client \
-      unzip \
-      wget && \
+      openssh-client && \
     wget -q -O /usr/local/bin/runpodctl \
       "https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64" && \
     chmod +x /usr/local/bin/runpodctl
