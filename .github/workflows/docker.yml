@@ -8,6 +8,7 @@ on:
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/runpod-comfyui
+  DOCKERHUB_IMAGE: docker.io/bogyie/runpod-comfyui
   # Keep in sync with Dockerfile ARG/ENV defaults
   PY_VERSION: "3.11"
   CUDA_VERSION: "12.8"
@@ -88,11 +89,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request' && matrix.variant == 'slim'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_NAME_LC }}
+          images: |
+            ${{ env.IMAGE_NAME_LC }}
+            name=${{ env.DOCKERHUB_IMAGE }},enable=${{ matrix.variant == 'slim' }}
           tags: |
             type=ref,event=tag,enable=${{ matrix.is_canonical == 'true' }}
             type=ref,event=tag,suffix=-${{ matrix.variant }}

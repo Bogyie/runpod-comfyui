@@ -46,6 +46,8 @@ Each variant receives the following tags on release:
 
 The version slug encodes the runtime stack: Python, PyTorch, CUDA, and ComfyUI versions (3 digits each, dots stripped).
 
+The `slim` variant is also pushed to Docker Hub as `docker.io/bogyie/runpod-comfyui` with the same `slim`-scoped tags, such as `slim`, `v1.2.0-slim`, and `py311-pt210-cu128-cf019-slim`. This requires `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` repository secrets.
+
 ## Build arguments
 
 | Name | Default | Purpose |
@@ -132,6 +134,7 @@ All git clones use `--depth 1` to minimize image size and build time.
 - `concurrency` control cancels in-progress builds when a new one is triggered for the same ref and variant.
 - PR smoke tests use a GPU-safe import check so builds can still validate on GitHub-hosted runners without NVIDIA drivers.
 - code-server is installed from the GitHub Releases `.deb` package directly, avoiding the rate-limited `code-server.dev` install script.
+- Docker Hub publishing is limited to the `slim` variant; GHCR remains the registry for all variants.
 
 ## Suggested next improvements
 
