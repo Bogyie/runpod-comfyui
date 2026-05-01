@@ -272,6 +272,43 @@ for module_file in ["server.py", "execution.py"]:
 print("Smoke test passed.")
 PY
 
+RUN site_packages="$("${COMFY_VENV}/bin/python" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')" && \
+    mkdir -p \
+      /opt/runtime-slices/site-packages-audio \
+      /opt/runtime-slices/site-packages-nvidia \
+      /opt/runtime-slices/site-packages-rest \
+      /opt/runtime-slices/site-packages-torch \
+      /opt/runtime-slices/site-packages-triton \
+      /opt/runtime-slices/site-packages-vision \
+      /opt/runtime-slices/site-packages-xformers && \
+    rsync -a \
+      --exclude='/nvidia/' \
+      --exclude='/torch/' \
+      --exclude='/torch.libs/' \
+      --exclude='/torchaudio/' \
+      --exclude='/torchaudio.libs/' \
+      --exclude='/torchvision/' \
+      --exclude='/torchvision.libs/' \
+      --exclude='/triton/' \
+      --exclude='/xformers/' \
+      "${site_packages}/" /opt/runtime-slices/site-packages-rest/ && \
+    copy_site_package_group() { \
+      local dst="$1"; \
+      shift; \
+      local name; \
+      for name in "$@"; do \
+        if [[ -e "${site_packages}/${name}" ]]; then \
+          rsync -a "${site_packages}/${name}" "${dst}/"; \
+        fi; \
+      done; \
+    }; \
+    copy_site_package_group /opt/runtime-slices/site-packages-audio torchaudio torchaudio.libs && \
+    copy_site_package_group /opt/runtime-slices/site-packages-nvidia nvidia && \
+    copy_site_package_group /opt/runtime-slices/site-packages-torch torch torch.libs && \
+    copy_site_package_group /opt/runtime-slices/site-packages-triton triton && \
+    copy_site_package_group /opt/runtime-slices/site-packages-vision torchvision torchvision.libs && \
+    copy_site_package_group /opt/runtime-slices/site-packages-xformers xformers
+
 # ── Stage 3: Runtime core ────────────────────────────────────────────
 FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04 AS runtime-core
 
@@ -290,6 +327,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     CLI_ARGS=
 
 ARG PYTHON_VERSION=3.11.15
+ARG PYTHON_ABI=3.11
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -321,7 +359,18 @@ RUN --mount=type=cache,id=apt-runtime,target=/var/cache/apt,sharing=locked \
     wget \
     zlib1g
 
-COPY --from=builder /opt/comfy /opt/comfy
+COPY --from=builder /opt/comfy/ComfyUI /opt/comfy/ComfyUI
+COPY --from=builder /opt/comfy/venv/bin /opt/comfy/venv/bin
+COPY --from=builder /opt/comfy/venv/include /opt/comfy/venv/include
+COPY --from=builder /opt/comfy/venv/lib64 /opt/comfy/venv/lib64
+COPY --from=builder /opt/comfy/venv/pyvenv.cfg /opt/comfy/venv/pyvenv.cfg
+COPY --from=builder /opt/runtime-slices/site-packages-nvidia/ /opt/comfy/venv/lib/python${PYTHON_ABI}/site-packages/
+COPY --from=builder /opt/runtime-slices/site-packages-torch/ /opt/comfy/venv/lib/python${PYTHON_ABI}/site-packages/
+COPY --from=builder /opt/runtime-slices/site-packages-triton/ /opt/comfy/venv/lib/python${PYTHON_ABI}/site-packages/
+COPY --from=builder /opt/runtime-slices/site-packages-xformers/ /opt/comfy/venv/lib/python${PYTHON_ABI}/site-packages/
+COPY --from=builder /opt/runtime-slices/site-packages-vision/ /opt/comfy/venv/lib/python${PYTHON_ABI}/site-packages/
+COPY --from=builder /opt/runtime-slices/site-packages-audio/ /opt/comfy/venv/lib/python${PYTHON_ABI}/site-packages/
+COPY --from=builder /opt/runtime-slices/site-packages-rest/ /opt/comfy/venv/lib/python${PYTHON_ABI}/site-packages/
 COPY --from=builder /opt/bootstrap /opt/bootstrap
 COPY --from=builder /opt/python /opt/python
 
