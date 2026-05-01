@@ -8,7 +8,7 @@
 - torchvision `0.25.0`
 - torchaudio `2.10.0`
 - xformers `0.0.35`
-- ComfyUI `v0.19.0`
+- ComfyUI `v0.20.1`
 
 This image is intentionally aligned to a `CUDA 12.8 + PyTorch 2.10.0 cu128 + Python 3.11.15 + xformers 0.0.35` stack because it is the most practical common baseline for Blackwell-class GPUs such as RTX 5090 and RTX PRO 6000 while remaining suitable for H100.
 

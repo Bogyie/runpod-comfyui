@@ -39,20 +39,20 @@ Each variant receives the following tags on release:
 |---|---|---|
 | `<release-tag>` | `v1.0.2` | canonical only |
 | `<release-tag>-<variant>` | `v1.0.2-stable-default-aggr` | all variants |
-| `<version-slug>-<variant>` | `py311-pt210-cu128-cf019-stable-default-aggr` | all variants |
+| `<version-slug>-<variant>` | `py311-pt210-cu128-cf020-stable-default-aggr` | all variants |
 | `<variant>` | `stable-default-aggr` | all variants |
 | `sha-<hash>-<variant>` | `sha-abc1234-stable-default-aggr` | all variants |
 | `latest` | `latest` | canonical only |
 
 The version slug encodes the runtime stack: Python, PyTorch, CUDA, and ComfyUI versions (3 digits each, dots stripped).
 
-The `slim` variant is also pushed to Docker Hub as `docker.io/bogyie/runpod-comfyui` with the same `slim`-scoped tags, such as `slim`, `v1.2.0-slim`, and `py311-pt210-cu128-cf019-slim`. This requires `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` repository secrets.
+The `slim` variant is also pushed to Docker Hub as `docker.io/bogyie/runpod-comfyui` with the same `slim`-scoped tags, such as `slim`, `v1.2.0-slim`, and `py311-pt210-cu128-cf020-slim`. This requires `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` repository secrets.
 
 ## Build arguments
 
 | Name | Default | Purpose |
 |---|---|---|
-| `COMFYUI_REF` | `v0.19.0` | ComfyUI git ref |
+| `COMFYUI_REF` | `v0.20.1` | ComfyUI git ref |
 | `COMFYUI_MANAGER_REF` | `main` | ComfyUI-Manager git ref |
 | `IMPACT_PACK_REF` | `Main` | Impact Pack git ref |
 | `WAN_VIDEO_WRAPPER_REF` | `main` | WanVideoWrapper git ref |

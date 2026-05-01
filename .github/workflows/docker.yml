@@ -12,7 +12,7 @@ env:
   # Keep in sync with Dockerfile ARG/ENV defaults
   PY_VERSION: "3.11"
   CUDA_VERSION: "12.8"
-  COMFYUI_VERSION: "0.19.0"
+  COMFYUI_VERSION: "0.20.1"
   PT_VERSION: "2.10.0"
 
 jobs:

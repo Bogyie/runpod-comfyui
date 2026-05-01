@@ -28,7 +28,7 @@ Image tags (example for release `v1.0.2`):
 ghcr.io/bogyie/runpod-comfyui:latest
 ghcr.io/bogyie/runpod-comfyui:v1.0.2
 ghcr.io/bogyie/runpod-comfyui:v1.0.2-stable-default-aggr
-ghcr.io/bogyie/runpod-comfyui:py311-pt210-cu128-cf019-stable-default-aggr
+ghcr.io/bogyie/runpod-comfyui:py311-pt210-cu128-cf020-stable-default-aggr
 ghcr.io/bogyie/runpod-comfyui:stable-default-aggr
 ```
 
