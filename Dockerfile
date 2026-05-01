@@ -215,10 +215,11 @@ RUN --mount=type=cache,id=pip-builder,target=/root/.cache/pip \
     source "${COMFY_VENV}/bin/activate" && \
     for node_dir in "${COMFYUI_DIR}"/custom_nodes/*; do \
       [[ -d "${node_dir}" ]] || continue; \
+      if [[ -f "${node_dir}/requirements.txt" ]]; then \
+        python -m pip install -r "${node_dir}/requirements.txt"; \
+      fi; \
       if [[ -f "${node_dir}/install.py" ]]; then \
         (cd "${node_dir}" && COMFYUI_FOLDERS_BASE_PATH="${COMFYUI_DIR}" python install.py); \
-      elif [[ -f "${node_dir}/requirements.txt" ]]; then \
-        python -m pip install -r "${node_dir}/requirements.txt"; \
       fi; \
       python /opt/bootstrap/scripts/verify_protected_packages.py \
         verify \
@@ -386,6 +387,8 @@ for module_file in ["server.py", "execution.py"]:
     path = Path(os.environ["COMFYUI_DIR"]) / module_file
     if not path.is_file():
         raise FileNotFoundError(f"Missing expected ComfyUI module file: {path}")
+if (Path(os.environ["COMFYUI_DIR"]) / "custom_nodes" / "ComfyUI-Impact-Pack").is_dir():
+    importlib.import_module("skimage")
 print("Runtime smoke test passed.")
 PY
 

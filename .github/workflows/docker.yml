@@ -103,6 +103,8 @@ jobs:
           images: |
             ${{ env.IMAGE_NAME_LC }}
             name=${{ env.DOCKERHUB_IMAGE }},enable=${{ matrix.variant == 'slim' }}
+          flavor: |
+            latest=false
           tags: |
             type=ref,event=tag,enable=${{ matrix.is_canonical == 'true' }}
             type=ref,event=tag,suffix=-${{ matrix.variant }}
