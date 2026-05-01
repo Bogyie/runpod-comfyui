@@ -45,6 +45,11 @@ jobs:
             optimizations: safe
             variant: stable-manager-safe
             is_canonical: "false"
+          - target: slim
+            plugin_pack: slim-pack
+            optimizations: safe
+            variant: slim
+            is_canonical: "false"
     permissions:
       contents: read
       packages: write
@@ -104,6 +109,8 @@ jobs:
           target: ${{ matrix.target }}
           build-args: |
             INCLUDE_DEFAULT_CUSTOM_NODE_PACK=${{ matrix.plugin_pack == 'default-pack' && '1' || '0' }}
+            CUSTOM_NODE_PACK=${{ matrix.plugin_pack == 'default-pack' && 'default' || matrix.plugin_pack == 'slim-pack' && 'slim' || 'manager-only' }}
+            BUILD_WHEEL_CACHE=${{ matrix.target == 'stable' && '1' || '0' }}
             ENABLE_AGGRESSIVE_OPTIMIZATIONS=${{ matrix.optimizations == 'aggressive' && '1' || '0' }}
           load: ${{ github.event_name == 'pull_request' }}
           push: ${{ github.event_name != 'pull_request' }}

@@ -19,6 +19,8 @@ Runpod Pod template for ComfyUI with fast startup, persistent volume storage, ba
   Smaller baked node set with aggressive optimization extras.
 - `stable-manager-safe`
   Smallest stable baseline. Good when you want most nodes managed on the volume.
+- `slim`
+  Lightweight ComfyUI-focused image. Keeps `code-server`, but omits `runpodctl`, the wheel cache, aggressive optimization extras, and keeps only the slim baked node pack.
 
 Image tags (example for release `v1.0.2`):
 
@@ -48,6 +50,13 @@ Default baked custom node pack:
 - `rgthree-comfy`
 - `ComfyUI-Easy-Use`
 - `ComfyUI-KJNodes`
+
+Slim baked custom node pack:
+
+- `ComfyUI-Manager`
+- `ComfyUI-Impact-Pack`
+- `ComfyUI-Sapiens2-Easy`
+- `rgthree-comfy`
 
 Optional baked node:
 

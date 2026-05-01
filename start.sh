@@ -34,10 +34,13 @@ trap cleanup EXIT INT TERM
 log "Initializing workspace layout..."
 /opt/bootstrap/scripts/init-storage.sh
 
-mkdir -p "${WORKSPACE_DIR}/logs" "${WORKSPACE_DIR}/code-server"
+mkdir -p "${WORKSPACE_DIR}/logs"
 
-if [[ ! -f "${WORKSPACE_DIR}/code-server/config.yaml" ]]; then
-  cat > "${WORKSPACE_DIR}/code-server/config.yaml" <<EOF
+CODE_PID=
+if command -v code-server >/dev/null 2>&1; then
+  mkdir -p "${WORKSPACE_DIR}/code-server"
+  if [[ ! -f "${WORKSPACE_DIR}/code-server/config.yaml" ]]; then
+    cat > "${WORKSPACE_DIR}/code-server/config.yaml" <<EOF
 bind-addr: ${CODE_SERVER_HOST}:${CODE_SERVER_PORT}
 auth: ${CODE_SERVER_AUTH}
 cert: false
@@ -45,14 +48,16 @@ app-name: Runpod ComfyUI
 user-data-dir: ${WORKSPACE_DIR}/code-server/user-data
 extensions-dir: ${WORKSPACE_DIR}/code-server/extensions
 EOF
+  fi
+  log "Starting code-server on port ${CODE_SERVER_PORT}..."
+  code-server \
+    --config "${WORKSPACE_DIR}/code-server/config.yaml" \
+    "${WORKSPACE_DIR}" \
+    > "${WORKSPACE_DIR}/logs/code-server.log" 2>&1 &
+  CODE_PID=$!
+else
+  log "code-server is not installed in this image; starting ComfyUI only."
 fi
-
-log "Starting code-server on port ${CODE_SERVER_PORT}..."
-code-server \
-  --config "${WORKSPACE_DIR}/code-server/config.yaml" \
-  "${WORKSPACE_DIR}" \
-  > "${WORKSPACE_DIR}/logs/code-server.log" 2>&1 &
-CODE_PID=$!
 
 source "${COMFY_VENV}/bin/activate"
 
@@ -68,20 +73,28 @@ python "${COMFYUI_DIR}/main.py" \
 COMFY_PID=$!
 
 log "ComfyUI log: ${WORKSPACE_DIR}/logs/comfyui.log"
-log "code-server log: ${WORKSPACE_DIR}/logs/code-server.log"
+if [[ -n "${CODE_PID}" ]]; then
+  log "code-server log: ${WORKSPACE_DIR}/logs/code-server.log"
+fi
 log "Waiting for services..."
 
-wait -n ${CODE_PID} ${COMFY_PID} || true
-EXIT_CODE=$?
+if [[ -n "${CODE_PID}" ]]; then
+  set +e
+  wait -n ${CODE_PID} ${COMFY_PID}
+  EXIT_CODE=$?
+  set -e
 
-if ! kill -0 ${CODE_PID} 2>/dev/null; then
-  log "code-server (PID ${CODE_PID}) exited with code ${EXIT_CODE}, shutting down"
-  exit ${EXIT_CODE}
+  if ! kill -0 ${CODE_PID} 2>/dev/null; then
+    log "code-server (PID ${CODE_PID}) exited with code ${EXIT_CODE}, shutting down"
+    exit ${EXIT_CODE}
+  fi
+
+  log "ComfyUI (PID ${COMFY_PID}) exited with code ${EXIT_CODE}"
+  log "code-server is still running — use restart-comfyui.sh to recover:"
+  log "  /opt/bootstrap/scripts/restart-comfyui.sh           # restart only"
+  log "  /opt/bootstrap/scripts/restart-comfyui.sh --recover  # restore env + restart"
+
+  wait ${CODE_PID} || true
+else
+  wait ${COMFY_PID}
 fi
-
-log "ComfyUI (PID ${COMFY_PID}) exited with code ${EXIT_CODE}"
-log "code-server is still running — use restart-comfyui.sh to recover:"
-log "  /opt/bootstrap/scripts/restart-comfyui.sh           # restart only"
-log "  /opt/bootstrap/scripts/restart-comfyui.sh --recover  # restore env + restart"
-
-wait ${CODE_PID} || true

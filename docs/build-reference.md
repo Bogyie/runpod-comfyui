@@ -7,9 +7,11 @@
 - `stable`
   Includes the recovery-friendly wheel cache in `/opt/wheels`.
 - `slim`
-  Removes the wheel cache to reduce runtime image size.
+  Keeps `code-server`, removes the wheel cache, `runpodctl`, aggressive optimization extras, and uses the slim baked node pack.
 - `default-pack`
   Includes the full baked custom node pack.
+- `slim-pack`
+  Bakes `ComfyUI-Manager`, `ComfyUI-Impact-Pack`, `ComfyUI-Sapiens2-Easy`, and `rgthree-comfy`.
 - `manager-only`
   Bakes only `ComfyUI-Manager`.
 - `safe`
@@ -19,12 +21,13 @@
 
 ### Published workflow variants
 
-The GitHub Actions workflow currently publishes these explicit `stable` variants:
+The GitHub Actions workflow currently publishes these explicit variants:
 
 - `stable-default-aggr`
 - `stable-default-safe`
 - `stable-manager-aggr`
 - `stable-manager-safe`
+- `slim`
 
 `stable-default-aggr` is treated as the canonical build and also receives `latest` and bare release tags (e.g. `v1.0.2`).
 
@@ -55,6 +58,8 @@ The version slug encodes the runtime stack: Python, PyTorch, CUDA, and ComfyUI v
 | `PYTHON_VERSION` | `3.11.15` | Exact CPython version compiled into the image |
 | `XFORMERS_INSTALL_MODE` | `wheel` | Default xformers install path |
 | `INCLUDE_DEFAULT_CUSTOM_NODE_PACK` | `1` | Set to `0` to bake only `ComfyUI-Manager` |
+| `CUSTOM_NODE_PACK` | `default` | Baked custom node pack: `default`, `slim`, or `manager-only` |
+| `BUILD_WHEEL_CACHE` | `1` | Set to `0` to skip downloading the recovery wheel cache |
 | `INCLUDE_WAN_VIDEO_WRAPPER` | `0` | Set to `1` to bake in WanVideoWrapper |
 | `ENABLE_AGGRESSIVE_OPTIMIZATIONS` | `0` | Set to `1` to install experimental optimization packages |
 | `TRITON_VERSION` | `3.6.0` | Triton version for aggressive builds |
@@ -79,7 +84,8 @@ The Dockerfile uses three stages to maximize build cache efficiency:
 
 1. **`python-builder`** -- Compiles CPython from source in an isolated stage. Changes to ComfyUI refs, scripts, or pip dependencies never trigger a Python recompilation.
 2. **`builder`** -- Installs code-server, PyTorch, xformers, ComfyUI, and custom nodes. Uses BuildKit cache mounts for pip and apt.
-3. **`runtime-base`** -- Minimal runtime image based on `cuda:*-runtime` (not `-devel`). Copies only the artifacts needed from builder.
+3. **`runtime-core`** -- Minimal runtime image based on `cuda:*-runtime` (not `-devel`). Copies only the artifacts needed to run ComfyUI.
+4. **`stable` / `slim`** -- Stable adds `code-server`, `runpodctl`, and `/opt/wheels`; slim adds only `code-server` on top of the core runtime.
 
 ### BuildKit cache mounts
 
@@ -95,6 +101,7 @@ The GitHub Actions workflow uses GHCR registry-based caching (`type=registry`) i
 ```text
 ghcr.io/bogyie/runpod-comfyui:cache-stable-default-aggr
 ghcr.io/bogyie/runpod-comfyui:cache-stable-default-safe
+ghcr.io/bogyie/runpod-comfyui:cache-slim
 ...
 ```
 

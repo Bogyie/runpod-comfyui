@@ -70,6 +70,8 @@ ARG CODE_SERVER_VERSION=4.103.2
 ARG XFORMERS_INSTALL_MODE=wheel
 ARG INCLUDE_WAN_VIDEO_WRAPPER=0
 ARG INCLUDE_DEFAULT_CUSTOM_NODE_PACK=1
+ARG CUSTOM_NODE_PACK=default
+ARG BUILD_WHEEL_CACHE=1
 ARG ENABLE_AGGRESSIVE_OPTIMIZATIONS=0
 ARG TRITON_VERSION=3.6.0
 ARG SAGEATTENTION_VERSION=0.1.0
@@ -171,7 +173,10 @@ RUN mkdir -p "${COMFYUI_DIR}/custom_nodes" && \
       fi; \
     }; \
     git clone --depth 1 "https://github.com/Comfy-Org/ComfyUI-Manager.git" "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager" && \
-    if [[ "${INCLUDE_DEFAULT_CUSTOM_NODE_PACK}" == "1" ]]; then \
+    if [[ "${CUSTOM_NODE_PACK}" == "default" && "${INCLUDE_DEFAULT_CUSTOM_NODE_PACK}" == "0" ]]; then \
+      CUSTOM_NODE_PACK="manager-only"; \
+    fi && \
+    if [[ "${CUSTOM_NODE_PACK}" == "default" ]]; then \
       declare -A OPTIONAL_NODE_REPOS=( \
         ["comfyui_controlnet_aux"]="https://github.com/Fannovel16/comfyui_controlnet_aux.git" \
         ["ComfyUI_IPAdapter_plus"]="https://github.com/cubiq/ComfyUI_IPAdapter_plus.git" \
@@ -184,6 +189,18 @@ RUN mkdir -p "${COMFYUI_DIR}/custom_nodes" && \
       for node_name in "${!OPTIONAL_NODE_REPOS[@]}"; do \
         git clone --depth 1 "${OPTIONAL_NODE_REPOS[$node_name]}" "${COMFYUI_DIR}/custom_nodes/${node_name}"; \
       done; \
+    elif [[ "${CUSTOM_NODE_PACK}" == "slim" ]]; then \
+      declare -A OPTIONAL_NODE_REPOS=( \
+        ["ComfyUI-Impact-Pack"]="https://github.com/ltdrdata/ComfyUI-Impact-Pack.git" \
+        ["ComfyUI-Sapiens2-Easy"]="https://github.com/Bogyie/ComfyUI-Sapiens2-Easy.git" \
+        ["rgthree-comfy"]="https://github.com/rgthree/rgthree-comfy.git" \
+      ) && \
+      for node_name in "${!OPTIONAL_NODE_REPOS[@]}"; do \
+        git clone --depth 1 "${OPTIONAL_NODE_REPOS[$node_name]}" "${COMFYUI_DIR}/custom_nodes/${node_name}"; \
+      done; \
+    elif [[ "${CUSTOM_NODE_PACK}" != "manager-only" ]]; then \
+      echo "Unsupported CUSTOM_NODE_PACK=${CUSTOM_NODE_PACK}" >&2; \
+      exit 1; \
     fi && \
     checkout_repo_ref "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager" "${COMFYUI_MANAGER_REF}" && \
     if [[ -d "${COMFYUI_DIR}/custom_nodes/ComfyUI-Impact-Pack" ]]; then \
@@ -230,10 +247,12 @@ RUN --mount=type=cache,id=pip-builder,target=/root/.cache/pip \
       verify \
       /opt/bootstrap/protected-package-manifest.json && \
     "${COMFY_VENV}/bin/pip" freeze | tee /opt/bootstrap/base-requirements.lock >/dev/null && \
-    "${COMFY_VENV}/bin/pip" download \
-    --extra-index-url "${PYTORCH_INDEX_URL}" \
-    -r /opt/bootstrap/base-requirements.lock \
-    --dest /opt/wheels || true
+    if [[ "${BUILD_WHEEL_CACHE}" == "1" ]]; then \
+      "${COMFY_VENV}/bin/pip" download \
+      --extra-index-url "${PYTORCH_INDEX_URL}" \
+      -r /opt/bootstrap/base-requirements.lock \
+      --dest /opt/wheels || true; \
+    fi
 
 COPY start.sh /opt/bootstrap/start.sh
 
@@ -253,8 +272,8 @@ for module_file in ["server.py", "execution.py"]:
 print("Smoke test passed.")
 PY
 
-# ── Stage 3: Runtime base ────────────────────────────────────────────
-FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04 AS runtime-base
+# ── Stage 3: Runtime core ────────────────────────────────────────────
+FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04 AS runtime-core
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
@@ -281,7 +300,6 @@ RUN --mount=type=cache,id=apt-runtime,target=/var/cache/apt,sharing=locked \
     dumb-init \
     ffmpeg \
     git \
-    jq \
     libbz2-1.0 \
     libffi8 \
     libgdbm6 \
@@ -297,19 +315,10 @@ RUN --mount=type=cache,id=apt-runtime,target=/var/cache/apt,sharing=locked \
     libxext6 \
     libxrender1 \
     libuuid1 \
-    openssh-client \
     rsync \
     tk \
-    unzip \
-    wget \
     zlib1g
 
-RUN wget -q -O /usr/local/bin/runpodctl \
-      "https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64" && \
-    chmod +x /usr/local/bin/runpodctl
-
-COPY --from=builder /usr/bin/code-server /usr/bin/code-server
-COPY --from=builder /usr/lib/code-server /usr/lib/code-server
 COPY --from=builder /opt/comfy /opt/comfy
 COPY --from=builder /opt/bootstrap /opt/bootstrap
 COPY --from=builder /opt/python /opt/python
@@ -329,16 +338,36 @@ for module_file in ["server.py", "execution.py"]:
 print("Runtime smoke test passed.")
 PY
 
-EXPOSE 8080 8188
+EXPOSE 8188
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-FROM runtime-base AS stable
+FROM runtime-core AS stable
 
+RUN --mount=type=cache,id=apt-runtime-stable,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=aptlists-runtime-stable,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
+      jq \
+      openssh-client \
+      unzip \
+      wget && \
+    wget -q -O /usr/local/bin/runpodctl \
+      "https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64" && \
+    chmod +x /usr/local/bin/runpodctl
+
+COPY --from=builder /usr/bin/code-server /usr/bin/code-server
+COPY --from=builder /usr/lib/code-server /usr/lib/code-server
 COPY --from=builder /opt/wheels /opt/wheels
+
+EXPOSE 8080
 
 CMD ["/opt/bootstrap/start.sh"]
 
-FROM runtime-base AS slim
+FROM runtime-core AS slim
+
+COPY --from=builder /usr/bin/code-server /usr/bin/code-server
+COPY --from=builder /usr/lib/code-server /usr/lib/code-server
+
+EXPOSE 8080
 
 CMD ["/opt/bootstrap/start.sh"]

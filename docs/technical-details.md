@@ -27,7 +27,7 @@ Before using the image, confirm the host driver is new enough for CUDA 12.8.
 - The default image path keeps `CUDA 12.8` and installs `xformers 0.0.35` from the PyTorch `cu128` index so it stays aligned with the selected torch build.
 - If the official wheel path gives you trouble on a specific GPU, driver, or custom-node combination, you can rebuild with `--build-arg XFORMERS_INSTALL_MODE=source` as a fallback.
 - Keep xformers pinned and install it without dependency resolution so it does not replace your chosen torch build.
-- The `slim` image does not change xformers behavior. It only removes recovery-oriented cache files from the final runtime layer.
+- The `slim` image does not change xformers behavior. It keeps `code-server`, and removes recovery-oriented cache files, `runpodctl`, aggressive optimization extras, and non-slim baked custom nodes from the final runtime image.
 
 ## Model path normalization
 
@@ -73,4 +73,5 @@ Before using the image, confirm the host driver is new enough for CUDA 12.8.
 - Several baked custom nodes bring substantial Python dependencies of their own.
 - This improves out-of-the-box usability, but it also means upstream node changes can affect image build stability more than before.
 - `manager-only` variants reduce that surface area and are a good choice for stricter production templates.
+- `slim` keeps a small baked node set: `ComfyUI-Manager`, `ComfyUI-Impact-Pack`, `ComfyUI-Sapiens2-Easy`, and `rgthree-comfy`.
 - For production use, you will likely want to pin ComfyUI and baked node repos to specific commits after your first validation pass.
