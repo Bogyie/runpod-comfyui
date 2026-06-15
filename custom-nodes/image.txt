@@ -1,0 +1,5 @@
+# Image profile custom nodes (installed on top of the default pack).
+# One git repo URL per line. Blank lines and lines starting with '#' are ignored.
+https://github.com/florestefano1975/comfyui-portrait-master
+https://github.com/Bogyie/ComfyUI-Sapiens2-Easy
+https://github.com/Fannovel16/comfyui_controlnet_aux

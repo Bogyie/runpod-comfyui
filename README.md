@@ -11,25 +11,25 @@ Runpod Pod template for ComfyUI with fast startup, persistent volume storage, ba
 
 ## Recommended image variants
 
-- `stable-default-aggr`
-  Recommended default. Includes the default baked node pack and aggressive optimization extras.
-- `stable-default-safe`
+- `default-opt-enabled`
+  Recommended default. Default baked node pack plus aggressive optimization extras (`triton`, `sageattention`).
+- `default-opt-disabled`
   Same baked node pack, but without aggressive optimization extras.
-- `stable-manager-aggr`
-  Smaller baked node set with aggressive optimization extras.
-- `stable-manager-safe`
-  Smallest stable baseline. Good when you want most nodes managed on the volume.
-- `slim`
-  Lightweight ComfyUI-focused image. Keeps `code-server`, but omits `runpodctl`, the wheel cache, aggressive optimization extras, and keeps only the slim baked node pack.
+- `image`
+  Default pack plus image-focused nodes (`comfyui-portrait-master`, `ComfyUI-Sapiens2-Easy`, `comfyui_controlnet_aux`) with aggressive optimizations.
+- `3d`
+  Default pack plus 3D nodes (`ComfyUI-Sapiens2-Easy`, `ComfyUI-3D-Pack`) with aggressive optimizations.
+- `video`
+  Default pack plus video nodes (`ComfyUI-VideoHelperSuite`, `ComfyUI-WanVideoWrapper`, `ComfyUI-SeedVR2_VideoUpscaler`, `ComfyUI-FFmpeg`) with aggressive optimizations.
 
 Image tags (example for release `v1.0.2`):
 
 ```text
 ghcr.io/bogyie/runpod-comfyui:latest
 ghcr.io/bogyie/runpod-comfyui:v1.0.2
-ghcr.io/bogyie/runpod-comfyui:v1.0.2-stable-default-aggr
-ghcr.io/bogyie/runpod-comfyui:py311-pt210-cu128-cf020-stable-default-aggr
-ghcr.io/bogyie/runpod-comfyui:stable-default-aggr
+ghcr.io/bogyie/runpod-comfyui:v1.0.2-default-opt-enabled
+ghcr.io/bogyie/runpod-comfyui:py311-pt210-cu128-cf024-default-opt-enabled
+ghcr.io/bogyie/runpod-comfyui:default-opt-enabled
 ```
 
 Use a pinned release or version-slug tag for production templates rather than `latest`.
@@ -41,26 +41,20 @@ Use a pinned release or version-slug tag for production templates rather than `l
 - `code-server`
 - Recovery scripts in `/opt/bootstrap/scripts`
 
-Default baked custom node pack:
+Default baked custom node pack (every variant):
 
-- `comfyui_controlnet_aux`
-- `ComfyUI_IPAdapter_plus`
-- `ComfyUI-Impact-Pack`
-- `ComfyUI-Sapiens2-Easy`
 - `rgthree-comfy`
-- `ComfyUI-Easy-Use`
 - `ComfyUI-KJNodes`
-
-Slim baked custom node pack:
-
-- `ComfyUI-Manager`
 - `ComfyUI-Impact-Pack`
-- `ComfyUI-Sapiens2-Easy`
-- `rgthree-comfy`
+- `ComfyUI-Easy-Use`
 
-Optional baked node:
+Profile-specific nodes (added on top of the default pack):
 
-- `ComfyUI-WanVideoWrapper`
+- `image`: `comfyui-portrait-master`, `ComfyUI-Sapiens2-Easy`, `comfyui_controlnet_aux`
+- `3d`: `ComfyUI-Sapiens2-Easy`, `ComfyUI-3D-Pack`
+- `video`: `ComfyUI-VideoHelperSuite`, `ComfyUI-WanVideoWrapper`, `ComfyUI-SeedVR2_VideoUpscaler`, `ComfyUI-FFmpeg`
+
+The baked repo lists live in `custom-nodes/*.txt`; edit those files to change which nodes are baked.
 
 ## Persistent volume
 

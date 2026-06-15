@@ -2,34 +2,54 @@
 
 ## Image model
 
-### Variant dimensions
+### Build dimensions
 
-- `stable`
-  Includes the recovery-friendly wheel cache in `/opt/wheels`.
-- `slim`
-  Keeps `code-server`, removes the wheel cache, `runpodctl`, aggressive optimization extras, and uses the slim baked node pack.
-- `default-pack`
-  Includes the full baked custom node pack.
-- `slim-pack`
-  Bakes `ComfyUI-Manager`, `ComfyUI-Impact-Pack`, `ComfyUI-Sapiens2-Easy`, and `rgthree-comfy`.
-- `manager-only`
-  Bakes only `ComfyUI-Manager`.
+- `stable` (single runtime target)
+  Includes `code-server`, `runpodctl`, and the recovery-friendly wheel cache in `/opt/wheels`.
+- `CUSTOM_NODE_PROFILE`
+  Selects which custom node pack is baked: `default`, `image`, `3d`, or `video`.
+  Every profile bakes `ComfyUI-Manager` plus the default pack; non-default
+  profiles add their own pack on top.
 - `safe`
-  Conservative runtime.
+  Conservative runtime (no aggressive optimization extras).
 - `aggressive`
-  Adds experimental optimization packages.
+  Adds experimental optimization packages (`triton`, `sageattention`).
+
+### Custom node packs
+
+The repos cloned for each profile live in `custom-nodes/*.txt`, one git URL per
+line. Editing these files is the only change needed to add or remove a baked
+node -- the `Dockerfile` never lists individual repos.
+
+- `custom-nodes/default.txt` -- baked into **every** profile:
+  - `rgthree-comfy`
+  - `ComfyUI-KJNodes`
+  - `ComfyUI-Impact-Pack`
+  - `ComfyUI-Easy-Use`
+- `custom-nodes/image.txt` -- added for the `image` profile:
+  - `comfyui-portrait-master`
+  - `ComfyUI-Sapiens2-Easy`
+  - `comfyui_controlnet_aux`
+- `custom-nodes/3d.txt` -- added for the `3d` profile:
+  - `ComfyUI-Sapiens2-Easy`
+  - `ComfyUI-3D-Pack`
+- `custom-nodes/video.txt` -- added for the `video` profile:
+  - `ComfyUI-VideoHelperSuite`
+  - `ComfyUI-WanVideoWrapper`
+  - `ComfyUI-SeedVR2_VideoUpscaler`
+  - `ComfyUI-FFmpeg`
 
 ### Published workflow variants
 
-The GitHub Actions workflow currently publishes these explicit variants:
+The GitHub Actions workflow publishes these explicit variants:
 
-- `stable-default-aggr`
-- `stable-default-safe`
-- `stable-manager-aggr`
-- `stable-manager-safe`
-- `slim`
+- `default-opt-enabled` (default profile + aggressive optimizations)
+- `default-opt-disabled` (default profile, no aggressive optimizations)
+- `image` (image profile + aggressive optimizations)
+- `3d` (3d profile + aggressive optimizations)
+- `video` (video profile + aggressive optimizations)
 
-`stable-default-aggr` is treated as the canonical build and also receives `latest` and bare release tags (e.g. `v1.0.2`).
+`default-opt-enabled` is treated as the canonical build and also receives `latest` and bare release tags (e.g. `v1.0.2`).
 
 ### Image tags
 
@@ -38,34 +58,31 @@ Each variant receives the following tags on release:
 | Tag pattern | Example | Scope |
 |---|---|---|
 | `<release-tag>` | `v1.0.2` | canonical only |
-| `<release-tag>-<variant>` | `v1.0.2-stable-default-aggr` | all variants |
-| `<version-slug>-<variant>` | `py311-pt210-cu128-cf020-stable-default-aggr` | all variants |
-| `<variant>` | `stable-default-aggr` | all variants |
-| `sha-<hash>-<variant>` | `sha-abc1234-stable-default-aggr` | all variants |
+| `<release-tag>-<variant>` | `v1.0.2-default-opt-enabled` | all variants |
+| `<version-slug>-<variant>` | `py311-pt210-cu128-cf024-default-opt-enabled` | all variants |
+| `<variant>` | `default-opt-enabled` | all variants |
+| `sha-<hash>-<variant>` | `sha-abc1234-default-opt-enabled` | all variants |
 | `latest` | `latest` | canonical only |
 
 The version slug encodes the runtime stack: Python, PyTorch, CUDA, and ComfyUI versions (3 digits each, dots stripped).
 
-The `slim` variant is also pushed to Docker Hub as `docker.io/bogyie/runpod-comfyui` with the same `slim`-scoped tags, such as `slim`, `v1.2.0-slim`, and `py311-pt210-cu128-cf020-slim`. This requires `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` repository secrets.
+All variants are published to GHCR (`ghcr.io/bogyie/runpod-comfyui`).
 
 ## Build arguments
 
 | Name | Default | Purpose |
 |---|---|---|
-| `COMFYUI_REF` | `v0.20.1` | ComfyUI git ref |
+| `COMFYUI_REF` | `v0.24.0` | ComfyUI git ref |
 | `COMFYUI_MANAGER_REF` | `main` | ComfyUI-Manager git ref |
-| `IMPACT_PACK_REF` | `Main` | Impact Pack git ref |
-| `WAN_VIDEO_WRAPPER_REF` | `main` | WanVideoWrapper git ref |
 | `CODE_SERVER_VERSION` | `4.103.2` | code-server version |
 | `PYTHON_VERSION` | `3.11.15` | Exact CPython version compiled into the image |
 | `XFORMERS_INSTALL_MODE` | `wheel` | Default xformers install path |
-| `INCLUDE_DEFAULT_CUSTOM_NODE_PACK` | `1` | Set to `0` to bake only `ComfyUI-Manager` |
-| `CUSTOM_NODE_PACK` | `default` | Baked custom node pack: `default`, `slim`, or `manager-only` |
+| `CUSTOM_NODE_PROFILE` | `default` | Baked custom node profile: `default`, `image`, `3d`, or `video` |
 | `BUILD_WHEEL_CACHE` | `1` | Set to `0` to skip downloading the recovery wheel cache |
-| `INCLUDE_WAN_VIDEO_WRAPPER` | `0` | Set to `1` to bake in WanVideoWrapper |
 | `ENABLE_AGGRESSIVE_OPTIMIZATIONS` | `0` | Set to `1` to install experimental optimization packages |
 | `TRITON_VERSION` | `3.6.0` | Triton version for aggressive builds |
 | `SAGEATTENTION_VERSION` | `0.1.0` | SageAttention version for aggressive builds |
+| `TRANSFORMERS_VERSION` | `5.12.0` | Pinned `transformers` version (ENV; protected from node drift) |
 
 ## Runtime environment variables
 
@@ -85,9 +102,9 @@ The `slim` variant is also pushed to Docker Hub as `docker.io/bogyie/runpod-comf
 The Dockerfile uses three stages to maximize build cache efficiency:
 
 1. **`python-builder`** -- Compiles CPython from source in an isolated stage. Changes to ComfyUI refs, scripts, or pip dependencies never trigger a Python recompilation.
-2. **`builder`** -- Installs code-server, PyTorch, xformers, ComfyUI, and custom nodes. Uses BuildKit cache mounts for pip and apt.
+2. **`builder`** -- Installs code-server, PyTorch, xformers, `transformers`, ComfyUI, and custom nodes. Uses BuildKit cache mounts for pip and apt.
 3. **`runtime-core`** -- Minimal runtime image based on `cuda:*-runtime` (not `-devel`). Copies only the artifacts needed to run ComfyUI.
-4. **`stable` / `slim`** -- Stable adds `code-server`, `runpodctl`, and `/opt/wheels`; slim adds only `code-server` on top of the core runtime.
+4. **`stable`** -- Adds `code-server`, `runpodctl`, and `/opt/wheels` on top of the core runtime.
 
 ### BuildKit cache mounts
 
@@ -101,10 +118,11 @@ All `pip install` and `apt-get` commands use `--mount=type=cache` with per-stage
 The GitHub Actions workflow uses GHCR registry-based caching (`type=registry`) instead of the default GHA cache to avoid the 10 GB repository cache limit. Each matrix variant stores its cache independently:
 
 ```text
-ghcr.io/bogyie/runpod-comfyui:cache-stable-default-aggr
-ghcr.io/bogyie/runpod-comfyui:cache-stable-default-safe
-ghcr.io/bogyie/runpod-comfyui:cache-slim
-...
+ghcr.io/bogyie/runpod-comfyui:cache-default-opt-enabled
+ghcr.io/bogyie/runpod-comfyui:cache-default-opt-disabled
+ghcr.io/bogyie/runpod-comfyui:cache-image
+ghcr.io/bogyie/runpod-comfyui:cache-3d
+ghcr.io/bogyie/runpod-comfyui:cache-video
 ```
 
 Cache writes are skipped on PR builds to avoid permission errors from fork contexts.
@@ -134,7 +152,8 @@ All git clones use `--depth 1` to minimize image size and build time.
 - `concurrency` control cancels in-progress builds when a new one is triggered for the same ref and variant.
 - PR smoke tests use a GPU-safe import check so builds can still validate on GitHub-hosted runners without NVIDIA drivers.
 - code-server is installed from the GitHub Releases `.deb` package directly, avoiding the rate-limited `code-server.dev` install script.
-- Docker Hub publishing is limited to the `slim` variant; GHCR remains the registry for all variants.
+- All variants publish to GHCR; there is no Docker Hub mirror.
+- The "Free disk space" step prunes preinstalled toolchains and BuildKit GC keeps the cache bounded, since the full node packs plus wheel cache can otherwise exhaust the runner's disk (`No space left on device`).
 
 ## Suggested next improvements
 

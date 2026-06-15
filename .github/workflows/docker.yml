@@ -8,11 +8,10 @@ on:
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/runpod-comfyui
-  DOCKERHUB_IMAGE: docker.io/bogyie/runpod-comfyui
   # Keep in sync with Dockerfile ARG/ENV defaults
   PY_VERSION: "3.11"
   CUDA_VERSION: "12.8"
-  COMFYUI_VERSION: "0.20.1"
+  COMFYUI_VERSION: "0.24.0"
   PT_VERSION: "2.10.0"
 
 jobs:
@@ -26,30 +25,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: stable
-            plugin_pack: default-pack
+          - profile: default
             optimizations: aggressive
-            variant: stable-default-aggr
+            variant: default-opt-enabled
             is_canonical: "true"
-          - target: stable
-            plugin_pack: default-pack
+          - profile: default
             optimizations: safe
-            variant: stable-default-safe
+            variant: default-opt-disabled
             is_canonical: "false"
-          - target: stable
-            plugin_pack: manager-only
+          - profile: image
             optimizations: aggressive
-            variant: stable-manager-aggr
+            variant: image
             is_canonical: "false"
-          - target: stable
-            plugin_pack: manager-only
-            optimizations: safe
-            variant: stable-manager-safe
+          - profile: "3d"
+            optimizations: aggressive
+            variant: 3d
             is_canonical: "false"
-          - target: slim
-            plugin_pack: slim-pack
-            optimizations: safe
-            variant: slim
+          - profile: video
+            optimizations: aggressive
+            variant: video
             is_canonical: "false"
     permissions:
       contents: read
@@ -58,8 +52,18 @@ jobs:
     steps:
       - name: Free disk space
         run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
-          sudo docker image prune --all --force
+          sudo rm -rf \
+            /usr/share/dotnet \
+            /usr/local/lib/android \
+            /opt/ghc \
+            /opt/hostedtoolcache/CodeQL \
+            /usr/local/share/boost \
+            /usr/local/share/powershell \
+            /usr/local/.ghcup \
+            /usr/lib/jvm \
+            "$AGENT_TOOLSDIRECTORY" || true
+          sudo apt-get clean || true
+          sudo docker image prune --all --force || true
           df -h /
 
       - name: Checkout
@@ -80,6 +84,10 @@ jobs:
           buildkitd-config-inline: |
             [worker.oci]
               max-parallelism = 2
+              gc = true
+              [[worker.oci.gcpolicy]]
+                keepBytes = 12884901888
+                all = true
 
       - name: Log in to GHCR
         if: github.event_name != 'pull_request'
@@ -89,20 +97,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Log in to Docker Hub
-        if: github.event_name != 'pull_request' && matrix.variant == 'slim'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
             ${{ env.IMAGE_NAME_LC }}
-            name=${{ env.DOCKERHUB_IMAGE }},enable=${{ matrix.variant == 'slim' }}
           flavor: |
             latest=false
           tags: |
@@ -118,11 +118,10 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          target: ${{ matrix.target }}
+          target: stable
           build-args: |
-            INCLUDE_DEFAULT_CUSTOM_NODE_PACK=${{ matrix.plugin_pack == 'default-pack' && '1' || '0' }}
-            CUSTOM_NODE_PACK=${{ matrix.plugin_pack == 'default-pack' && 'default' || matrix.plugin_pack == 'slim-pack' && 'slim' || 'manager-only' }}
-            BUILD_WHEEL_CACHE=${{ matrix.target == 'stable' && '1' || '0' }}
+            CUSTOM_NODE_PROFILE=${{ matrix.profile }}
+            BUILD_WHEEL_CACHE=1
             ENABLE_AGGRESSIVE_OPTIMIZATIONS=${{ matrix.optimizations == 'aggressive' && '1' || '0' }}
           load: ${{ github.event_name == 'pull_request' }}
           push: ${{ github.event_name != 'pull_request' }}
@@ -137,4 +136,4 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           docker run --rm ${{ env.IMAGE_NAME_LC }}:pr-${{ matrix.variant }} \
-            /bin/bash -lc 'source /opt/comfy/venv/bin/activate && python -c "import importlib, os, sys; from pathlib import Path; base = Path(os.environ['"'"'COMFYUI_DIR'"'"']); sys.path.insert(0, str(base)); [importlib.import_module(module) for module in ('"'"'torch'"'"', '"'"'xformers'"'"')]; missing = [str(base / module_file) for module_file in ('"'"'server.py'"'"', '"'"'execution.py'"'"') if not (base / module_file).is_file()]; (_ for _ in ()).throw(FileNotFoundError('"'"'Missing expected ComfyUI module file(s): '"'"' + '"'"', '"'"'.join(missing))) if missing else None; print('"'"'Workflow smoke test passed.'"'"')"'
+            /bin/bash -lc 'source /opt/comfy/venv/bin/activate && python -c "import importlib, os, sys; from pathlib import Path; base = Path(os.environ['"'"'COMFYUI_DIR'"'"']); sys.path.insert(0, str(base)); [importlib.import_module(module) for module in ('"'"'torch'"'"', '"'"'xformers'"'"', '"'"'transformers'"'"')]; missing = [str(base / module_file) for module_file in ('"'"'server.py'"'"', '"'"'execution.py'"'"') if not (base / module_file).is_file()]; (_ for _ in ()).throw(FileNotFoundError('"'"'Missing expected ComfyUI module file(s): '"'"' + '"'"', '"'"'.join(missing))) if missing else None; print('"'"'Workflow smoke test passed.'"'"')"'

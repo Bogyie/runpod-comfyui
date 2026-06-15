@@ -12,6 +12,7 @@ DEFAULT_PACKAGES = [
     "xformers",
     "triton",
     "sageattention",
+    "transformers",
 ]
 
 
@@ -26,19 +27,40 @@ def collect(packages):
     return {name: get_version(name) for name in packages}
 
 
+def write_constraints(manifest_path: Path, constraints_path: Path):
+    """Emit a pip constraints file pinning every captured protected package.
+
+    Passed to custom-node ``pip install`` via PIP_CONSTRAINT so a node's
+    requirements can never silently upgrade/downgrade torch, transformers, etc.
+    Packages absent from the environment are skipped.
+    """
+    captured = json.loads(manifest_path.read_text(encoding="utf-8"))
+    lines = [
+        f"{name}=={version}"
+        for name, version in sorted(captured.items())
+        if version is not None
+    ]
+    constraints_path.write_text(
+        "\n".join(lines) + ("\n" if lines else ""),
+        encoding="utf-8",
+    )
+
+
 def main():
     if len(sys.argv) < 3:
         print(
-            "Usage: verify_protected_packages.py <capture|verify> <manifest-path> [package ...]",
+            "Usage: verify_protected_packages.py "
+            "<capture|verify|constraints> <manifest-path> "
+            "[constraints-path|package ...]",
             file=sys.stderr,
         )
         sys.exit(1)
 
     mode = sys.argv[1]
     manifest_path = Path(sys.argv[2])
-    packages = sys.argv[3:] or DEFAULT_PACKAGES
 
     if mode == "capture":
+        packages = sys.argv[3:] or DEFAULT_PACKAGES
         manifest_path.write_text(
             json.dumps(collect(packages), indent=2, sort_keys=True) + "\n",
             encoding="utf-8",
@@ -53,6 +75,17 @@ def main():
             print("Expected:", json.dumps(expected, indent=2, sort_keys=True), file=sys.stderr)
             print("Current:", json.dumps(current, indent=2, sort_keys=True), file=sys.stderr)
             sys.exit(1)
+        return
+
+    if mode == "constraints":
+        if len(sys.argv) < 4:
+            print(
+                "Usage: verify_protected_packages.py constraints "
+                "<manifest-path> <constraints-path>",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        write_constraints(manifest_path, Path(sys.argv[3]))
         return
 
     print(f"Unsupported mode: {mode}", file=sys.stderr)

@@ -8,7 +8,8 @@
 - torchvision `0.25.0`
 - torchaudio `2.10.0`
 - xformers `0.0.35`
-- ComfyUI `v0.20.1`
+- transformers `5.12.0` (pinned)
+- ComfyUI `v0.24.0`
 
 This image is intentionally aligned to a `CUDA 12.8 + PyTorch 2.10.0 cu128 + Python 3.11.15 + xformers 0.0.35` stack because it is the most practical common baseline for Blackwell-class GPUs such as RTX 5090 and RTX PRO 6000 while remaining suitable for H100.
 
@@ -27,7 +28,12 @@ Before using the image, confirm the host driver is new enough for CUDA 12.8.
 - The default image path keeps `CUDA 12.8` and installs `xformers 0.0.35` from the PyTorch `cu128` index so it stays aligned with the selected torch build.
 - If the official wheel path gives you trouble on a specific GPU, driver, or custom-node combination, you can rebuild with `--build-arg XFORMERS_INSTALL_MODE=source` as a fallback.
 - Keep xformers pinned and install it without dependency resolution so it does not replace your chosen torch build.
-- The `slim` image does not change xformers behavior. It keeps `code-server`, and removes recovery-oriented cache files, `runpodctl`, aggressive optimization extras, and non-slim baked custom nodes from the final runtime image.
+
+## transformers
+
+- `transformers` is pinned to `5.12.0` via the `TRANSFORMERS_VERSION` ENV and installed right after the base torch stack.
+- It is included in the protected package manifest, so a baked custom node cannot silently upgrade or downgrade it.
+- Custom node `pip install` steps run under `PIP_CONSTRAINT` pointing at the captured manifest, which hard-pins `torch`, `torchvision`, `torchaudio`, `xformers`, and `transformers` during node dependency resolution.
 
 ## Model path normalization
 
@@ -72,6 +78,6 @@ Before using the image, confirm the host driver is new enough for CUDA 12.8.
 
 - Several baked custom nodes bring substantial Python dependencies of their own.
 - This improves out-of-the-box usability, but it also means upstream node changes can affect image build stability more than before.
-- `manager-only` variants reduce that surface area and are a good choice for stricter production templates.
-- `slim` keeps a small baked node set: `ComfyUI-Manager`, `ComfyUI-Impact-Pack`, `ComfyUI-Sapiens2-Easy`, and `rgthree-comfy`.
+- Custom node `pip install` steps run under a `PIP_CONSTRAINT` file generated from the protected package manifest, so a node cannot replace `torch`, `xformers`, or `transformers` during its own dependency resolution.
+- The baked node set depends on the selected `CUSTOM_NODE_PROFILE` (`default`, `image`, `3d`, or `video`); every profile includes `ComfyUI-Manager` plus the default pack. The exact repo lists live in `custom-nodes/*.txt`.
 - For production use, you will likely want to pin ComfyUI and baked node repos to specific commits after your first validation pass.

@@ -1,0 +1,7 @@
+# Default custom node pack.
+# Baked into EVERY variant (default, image, 3d, video).
+# One git repo URL per line. Blank lines and lines starting with '#' are ignored.
+https://github.com/rgthree/rgthree-comfy
+https://github.com/kijai/ComfyUI-KJNodes
+https://github.com/ltdrdata/ComfyUI-Impact-Pack
+https://github.com/yolain/ComfyUI-Easy-Use

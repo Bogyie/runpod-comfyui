@@ -1,0 +1,4 @@
+# 3D profile custom nodes (installed on top of the default pack).
+# One git repo URL per line. Blank lines and lines starting with '#' are ignored.
+https://github.com/Bogyie/ComfyUI-Sapiens2-Easy
+https://github.com/MrForExample/ComfyUI-3D-Pack

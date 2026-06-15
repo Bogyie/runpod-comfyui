@@ -1,0 +1,6 @@
+# Video profile custom nodes (installed on top of the default pack).
+# One git repo URL per line. Blank lines and lines starting with '#' are ignored.
+https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite
+https://github.com/kijai/ComfyUI-WanVideoWrapper
+https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler
+https://github.com/MoonHugo/ComfyUI-FFmpeg
