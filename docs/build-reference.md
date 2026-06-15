@@ -2,70 +2,85 @@
 
 ## Image model
 
-### Variant dimensions
+### Linear stage chain
 
-- `stable`
-  Includes the recovery-friendly wheel cache in `/opt/wheels`.
-- `slim`
-  Keeps `code-server`, removes the wheel cache, `runpodctl`, aggressive optimization extras, and uses the slim baked node pack.
-- `default-pack`
-  Includes the full baked custom node pack.
-- `slim-pack`
-  Bakes `ComfyUI-Manager`, `ComfyUI-Impact-Pack`, `ComfyUI-Sapiens2-Easy`, and `rgthree-comfy`.
-- `manager-only`
-  Bakes only `ComfyUI-Manager`.
-- `safe`
-  Conservative runtime.
-- `aggressive`
-  Adds experimental optimization packages.
+The build is intentionally linear. Each Dockerfile produces a published stage image, and the next Dockerfile consumes that image through `BASE_IMAGE`.
 
-### Published workflow variants
+| Stage | Dockerfile | Adds |
+|---|---|---|
+| `core` | `docker/Dockerfile.core` | CUDA runtime, CPython, ComfyUI, PyTorch, Transformers, `ComfyUI-Manager` |
+| `runtime-tools` | `docker/Dockerfile.runtime-tools` | `huggingface_hub[cli]`, `runpodctl`, `wget`, `jq`, SSH client, `code-server` |
+| `optimized` | `docker/Dockerfile.optimized` | xformers and FlashAttention |
+| `custom-basic` | `docker/Dockerfile.custom-basic` | `kijai/ComfyUI-KJNodes` |
+| `custom-advanced` | `docker/Dockerfile.custom-advanced` | `Bogyie/ComfyUI-Sapiens2-Easy` |
 
-The GitHub Actions workflow currently publishes these explicit variants:
+The purpose is to keep expensive base layers reusable. A custom-node-only change should rebuild only the custom-node stage and its downstream stages, not Python, PyTorch, ComfyUI, or runtime tools.
 
-- `stable-default-aggr`
-- `stable-default-safe`
-- `stable-manager-aggr`
-- `stable-manager-safe`
-- `slim`
+Within a workflow run, `BASE_IMAGE` points at the SHA-scoped stage tag such as `sha-abc1234-core` instead of the mutable `core` tag. This avoids cross-branch or concurrent-run collisions while still publishing readable stage tags.
 
-`stable-default-aggr` is treated as the canonical build and also receives `latest` and bare release tags (e.g. `v1.0.2`).
+### Published stage tags
+
+The GitHub Actions workflow publishes these stage tags:
+
+- `core`
+- `runtime-tools`
+- `optimized`
+- `custom-basic`
+- `custom-advanced`
+
+`custom-advanced` is treated as the canonical final image and receives `latest` and bare release tags.
 
 ### Image tags
 
-Each variant receives the following tags on release:
+Each stage receives the following tags on release:
 
 | Tag pattern | Example | Scope |
 |---|---|---|
-| `<release-tag>` | `v1.0.2` | canonical only |
-| `<release-tag>-<variant>` | `v1.0.2-stable-default-aggr` | all variants |
-| `<version-slug>-<variant>` | `py311-pt210-cu128-cf020-stable-default-aggr` | all variants |
-| `<variant>` | `stable-default-aggr` | all variants |
-| `sha-<hash>-<variant>` | `sha-abc1234-stable-default-aggr` | all variants |
-| `latest` | `latest` | canonical only |
+| `<stage>` | `custom-advanced` | all stages |
+| `<release-tag>-<stage>` | `v1.0.2-custom-advanced` | all stages |
+| `<version-slug>-<stage>` | `py311-pt210-cu128-cf024-custom-advanced` | all stages |
+| `sha-<hash>-<stage>` | `sha-abc1234-custom-advanced` | all stages |
+| `<release-tag>` | `v1.0.2` | canonical final only |
+| `latest` | `latest` | canonical final only |
 
-The version slug encodes the runtime stack: Python, PyTorch, CUDA, and ComfyUI versions (3 digits each, dots stripped).
+The version slug encodes Python, PyTorch, CUDA, and ComfyUI versions.
 
-The `slim` variant is also pushed to Docker Hub as `docker.io/bogyie/runpod-comfyui` with the same `slim`-scoped tags, such as `slim`, `v1.2.0-slim`, and `py311-pt210-cu128-cf020-slim`. This requires `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` repository secrets.
+The canonical final image is also pushed to Docker Hub as `docker.io/bogyie/runpod-comfyui` on release.
 
 ## Build arguments
 
+### Core
+
 | Name | Default | Purpose |
 |---|---|---|
-| `COMFYUI_REF` | `v0.20.1` | ComfyUI git ref |
+| `COMFYUI_REF` | `v0.24.0` | ComfyUI git ref |
 | `COMFYUI_MANAGER_REF` | `main` | ComfyUI-Manager git ref |
-| `IMPACT_PACK_REF` | `Main` | Impact Pack git ref |
-| `WAN_VIDEO_WRAPPER_REF` | `main` | WanVideoWrapper git ref |
-| `CODE_SERVER_VERSION` | `4.103.2` | code-server version |
+| `TRANSFORMERS_VERSION` | `5.12.0` | Transformers version |
 | `PYTHON_VERSION` | `3.11.15` | Exact CPython version compiled into the image |
-| `XFORMERS_INSTALL_MODE` | `wheel` | Default xformers install path |
-| `INCLUDE_DEFAULT_CUSTOM_NODE_PACK` | `1` | Set to `0` to bake only `ComfyUI-Manager` |
-| `CUSTOM_NODE_PACK` | `default` | Baked custom node pack: `default`, `slim`, or `manager-only` |
-| `BUILD_WHEEL_CACHE` | `1` | Set to `0` to skip downloading the recovery wheel cache |
-| `INCLUDE_WAN_VIDEO_WRAPPER` | `0` | Set to `1` to bake in WanVideoWrapper |
-| `ENABLE_AGGRESSIVE_OPTIMIZATIONS` | `0` | Set to `1` to install experimental optimization packages |
-| `TRITON_VERSION` | `3.6.0` | Triton version for aggressive builds |
-| `SAGEATTENTION_VERSION` | `0.1.0` | SageAttention version for aggressive builds |
+
+### Runtime tools
+
+| Name | Default | Purpose |
+|---|---|---|
+| `BASE_IMAGE` | required | Previous stage image |
+| `CODE_SERVER_VERSION` | `4.103.2` | code-server version |
+
+### Optimized
+
+| Name | Default | Purpose |
+|---|---|---|
+| `BASE_IMAGE` | required | Previous stage image |
+| `XFORMERS_VERSION` | `0.0.35` | xformers version |
+| `FLASH_ATTN_VERSION` | `2.8.3` | FlashAttention version |
+| `MAX_JOBS` | `4` | FlashAttention build parallelism cap |
+
+### Custom nodes
+
+| Name | Default | Purpose |
+|---|---|---|
+| `BASE_IMAGE` | required | Previous stage image |
+| `BASIC_NODE_REF` | `main` | `ComfyUI-KJNodes` git ref |
+| `ADVANCED_NODE_REF` | `main` | `ComfyUI-Sapiens2-Easy` git ref |
 
 ## Runtime environment variables
 
@@ -78,67 +93,39 @@ The `slim` variant is also pushed to Docker Hub as `docker.io/bogyie/runpod-comf
 | `CODE_SERVER_AUTH` | `none` | code-server auth mode |
 | `CLI_ARGS` | empty | Extra ComfyUI CLI flags |
 
-## Dockerfile architecture
+## Cache strategy
 
-### Multi-stage build
+Each stage has two cache layers:
 
-The Dockerfile uses three stages to maximize build cache efficiency:
+- Dockerfile-level BuildKit cache mounts for apt and pip work inside the stage.
+- Registry cache per stage, for example `cache-core`, `cache-optimized`, and `cache-custom-advanced`.
 
-1. **`python-builder`** -- Compiles CPython from source in an isolated stage. Changes to ComfyUI refs, scripts, or pip dependencies never trigger a Python recompilation.
-2. **`builder`** -- Installs code-server, PyTorch, xformers, ComfyUI, and custom nodes. Uses BuildKit cache mounts for pip and apt.
-3. **`runtime-core`** -- Minimal runtime image based on `cuda:*-runtime` (not `-devel`). Copies only the artifacts needed to run ComfyUI.
-4. **`stable` / `slim`** -- Stable adds `code-server`, `runpodctl`, and `/opt/wheels`; slim adds only `code-server` on top of the core runtime.
-
-### BuildKit cache mounts
-
-All `pip install` and `apt-get` commands use `--mount=type=cache` with per-stage IDs to avoid cross-contamination between devel and runtime base images:
-
-- `apt-python-builder`, `apt-builder`, `apt-runtime` -- apt package caches
-- `pip-builder` -- pip wheel download cache
-
-### CI cache
-
-The GitHub Actions workflow uses GHCR registry-based caching (`type=registry`) instead of the default GHA cache to avoid the 10 GB repository cache limit. Each matrix variant stores its cache independently:
+The workflow builds stages in order:
 
 ```text
-ghcr.io/bogyie/runpod-comfyui:cache-stable-default-aggr
-ghcr.io/bogyie/runpod-comfyui:cache-stable-default-safe
-ghcr.io/bogyie/runpod-comfyui:cache-slim
-...
+core -> runtime-tools -> optimized -> custom-basic -> custom-advanced
 ```
 
-Cache writes are skipped on PR builds to avoid permission errors from fork contexts.
+On pull requests, the workflow starts a local `registry:2` service and pushes each stage and stage cache to `localhost:5000/runpod-comfyui` before the next stage consumes it. On release and manual dispatch, each stage and stage cache is pushed to GHCR before the next stage consumes it.
 
 ## Build-time guardrails
 
-- A protected package manifest is captured after the base `torch/torchvision/torchaudio/xformers` install.
-- After each baked custom node install step, the build verifies that critical packages have not drifted.
-- The guarded package set includes `torch`, `torchvision`, `torchaudio`, `xformers`, `triton`, and `sageattention`.
-- If a baked custom node tries to replace those packages unexpectedly, the Docker build fails.
-- `aggressive` variants intentionally install `triton` and `sageattention`, then refresh the protected manifest after that step.
-
-Custom node refs are resolved defensively during the build:
-
-- Remote branches are checked out from `origin/<ref>` when they exist.
-- Tags and commit SHAs are checked out directly.
-- The build fails fast if a requested ref does not exist.
-
-All git clones use `--depth 1` to minimize image size and build time.
+- A protected package manifest is captured after the core dependency install.
+- The manifest tracks `torch`, `torchvision`, `torchaudio`, `transformers`, `xformers`, `flash-attn`, `triton`, and `sageattention`.
+- The optimized stage refreshes the manifest after installing xformers and FlashAttention.
+- Custom-node stages verify the manifest after installing node requirements.
+- If a custom node replaces protected packages unexpectedly, the Docker build fails.
 
 ## GitHub Actions notes
 
-- Builds are triggered on **GitHub Release** (published), **pull request**, and **manual dispatch** -- not on push to main.
-- The workflow uses explicit matrix entries instead of a full cartesian matrix so additional variants can be added later without making tags noisy.
-- `fail-fast: false` ensures all variants build independently.
-- `timeout-minutes: 90` prevents hung builds from consuming runner hours.
-- `concurrency` control cancels in-progress builds when a new one is triggered for the same ref and variant.
-- PR smoke tests use a GPU-safe import check so builds can still validate on GitHub-hosted runners without NVIDIA drivers.
-- code-server is installed from the GitHub Releases `.deb` package directly, avoiding the rate-limited `code-server.dev` install script.
-- Docker Hub publishing is limited to the `slim` variant; GHCR remains the registry for all variants.
+- Builds are triggered on **GitHub Release** (published), **pull request**, and **manual dispatch**.
+- The workflow uses a single sequential job instead of a matrix so stages can reuse previous stage images.
+- `timeout-minutes: 240` accounts for the first uncached Python/PyTorch/FlashAttention build.
+- `concurrency` cancels in-progress builds for the same ref.
+- PR smoke tests validate the final `custom-advanced` image without requiring an NVIDIA GPU.
 
 ## Suggested next improvements
 
-- Pin known-good git commits for ComfyUI and baked custom nodes.
+- Pin known-good git commits for ComfyUI-Manager and both baked custom nodes.
 - Add a healthcheck script for ports `8188` and `8080`.
 - Add helper scripts for downloading models into the persistent volume.
-- Add alternate compatibility or optimization image flavors after validation.

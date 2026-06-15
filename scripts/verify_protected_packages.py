@@ -9,7 +9,9 @@ DEFAULT_PACKAGES = [
     "torch",
     "torchvision",
     "torchaudio",
+    "transformers",
     "xformers",
+    "flash-attn",
     "triton",
     "sageattention",
 ]

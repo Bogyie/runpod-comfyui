@@ -7,27 +7,71 @@
 - PyTorch `2.10.0` with `cu128`
 - torchvision `0.25.0`
 - torchaudio `2.10.0`
+- Transformers `5.12.0`
 - xformers `0.0.35`
-- ComfyUI `v0.20.1`
+- FlashAttention `2.8.3`
+- ComfyUI `v0.24.0`
 
-This image is intentionally aligned to a `CUDA 12.8 + PyTorch 2.10.0 cu128 + Python 3.11.15 + xformers 0.0.35` stack because it is the most practical common baseline for Blackwell-class GPUs such as RTX 5090 and RTX PRO 6000 while remaining suitable for H100.
+This image is aligned to a `CUDA 12.8 + PyTorch 2.10.0 cu128 + Python 3.11.15` stack for Blackwell-class GPUs such as RTX 5090 and RTX PRO 6000 while remaining suitable for H100.
 
 Before using the image, confirm the host driver is new enough for CUDA 12.8.
+
+## Compatibility checks
+
+- ComfyUI `v0.24.0` declares Python `>=3.10`, so Python `3.11.15` is within range.
+- Transformers `5.12.0` declares Python `3.10+` and PyTorch `2.4+`, so PyTorch `2.10.0` is within range.
+- xformers `0.0.35` declares `torch>=2.10`, matching the pinned torch version.
+- FlashAttention requires CUDA `12.0+` and PyTorch `2.2+`; the current stack uses CUDA `12.8` and PyTorch `2.10.0`.
 
 ## Python
 
 - This image builds CPython `3.11.15` from the upstream Python release tarball instead of relying on Ubuntu's distro Python packages.
 - That keeps the interpreter version stable across GitHub Actions runner changes and Ubuntu package updates.
-- The virtual environment is created from `/opt/python/current/bin/python3`, so rebuilds preserve the same Python patch version unless you change `PYTHON_VERSION`.
-- Python compilation is isolated in a dedicated `python-builder` stage so that changes to ComfyUI refs, scripts, or pip dependencies never trigger a recompilation.
+- Python compilation is isolated in `docker/Dockerfile.core`, so later stage changes do not trigger a Python rebuild.
 
-## xformers
+## Stage details
 
-- `xformers v0.0.35` publishes support for PyTorch `2.10.0` and later.
-- The default image path keeps `CUDA 12.8` and installs `xformers 0.0.35` from the PyTorch `cu128` index so it stays aligned with the selected torch build.
-- If the official wheel path gives you trouble on a specific GPU, driver, or custom-node combination, you can rebuild with `--build-arg XFORMERS_INSTALL_MODE=source` as a fallback.
-- Keep xformers pinned and install it without dependency resolution so it does not replace your chosen torch build.
-- The `slim` image does not change xformers behavior. It keeps `code-server`, and removes recovery-oriented cache files, `runpodctl`, aggressive optimization extras, and non-slim baked custom nodes from the final runtime image.
+### Core
+
+The core image installs:
+
+- ComfyUI `v0.24.0`
+- PyTorch, torchvision, and torchaudio from the CUDA 12.8 PyTorch wheel index
+- Transformers `5.12.0`
+- `ComfyUI-Manager`
+
+The core image captures the first protected package manifest.
+
+### Runtime tools
+
+The runtime tools image adds operational tooling:
+
+- `huggingface_hub[cli]`
+- `runpodctl`
+- `wget`
+- `jq`
+- SSH client
+- `code-server`
+
+This stage is separate so operational tool changes do not rebuild ComfyUI or PyTorch.
+
+### Optimized
+
+The optimized image adds:
+
+- xformers `0.0.35`
+- FlashAttention `2.8.3`
+
+FlashAttention can be expensive to compile. Keeping it in a separate stage isolates that cost from core runtime and custom-node changes.
+
+### Custom nodes
+
+Only two baked custom nodes are included:
+
+- Basic: `kijai/ComfyUI-KJNodes`
+- Advanced: `Bogyie/ComfyUI-Sapiens2-Easy`
+
+The previous broad baked-node pack was removed. This reduces dependency drift and narrows the rebuild surface.
 
 ## Model path normalization
 
@@ -35,43 +79,13 @@ Before using the image, confirm the host driver is new enough for CUDA 12.8.
 - Common folder aliases are normalized with symlinks so either naming convention works.
 - Current aliases include `unet -> diffusion_models`, `text_encoders -> clip`, and `t2i_adapter -> controlnet`.
 
-## CUDA and driver compatibility
-
-- This template assumes a host driver new enough for CUDA `12.8`.
-- Blackwell GPUs such as RTX 5090 and RTX PRO 6000 are the main reason to prefer a `cu128` stack over older CUDA variants.
-- This is an inference for the template's stability target: `CUDA 13.0` is newer and supported by PyTorch `2.10.0`, but `CUDA 12.8` is the more conservative shared baseline for H100 plus current Blackwell cards.
-
 ## PyTorch behavior changes
 
 - PyTorch `2.6+` changed the default behavior of `torch.load` toward `weights_only=True`.
-- Some ComfyUI custom nodes and model loaders still assume the older behavior, so you may see checkpoint-loading regressions in specific nodes even when the base image is healthy.
-- When this happens, treat it as a node compatibility issue first, not a signal that the whole CUDA stack is broken.
+- Some ComfyUI custom nodes and model loaders still assume the older behavior, so checkpoint-loading regressions can still appear in specific nodes even when the base image is healthy.
 
-## Aggressive optimization notes
+## Guardrails
 
-### Triton
-
-- Triton may be useful for certain PyTorch and ComfyUI optimization paths, but it is not treated as a required baseline dependency in this template.
-- A successful Triton install does not guarantee that every ComfyUI optimization path will work cleanly.
-- Add it only after validating your target workflow on the GPUs you care about.
-- In this repo, Triton is only installed for `aggressive` image variants.
-
-### FlashAttention and other aggressive packages
-
-- Do not bake in `flash-attn` for the first image version.
-- It can provide real speedups, but compatibility is more fragile across Python, CUDA, PyTorch, compiler, and GPU combinations.
-- If you want it later, prefer a second image flavor instead of changing the main stable image.
-
-### SageAttention
-
-- `sageattention` is limited to `aggressive` image variants.
-- Benefits on Blackwell or H100 may be limited depending on workload.
-- Treat it as an experiment, not a guaranteed speedup.
-
-## Node pack caveats
-
-- Several baked custom nodes bring substantial Python dependencies of their own.
-- This improves out-of-the-box usability, but it also means upstream node changes can affect image build stability more than before.
-- `manager-only` variants reduce that surface area and are a good choice for stricter production templates.
-- `slim` keeps a small baked node set: `ComfyUI-Manager`, `ComfyUI-Impact-Pack`, `ComfyUI-Sapiens2-Easy`, and `rgthree-comfy`.
-- For production use, you will likely want to pin ComfyUI and baked node repos to specific commits after your first validation pass.
+- Protected package drift is checked during build.
+- The guarded package set includes torch, torchvision, torchaudio, transformers, xformers, flash-attn, triton, and sageattention.
+- Custom-node stages verify that node requirements did not replace those packages unexpectedly.

@@ -1,0 +1,75 @@
+# syntax=docker/dockerfile:1.7
+
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE} AS base
+
+FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04 AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    PYTHONUNBUFFERED=1 \
+    COMFY_HOME=/opt/comfy \
+    COMFYUI_DIR=/opt/comfy/ComfyUI \
+    COMFY_VENV=/opt/comfy/venv \
+    PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cu128
+
+ARG XFORMERS_VERSION=0.0.35
+ARG FLASH_ATTN_VERSION=2.8.3
+ARG MAX_JOBS=4
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN --mount=type=cache,id=apt-optimized-builder,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=aptlists-optimized-builder,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
+      build-essential \
+      ca-certificates \
+      git \
+      libbz2-1.0 \
+      libffi8 \
+      libgdbm6 \
+      liblzma5 \
+      libncursesw6 \
+      libnss3 \
+      libreadline8 \
+      libsqlite3-0 \
+      libssl3 \
+      ninja-build \
+      rsync \
+      tk \
+      zlib1g
+
+COPY --from=base /opt /opt
+
+RUN --mount=type=cache,id=pip-optimized,target=/root/.cache/pip \
+    "${COMFY_VENV}/bin/pip" install packaging ninja && \
+    "${COMFY_VENV}/bin/pip" install \
+      "xformers==${XFORMERS_VERSION}" \
+      --index-url "${PYTORCH_INDEX_URL}" \
+      --no-deps && \
+    MAX_JOBS="${MAX_JOBS}" "${COMFY_VENV}/bin/pip" install \
+      "flash-attn==${FLASH_ATTN_VERSION}" \
+      --no-build-isolation && \
+    "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
+      capture \
+      /opt/bootstrap/protected-package-manifest.json && \
+    "${COMFY_VENV}/bin/pip" freeze > /opt/bootstrap/base-requirements.lock
+
+RUN "${COMFY_VENV}/bin/python" - <<'PY'
+import importlib
+
+for module in ["xformers", "flash_attn"]:
+    importlib.import_module(module)
+print("Optimized dependency smoke test passed.")
+PY
+
+FROM base
+
+COPY --from=builder /opt/comfy/venv /opt/comfy/venv
+COPY --from=builder /opt/bootstrap/protected-package-manifest.json /opt/bootstrap/protected-package-manifest.json
+COPY --from=builder /opt/bootstrap/base-requirements.lock /opt/bootstrap/base-requirements.lock
+
+RUN "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
+      verify \
+      /opt/bootstrap/protected-package-manifest.json

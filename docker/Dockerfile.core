@@ -1,0 +1,240 @@
+# syntax=docker/dockerfile:1.7
+
+FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04 AS python-builder
+
+ARG PYTHON_VERSION=3.11.15
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN --mount=type=cache,id=apt-python-builder,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=aptlists-python-builder,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
+      build-essential \
+      ca-certificates \
+      curl \
+      libbz2-dev \
+      libffi-dev \
+      libgdbm-dev \
+      liblzma-dev \
+      libncursesw5-dev \
+      libnss3-dev \
+      libreadline-dev \
+      libsqlite3-dev \
+      libssl-dev \
+      tk-dev \
+      xz-utils \
+      zlib1g-dev
+
+RUN curl -fsSLO "https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz" && \
+    tar -xf "Python-${PYTHON_VERSION}.tar.xz" && \
+    cd "Python-${PYTHON_VERSION}" && \
+    ./configure \
+      --prefix=/opt/python/${PYTHON_VERSION} \
+      --enable-optimizations \
+      --with-lto \
+      --with-ensurepip=install && \
+    make -j"$(nproc)" && \
+    make install && \
+    cd / && \
+    rm -rf "Python-${PYTHON_VERSION}" "Python-${PYTHON_VERSION}.tar.xz" && \
+    ln -s /opt/python/${PYTHON_VERSION} /opt/python/current
+
+FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04 AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    PYTHONUNBUFFERED=1 \
+    COMFY_HOME=/opt/comfy \
+    COMFYUI_DIR=/opt/comfy/ComfyUI \
+    COMFY_VENV=/opt/comfy/venv \
+    WORKSPACE_DIR=/workspace \
+    STORAGE_DIR=/workspace/storage \
+    COMFYUI_PORT=8188 \
+    CODE_SERVER_PORT=8080 \
+    CLI_ARGS= \
+    PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cu128 \
+    TORCH_VERSION=2.10.0 \
+    TORCHVISION_VERSION=0.25.0 \
+    TORCHAUDIO_VERSION=2.10.0
+
+ARG COMFYUI_REF=v0.24.0
+ARG COMFYUI_MANAGER_REF=main
+ARG TRANSFORMERS_VERSION=5.12.0
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN --mount=type=cache,id=apt-core-builder,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=aptlists-core-builder,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
+      build-essential \
+      ca-certificates \
+      curl \
+      ffmpeg \
+      git \
+      libbz2-dev \
+      libffi-dev \
+      libgdbm-dev \
+      libgl1 \
+      libglib2.0-0 \
+      liblzma-dev \
+      libncursesw5-dev \
+      libnss3-dev \
+      libreadline-dev \
+      libsm6 \
+      libsqlite3-dev \
+      libssl-dev \
+      libxext6 \
+      libxrender1 \
+      rsync \
+      tk-dev \
+      unzip \
+      xz-utils \
+      zlib1g-dev
+
+RUN mkdir -p "${COMFY_HOME}" "${WORKSPACE_DIR}" /opt/bootstrap
+
+COPY --from=python-builder /opt/python /opt/python
+
+RUN --mount=type=cache,id=pip-core,target=/root/.cache/pip \
+    /opt/python/current/bin/python3 -m venv "${COMFY_VENV}" && \
+    "${COMFY_VENV}/bin/pip" install --upgrade pip wheel setuptools
+
+RUN git clone --depth 1 --branch "${COMFYUI_REF}" \
+      https://github.com/Comfy-Org/ComfyUI.git "${COMFYUI_DIR}"
+
+RUN --mount=type=cache,id=pip-core,target=/root/.cache/pip \
+    "${COMFY_VENV}/bin/pip" install \
+      "torch==${TORCH_VERSION}" \
+      "torchvision==${TORCHVISION_VERSION}" \
+      "torchaudio==${TORCHAUDIO_VERSION}" \
+      --index-url "${PYTORCH_INDEX_URL}" && \
+    "${COMFY_VENV}/bin/pip" install -r "${COMFYUI_DIR}/requirements.txt" && \
+    "${COMFY_VENV}/bin/pip" install "transformers==${TRANSFORMERS_VERSION}"
+
+COPY scripts/ /opt/bootstrap/scripts/
+
+RUN "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
+      capture \
+      /opt/bootstrap/protected-package-manifest.json
+
+RUN mkdir -p "${COMFYUI_DIR}/custom_nodes" && \
+    checkout_repo_ref() { \
+      local repo_dir="$1"; \
+      local ref="$2"; \
+      [[ -n "${ref}" ]] || return 0; \
+      if git -C "${repo_dir}" show-ref --verify --quiet "refs/remotes/origin/${ref}"; then \
+        git -C "${repo_dir}" checkout -B "${ref}" "origin/${ref}"; \
+      elif git -C "${repo_dir}" rev-parse --verify --quiet "${ref}^{commit}" >/dev/null; then \
+        git -C "${repo_dir}" checkout "${ref}"; \
+      else \
+        echo "Requested ref '${ref}' was not found for ${repo_dir}" >&2; \
+        exit 1; \
+      fi; \
+    }; \
+    git clone --depth 1 "https://github.com/Comfy-Org/ComfyUI-Manager.git" \
+      "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager" && \
+    checkout_repo_ref "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager" "${COMFYUI_MANAGER_REF}"
+
+RUN --mount=type=cache,id=pip-core,target=/root/.cache/pip \
+    source "${COMFY_VENV}/bin/activate" && \
+    for node_dir in "${COMFYUI_DIR}"/custom_nodes/*; do \
+      [[ -d "${node_dir}" ]] || continue; \
+      if [[ -f "${node_dir}/requirements.txt" ]]; then \
+        python -m pip install -r "${node_dir}/requirements.txt"; \
+      fi; \
+      if [[ -f "${node_dir}/install.py" ]]; then \
+        (cd "${node_dir}" && COMFYUI_FOLDERS_BASE_PATH="${COMFYUI_DIR}" python install.py); \
+      fi; \
+      python /opt/bootstrap/scripts/verify_protected_packages.py \
+        verify \
+        /opt/bootstrap/protected-package-manifest.json; \
+    done
+
+RUN mkdir -p /opt/bootstrap/baked-custom-nodes && \
+    cp -a "${COMFYUI_DIR}/custom_nodes/." /opt/bootstrap/baked-custom-nodes/
+
+RUN "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
+      verify \
+      /opt/bootstrap/protected-package-manifest.json && \
+    "${COMFY_VENV}/bin/pip" freeze > /opt/bootstrap/base-requirements.lock
+
+COPY start.sh /opt/bootstrap/start.sh
+
+RUN chmod +x /opt/bootstrap/start.sh /opt/bootstrap/scripts/*.sh && \
+    "${COMFY_VENV}/bin/python" - <<'PY'
+import importlib
+import os
+from pathlib import Path
+import sys
+
+base = Path(os.environ["COMFYUI_DIR"])
+sys.path.insert(0, str(base))
+for module in ["torch", "transformers"]:
+    importlib.import_module(module)
+for module_file in ["server.py", "execution.py"]:
+    path = base / module_file
+    if not path.is_file():
+        raise FileNotFoundError(f"Missing expected ComfyUI module file: {path}")
+if not (base / "custom_nodes" / "ComfyUI-Manager").is_dir():
+    raise FileNotFoundError("ComfyUI-Manager was not baked into the core image")
+print("Core image smoke test passed.")
+PY
+
+FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    COMFY_HOME=/opt/comfy \
+    COMFYUI_DIR=/opt/comfy/ComfyUI \
+    COMFY_VENV=/opt/comfy/venv \
+    WORKSPACE_DIR=/workspace \
+    STORAGE_DIR=/workspace/storage \
+    COMFYUI_PORT=8188 \
+    CODE_SERVER_PORT=8080 \
+    CLI_ARGS=
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN --mount=type=cache,id=apt-core-runtime,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=aptlists-core-runtime,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates \
+      dumb-init \
+      ffmpeg \
+      git \
+      libbz2-1.0 \
+      libffi8 \
+      libgdbm6 \
+      libgl1 \
+      libglib2.0-0 \
+      liblzma5 \
+      libncursesw6 \
+      libnss3 \
+      libreadline8 \
+      libsm6 \
+      libsqlite3-0 \
+      libssl3 \
+      libuuid1 \
+      libxext6 \
+      libxrender1 \
+      rsync \
+      tk \
+      unzip \
+      zlib1g
+
+COPY --from=builder /opt/comfy /opt/comfy
+COPY --from=builder /opt/bootstrap /opt/bootstrap
+COPY --from=builder /opt/python /opt/python
+
+RUN "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
+      verify \
+      /opt/bootstrap/protected-package-manifest.json
+
+EXPOSE 8188
+
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+CMD ["/opt/bootstrap/start.sh"]

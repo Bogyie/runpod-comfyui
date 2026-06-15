@@ -9,48 +9,26 @@ on:
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/runpod-comfyui
   DOCKERHUB_IMAGE: docker.io/bogyie/runpod-comfyui
-  # Keep in sync with Dockerfile ARG/ENV defaults
   PY_VERSION: "3.11"
   CUDA_VERSION: "12.8"
-  COMFYUI_VERSION: "0.20.1"
+  COMFYUI_VERSION: "0.24.0"
   PT_VERSION: "2.10.0"
+  TRANSFORMERS_VERSION: "5.12.0"
+  XFORMERS_VERSION: "0.0.35"
+  FLASH_ATTN_VERSION: "2.8.3"
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 240
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     concurrency:
-      group: docker-${{ github.ref }}-${{ matrix.variant }}
+      group: docker-${{ github.ref }}
       cancel-in-progress: true
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: stable
-            plugin_pack: default-pack
-            optimizations: aggressive
-            variant: stable-default-aggr
-            is_canonical: "true"
-          - target: stable
-            plugin_pack: default-pack
-            optimizations: safe
-            variant: stable-default-safe
-            is_canonical: "false"
-          - target: stable
-            plugin_pack: manager-only
-            optimizations: aggressive
-            variant: stable-manager-aggr
-            is_canonical: "false"
-          - target: stable
-            plugin_pack: manager-only
-            optimizations: safe
-            variant: stable-manager-safe
-            is_canonical: "false"
-          - target: slim
-            plugin_pack: slim-pack
-            optimizations: safe
-            variant: slim
-            is_canonical: "false"
     permissions:
       contents: read
       packages: write
@@ -65,11 +43,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Normalize image name
+      - name: Normalize image tags
         run: |
-          echo "IMAGE_NAME_LC=${IMAGE_NAME,,}" >> "$GITHUB_ENV"
+          IMAGE_NAME_LC="${IMAGE_NAME,,}"
+          echo "IMAGE_NAME_LC=${IMAGE_NAME_LC}" >> "$GITHUB_ENV"
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            CHAIN_IMAGE="localhost:5000/runpod-comfyui"
+          else
+            CHAIN_IMAGE="${IMAGE_NAME_LC}"
+          fi
+          echo "CHAIN_IMAGE=${CHAIN_IMAGE}" >> "$GITHUB_ENV"
+          echo "CACHE_IMAGE=${CHAIN_IMAGE}" >> "$GITHUB_ENV"
           V_PY=${PY_VERSION//./}; V_PT=${PT_VERSION//./}; V_CU=${CUDA_VERSION//./}; V_CF=${COMFYUI_VERSION//./}
+          SHORT_SHA="${GITHUB_SHA::7}"
           echo "VERSION_SLUG=py${V_PY:0:3}-pt${V_PT:0:3}-cu${V_CU:0:3}-cf${V_CF:0:3}" >> "$GITHUB_ENV"
+          echo "SHORT_SHA=${SHORT_SHA}" >> "$GITHUB_ENV"
+          echo "CORE_IMAGE=${CHAIN_IMAGE}:sha-${SHORT_SHA}-core" >> "$GITHUB_ENV"
+          echo "TOOLS_IMAGE=${CHAIN_IMAGE}:sha-${SHORT_SHA}-runtime-tools" >> "$GITHUB_ENV"
+          echo "OPTIMIZED_IMAGE=${CHAIN_IMAGE}:sha-${SHORT_SHA}-optimized" >> "$GITHUB_ENV"
+          echo "BASIC_IMAGE=${CHAIN_IMAGE}:sha-${SHORT_SHA}-custom-basic" >> "$GITHUB_ENV"
+          echo "ADVANCED_IMAGE=${CHAIN_IMAGE}:sha-${SHORT_SHA}-custom-advanced" >> "$GITHUB_ENV"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -78,8 +71,14 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           buildkitd-config-inline: |
+            [registry."localhost:5000"]
+              http = true
+              insecure = true
+
             [worker.oci]
               max-parallelism = 2
+          driver-opts: |
+            network=host
 
       - name: Log in to GHCR
         if: github.event_name != 'pull_request'
@@ -90,51 +89,103 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log in to Docker Hub
-        if: github.event_name != 'pull_request' && matrix.variant == 'slim'
+        if: github.event_name == 'release'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ${{ env.IMAGE_NAME_LC }}
-            name=${{ env.DOCKERHUB_IMAGE }},enable=${{ matrix.variant == 'slim' }}
-          flavor: |
-            latest=false
-          tags: |
-            type=ref,event=tag,enable=${{ matrix.is_canonical == 'true' }}
-            type=ref,event=tag,suffix=-${{ matrix.variant }}
-            type=sha,prefix=sha-,suffix=-${{ matrix.variant }}
-            type=raw,value=${{ matrix.variant }}
-            type=raw,value=${{ env.VERSION_SLUG }}-${{ matrix.variant }}
-            type=raw,value=latest,enable=${{ github.event_name == 'release' && matrix.is_canonical == 'true' }}
-
-      - name: Build image
+      - name: Build core image
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile
-          target: ${{ matrix.target }}
+          file: ./docker/Dockerfile.core
           build-args: |
-            INCLUDE_DEFAULT_CUSTOM_NODE_PACK=${{ matrix.plugin_pack == 'default-pack' && '1' || '0' }}
-            CUSTOM_NODE_PACK=${{ matrix.plugin_pack == 'default-pack' && 'default' || matrix.plugin_pack == 'slim-pack' && 'slim' || 'manager-only' }}
-            BUILD_WHEEL_CACHE=${{ matrix.target == 'stable' && '1' || '0' }}
-            ENABLE_AGGRESSIVE_OPTIMIZATIONS=${{ matrix.optimizations == 'aggressive' && '1' || '0' }}
-          load: ${{ github.event_name == 'pull_request' }}
-          push: ${{ github.event_name != 'pull_request' }}
+            COMFYUI_REF=v${{ env.COMFYUI_VERSION }}
+            TRANSFORMERS_VERSION=${{ env.TRANSFORMERS_VERSION }}
+          push: true
           tags: |
-            ${{ steps.meta.outputs.tags }}
-            ${{ github.event_name == 'pull_request' && format('{0}:pr-{1}', env.IMAGE_NAME_LC, matrix.variant) || '' }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ env.IMAGE_NAME_LC }}:cache-${{ matrix.variant }}
-          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}:cache-{1},mode=max', env.IMAGE_NAME_LC, matrix.variant) || '' }}
+            ${{ env.CORE_IMAGE }}
+            ${{ env.CHAIN_IMAGE }}:core
+            ${{ env.CHAIN_IMAGE }}:${{ env.VERSION_SLUG }}-core
+            ${{ github.event_name == 'release' && format('{0}:{1}-core', env.CHAIN_IMAGE, github.ref_name) || '' }}
+          cache-from: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-core
+          cache-to: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-core,mode=max
 
-      - name: Smoke test imports
+      - name: Build runtime tools image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/Dockerfile.runtime-tools
+          build-args: |
+            BASE_IMAGE=${{ env.CORE_IMAGE }}
+          push: true
+          tags: |
+            ${{ env.TOOLS_IMAGE }}
+            ${{ env.CHAIN_IMAGE }}:runtime-tools
+            ${{ env.CHAIN_IMAGE }}:${{ env.VERSION_SLUG }}-runtime-tools
+            ${{ github.event_name == 'release' && format('{0}:{1}-runtime-tools', env.CHAIN_IMAGE, github.ref_name) || '' }}
+          cache-from: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-runtime-tools
+          cache-to: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-runtime-tools,mode=max
+
+      - name: Build optimized image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/Dockerfile.optimized
+          build-args: |
+            BASE_IMAGE=${{ env.TOOLS_IMAGE }}
+            XFORMERS_VERSION=${{ env.XFORMERS_VERSION }}
+            FLASH_ATTN_VERSION=${{ env.FLASH_ATTN_VERSION }}
+          push: true
+          tags: |
+            ${{ env.OPTIMIZED_IMAGE }}
+            ${{ env.CHAIN_IMAGE }}:optimized
+            ${{ env.CHAIN_IMAGE }}:${{ env.VERSION_SLUG }}-optimized
+            ${{ github.event_name == 'release' && format('{0}:{1}-optimized', env.CHAIN_IMAGE, github.ref_name) || '' }}
+          cache-from: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-optimized
+          cache-to: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-optimized,mode=max
+
+      - name: Build basic custom node image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/Dockerfile.custom-basic
+          build-args: |
+            BASE_IMAGE=${{ env.OPTIMIZED_IMAGE }}
+          push: true
+          tags: |
+            ${{ env.BASIC_IMAGE }}
+            ${{ env.CHAIN_IMAGE }}:custom-basic
+            ${{ env.CHAIN_IMAGE }}:${{ env.VERSION_SLUG }}-custom-basic
+            ${{ github.event_name == 'release' && format('{0}:{1}-custom-basic', env.CHAIN_IMAGE, github.ref_name) || '' }}
+          cache-from: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-custom-basic
+          cache-to: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-custom-basic,mode=max
+
+      - name: Build advanced custom node image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/Dockerfile.custom-advanced
+          build-args: |
+            BASE_IMAGE=${{ env.BASIC_IMAGE }}
+          push: true
+          tags: |
+            ${{ env.ADVANCED_IMAGE }}
+            ${{ env.CHAIN_IMAGE }}:custom-advanced
+            ${{ env.CHAIN_IMAGE }}:${{ env.VERSION_SLUG }}-custom-advanced
+            ${{ github.event_name == 'release' && format('{0}:{1}-custom-advanced', env.CHAIN_IMAGE, github.ref_name) || '' }}
+            ${{ github.event_name == 'release' && format('{0}:{1}', env.CHAIN_IMAGE, github.ref_name) || '' }}
+            ${{ github.event_name == 'release' && format('{0}:latest', env.CHAIN_IMAGE) || '' }}
+            ${{ github.event_name == 'release' && format('{0}:custom-advanced', env.DOCKERHUB_IMAGE) || '' }}
+            ${{ github.event_name == 'release' && format('{0}:{1}-custom-advanced', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}
+            ${{ github.event_name == 'release' && format('{0}:{1}', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}
+            ${{ github.event_name == 'release' && format('{0}:latest', env.DOCKERHUB_IMAGE) || '' }}
+          cache-from: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-custom-advanced
+          cache-to: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-custom-advanced,mode=max
+
+      - name: Smoke test final image
         if: github.event_name == 'pull_request'
         run: |
-          docker run --rm ${{ env.IMAGE_NAME_LC }}:pr-${{ matrix.variant }} \
-            /bin/bash -lc 'source /opt/comfy/venv/bin/activate && python -c "import importlib, os, sys; from pathlib import Path; base = Path(os.environ['"'"'COMFYUI_DIR'"'"']); sys.path.insert(0, str(base)); [importlib.import_module(module) for module in ('"'"'torch'"'"', '"'"'xformers'"'"')]; missing = [str(base / module_file) for module_file in ('"'"'server.py'"'"', '"'"'execution.py'"'"') if not (base / module_file).is_file()]; (_ for _ in ()).throw(FileNotFoundError('"'"'Missing expected ComfyUI module file(s): '"'"' + '"'"', '"'"'.join(missing))) if missing else None; print('"'"'Workflow smoke test passed.'"'"')"'
+          docker run --rm ${{ env.ADVANCED_IMAGE }} \
+            /bin/bash -lc 'source /opt/comfy/venv/bin/activate && python -c "import importlib, os, sys; from pathlib import Path; base = Path(os.environ[\"COMFYUI_DIR\"]); sys.path.insert(0, str(base)); [importlib.import_module(module) for module in (\"torch\", \"transformers\", \"xformers\", \"flash_attn\")]; missing = [str(base / \"custom_nodes\" / name) for name in (\"ComfyUI-Manager\", \"ComfyUI-KJNodes\", \"ComfyUI-Sapiens2-Easy\") if not (base / \"custom_nodes\" / name).is_dir()]; (_ for _ in ()).throw(FileNotFoundError(\"Missing baked custom node(s): \" + \", \".join(missing))) if missing else None; print(\"Workflow smoke test passed.\")"'

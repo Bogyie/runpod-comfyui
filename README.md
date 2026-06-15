@@ -1,66 +1,71 @@
 # runpod-comfyui
 
-Runpod Pod template for ComfyUI with fast startup, persistent volume storage, baked-in baseline custom nodes, and built-in `code-server`.
+Runpod Pod template for ComfyUI with staged Docker images, persistent volume storage, a small baked custom-node baseline, and built-in recovery helpers.
 
 ## What this image is for
 
 - Start ComfyUI quickly on Runpod
+- Avoid rebuilding the full stack when only later layers change
 - Keep models, outputs, workflows, and most custom nodes on a persistent volume
-- Bake in a stable baseline so recovery is easy
+- Bake in a narrow custom-node baseline so recovery is predictable
 - Support modern NVIDIA GPUs such as RTX 5090, H100, and RTX PRO 6000
 
-## Recommended image variants
+## Staged image chain
 
-- `stable-default-aggr`
-  Recommended default. Includes the default baked node pack and aggressive optimization extras.
-- `stable-default-safe`
-  Same baked node pack, but without aggressive optimization extras.
-- `stable-manager-aggr`
-  Smaller baked node set with aggressive optimization extras.
-- `stable-manager-safe`
-  Smallest stable baseline. Good when you want most nodes managed on the volume.
-- `slim`
-  Lightweight ComfyUI-focused image. Keeps `code-server`, but omits `runpodctl`, the wheel cache, aggressive optimization extras, and keeps only the slim baked node pack.
+The image is built as a linear chain. Each step uses the previous step image as `BASE_IMAGE`.
 
-Image tags (example for release `v1.0.2`):
+1. `core`
+   ComfyUI, CUDA, Python, PyTorch, Transformers, and `ComfyUI-Manager`.
+2. `runtime-tools`
+   Adds operational tools such as `huggingface_hub[cli]`, `runpodctl`, `wget`, `jq`, SSH client, and `code-server`.
+3. `optimized`
+   Adds xformers and FlashAttention.
+4. `custom-basic`
+   Adds the basic custom node: `kijai/ComfyUI-KJNodes`.
+5. `custom-advanced`
+   Adds the advanced custom node: `Bogyie/ComfyUI-Sapiens2-Easy`.
+
+The final recommended image is `custom-advanced`.
+
+Image tags include stage tags and version-slug tags, for example:
 
 ```text
-ghcr.io/bogyie/runpod-comfyui:latest
+ghcr.io/bogyie/runpod-comfyui:custom-advanced
+ghcr.io/bogyie/runpod-comfyui:py311-pt210-cu128-cf024-custom-advanced
+ghcr.io/bogyie/runpod-comfyui:v1.0.2-custom-advanced
 ghcr.io/bogyie/runpod-comfyui:v1.0.2
-ghcr.io/bogyie/runpod-comfyui:v1.0.2-stable-default-aggr
-ghcr.io/bogyie/runpod-comfyui:py311-pt210-cu128-cf020-stable-default-aggr
-ghcr.io/bogyie/runpod-comfyui:stable-default-aggr
+ghcr.io/bogyie/runpod-comfyui:latest
 ```
 
 Use a pinned release or version-slug tag for production templates rather than `latest`.
 
-## Included in the image
+## Current baseline stack
 
-- ComfyUI
+- ComfyUI `v0.24.0`
+- CUDA `12.8`
+- Python `3.11.15`
+- PyTorch `2.10.0` with `cu128`
+- torchvision `0.25.0`
+- torchaudio `2.10.0`
+- Transformers `5.12.0`
+- xformers `0.0.35`
+- FlashAttention `2.8.3`
+
+## Included custom nodes
+
+Core image:
+
 - `ComfyUI-Manager`
-- `code-server`
-- Recovery scripts in `/opt/bootstrap/scripts`
 
-Default baked custom node pack:
+Basic custom-node image:
 
-- `comfyui_controlnet_aux`
-- `ComfyUI_IPAdapter_plus`
-- `ComfyUI-Impact-Pack`
-- `ComfyUI-Sapiens2-Easy`
-- `rgthree-comfy`
-- `ComfyUI-Easy-Use`
 - `ComfyUI-KJNodes`
 
-Slim baked custom node pack:
+Advanced custom-node image:
 
-- `ComfyUI-Manager`
-- `ComfyUI-Impact-Pack`
 - `ComfyUI-Sapiens2-Easy`
-- `rgthree-comfy`
 
-Optional baked node:
-
-- `ComfyUI-WanVideoWrapper`
+Other custom nodes were intentionally removed from the baked baseline. Add them later only after validating their build-time and dependency impact.
 
 ## Persistent volume
 
@@ -83,7 +88,7 @@ Main custom node path:
 /workspace/storage/custom_nodes
 ```
 
-Model storage also follows the ComfyUI default `models/` layout, and common alias folders such as `unet`, `text_encoders`, and `t2i_adapter` are linked automatically to the matching storage paths.
+Model storage follows the ComfyUI default `models/` layout, and common alias folders such as `unet`, `text_encoders`, and `t2i_adapter` are linked automatically to the matching storage paths.
 
 ## Ports
 

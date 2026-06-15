@@ -1,0 +1,49 @@
+# syntax=docker/dockerfile:1.7
+
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    COMFY_HOME=/opt/comfy \
+    COMFYUI_DIR=/opt/comfy/ComfyUI \
+    COMFY_VENV=/opt/comfy/venv \
+    WORKSPACE_DIR=/workspace \
+    STORAGE_DIR=/workspace/storage \
+    COMFYUI_PORT=8188 \
+    CODE_SERVER_PORT=8080 \
+    CLI_ARGS=
+
+ARG CODE_SERVER_VERSION=4.103.2
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN --mount=type=cache,id=apt-runtime-tools,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=aptlists-runtime-tools,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates \
+      curl \
+      jq \
+      openssh-client \
+      wget
+
+RUN curl -fsSL -o /tmp/code-server.deb \
+      "https://github.com/coder/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_amd64.deb" && \
+    dpkg -i /tmp/code-server.deb && \
+    rm /tmp/code-server.deb
+
+RUN wget -q -O /usr/local/bin/runpodctl \
+      "https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64" && \
+    chmod +x /usr/local/bin/runpodctl
+
+RUN --mount=type=cache,id=pip-runtime-tools,target=/root/.cache/pip \
+    "${COMFY_VENV}/bin/pip" install "huggingface_hub[cli]" && \
+    "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
+      verify \
+      /opt/bootstrap/protected-package-manifest.json && \
+    "${COMFY_VENV}/bin/pip" freeze > /opt/bootstrap/base-requirements.lock
+
+EXPOSE 8080
