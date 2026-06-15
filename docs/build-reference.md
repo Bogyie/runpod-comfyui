@@ -106,7 +106,7 @@ The workflow builds stages in order:
 core -> runtime-tools -> optimized -> custom-basic -> custom-advanced
 ```
 
-On pull requests, the workflow starts a local `registry:2` service and pushes each stage and stage cache to `localhost:5000/runpod-comfyui` before the next stage consumes it. On release and manual dispatch, each stage and stage cache is pushed to GHCR before the next stage consumes it.
+On release and manual dispatch, each stage runs in its own GitHub Actions job. A stage job pushes its SHA-scoped image and registry cache to GHCR before the next job consumes that image through `BASE_IMAGE`.
 
 ## Build-time guardrails
 
@@ -118,11 +118,11 @@ On pull requests, the workflow starts a local `registry:2` service and pushes ea
 
 ## GitHub Actions notes
 
-- Builds are triggered on **GitHub Release** (published), **pull request**, and **manual dispatch**.
-- The workflow uses a single sequential job instead of a matrix so stages can reuse previous stage images.
-- `timeout-minutes: 240` accounts for the first uncached Python/PyTorch/FlashAttention build.
+- Builds are triggered on **GitHub Release** (published) and **manual dispatch**.
+- The workflow uses dependent jobs instead of a matrix so each stage can reuse the previous stage image while remaining separately visible and retryable in GitHub Actions.
+- Each stage has its own timeout so a later-stage failure does not consume the same budget as the full chain.
 - `concurrency` cancels in-progress builds for the same ref.
-- PR smoke tests validate the final `custom-advanced` image without requiring an NVIDIA GPU.
+- The final `custom-advanced` job runs a GPU-safe smoke test without requiring an NVIDIA driver.
 
 ## Suggested next improvements
 

@@ -3,7 +3,6 @@ name: docker
 on:
   release:
     types: [published]
-  pull_request:
   workflow_dispatch:
 
 env:
@@ -18,21 +17,45 @@ env:
   FLASH_ATTN_VERSION: "2.8.3"
 
 jobs:
-  build:
+  prepare:
     runs-on: ubuntu-latest
-    timeout-minutes: 240
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
+    outputs:
+      image_name_lc: ${{ steps.tags.outputs.image_name_lc }}
+      version_slug: ${{ steps.tags.outputs.version_slug }}
+      short_sha: ${{ steps.tags.outputs.short_sha }}
+      core_image: ${{ steps.tags.outputs.core_image }}
+      tools_image: ${{ steps.tags.outputs.tools_image }}
+      optimized_image: ${{ steps.tags.outputs.optimized_image }}
+      basic_image: ${{ steps.tags.outputs.basic_image }}
+      advanced_image: ${{ steps.tags.outputs.advanced_image }}
+    steps:
+      - name: Normalize image tags
+        id: tags
+        run: |
+          IMAGE_NAME_LC="${IMAGE_NAME,,}"
+          V_PY=${PY_VERSION//./}; V_PT=${PT_VERSION//./}; V_CU=${CUDA_VERSION//./}; V_CF=${COMFYUI_VERSION//./}
+          VERSION_SLUG="py${V_PY:0:3}-pt${V_PT:0:3}-cu${V_CU:0:3}-cf${V_CF:0:3}"
+          SHORT_SHA="${GITHUB_SHA::7}"
+
+          echo "image_name_lc=${IMAGE_NAME_LC}" >> "$GITHUB_OUTPUT"
+          echo "version_slug=${VERSION_SLUG}" >> "$GITHUB_OUTPUT"
+          echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "core_image=${IMAGE_NAME_LC}:sha-${SHORT_SHA}-core" >> "$GITHUB_OUTPUT"
+          echo "tools_image=${IMAGE_NAME_LC}:sha-${SHORT_SHA}-runtime-tools" >> "$GITHUB_OUTPUT"
+          echo "optimized_image=${IMAGE_NAME_LC}:sha-${SHORT_SHA}-optimized" >> "$GITHUB_OUTPUT"
+          echo "basic_image=${IMAGE_NAME_LC}:sha-${SHORT_SHA}-custom-basic" >> "$GITHUB_OUTPUT"
+          echo "advanced_image=${IMAGE_NAME_LC}:sha-${SHORT_SHA}-custom-advanced" >> "$GITHUB_OUTPUT"
+
+  build-core:
+    runs-on: ubuntu-latest
+    needs: prepare
+    timeout-minutes: 180
     concurrency:
-      group: docker-${{ github.ref }}
+      group: docker-core-${{ github.ref }}
       cancel-in-progress: true
     permissions:
       contents: read
       packages: write
-
     steps:
       - name: Free disk space
         run: |
@@ -43,27 +66,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Normalize image tags
-        run: |
-          IMAGE_NAME_LC="${IMAGE_NAME,,}"
-          echo "IMAGE_NAME_LC=${IMAGE_NAME_LC}" >> "$GITHUB_ENV"
-          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            CHAIN_IMAGE="localhost:5000/runpod-comfyui"
-          else
-            CHAIN_IMAGE="${IMAGE_NAME_LC}"
-          fi
-          echo "CHAIN_IMAGE=${CHAIN_IMAGE}" >> "$GITHUB_ENV"
-          echo "CACHE_IMAGE=${CHAIN_IMAGE}" >> "$GITHUB_ENV"
-          V_PY=${PY_VERSION//./}; V_PT=${PT_VERSION//./}; V_CU=${CUDA_VERSION//./}; V_CF=${COMFYUI_VERSION//./}
-          SHORT_SHA="${GITHUB_SHA::7}"
-          echo "VERSION_SLUG=py${V_PY:0:3}-pt${V_PT:0:3}-cu${V_CU:0:3}-cf${V_CF:0:3}" >> "$GITHUB_ENV"
-          echo "SHORT_SHA=${SHORT_SHA}" >> "$GITHUB_ENV"
-          echo "CORE_IMAGE=${CHAIN_IMAGE}:sha-${SHORT_SHA}-core" >> "$GITHUB_ENV"
-          echo "TOOLS_IMAGE=${CHAIN_IMAGE}:sha-${SHORT_SHA}-runtime-tools" >> "$GITHUB_ENV"
-          echo "OPTIMIZED_IMAGE=${CHAIN_IMAGE}:sha-${SHORT_SHA}-optimized" >> "$GITHUB_ENV"
-          echo "BASIC_IMAGE=${CHAIN_IMAGE}:sha-${SHORT_SHA}-custom-basic" >> "$GITHUB_ENV"
-          echo "ADVANCED_IMAGE=${CHAIN_IMAGE}:sha-${SHORT_SHA}-custom-advanced" >> "$GITHUB_ENV"
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -71,17 +73,203 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           buildkitd-config-inline: |
-            [registry."localhost:5000"]
-              http = true
-              insecure = true
-
             [worker.oci]
               max-parallelism = 2
-          driver-opts: |
-            network=host
 
       - name: Log in to GHCR
-        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build core image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/Dockerfile.core
+          build-args: |
+            COMFYUI_REF=v${{ env.COMFYUI_VERSION }}
+            TRANSFORMERS_VERSION=${{ env.TRANSFORMERS_VERSION }}
+          push: true
+          tags: |
+            ${{ needs.prepare.outputs.core_image }}
+            ${{ needs.prepare.outputs.image_name_lc }}:core
+            ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-core
+            ${{ github.event_name == 'release' && format('{0}:{1}-core', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
+          cache-from: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-core
+          cache-to: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-core,mode=max
+
+  build-runtime-tools:
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+      - build-core
+    timeout-minutes: 60
+    concurrency:
+      group: docker-runtime-tools-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config-inline: |
+            [worker.oci]
+              max-parallelism = 2
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build runtime tools image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/Dockerfile.runtime-tools
+          build-args: |
+            BASE_IMAGE=${{ needs.prepare.outputs.core_image }}
+          push: true
+          tags: |
+            ${{ needs.prepare.outputs.tools_image }}
+            ${{ needs.prepare.outputs.image_name_lc }}:runtime-tools
+            ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-runtime-tools
+            ${{ github.event_name == 'release' && format('{0}:{1}-runtime-tools', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
+          cache-from: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-runtime-tools
+          cache-to: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-runtime-tools,mode=max
+
+  build-optimized:
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+      - build-runtime-tools
+    timeout-minutes: 180
+    concurrency:
+      group: docker-optimized-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
+          sudo docker image prune --all --force
+          df -h /
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config-inline: |
+            [worker.oci]
+              max-parallelism = 2
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build optimized image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/Dockerfile.optimized
+          build-args: |
+            BASE_IMAGE=${{ needs.prepare.outputs.tools_image }}
+            XFORMERS_VERSION=${{ env.XFORMERS_VERSION }}
+            FLASH_ATTN_VERSION=${{ env.FLASH_ATTN_VERSION }}
+          push: true
+          tags: |
+            ${{ needs.prepare.outputs.optimized_image }}
+            ${{ needs.prepare.outputs.image_name_lc }}:optimized
+            ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-optimized
+            ${{ github.event_name == 'release' && format('{0}:{1}-optimized', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
+          cache-from: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-optimized
+          cache-to: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-optimized,mode=max
+
+  build-custom-basic:
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+      - build-optimized
+    timeout-minutes: 120
+    concurrency:
+      group: docker-custom-basic-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config-inline: |
+            [worker.oci]
+              max-parallelism = 2
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build basic custom node image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/Dockerfile.custom-basic
+          build-args: |
+            BASE_IMAGE=${{ needs.prepare.outputs.optimized_image }}
+          push: true
+          tags: |
+            ${{ needs.prepare.outputs.basic_image }}
+            ${{ needs.prepare.outputs.image_name_lc }}:custom-basic
+            ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-basic
+            ${{ github.event_name == 'release' && format('{0}:{1}-custom-basic', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
+          cache-from: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-basic
+          cache-to: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-basic,mode=max
+
+  build-custom-advanced:
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+      - build-custom-basic
+    timeout-minutes: 120
+    concurrency:
+      group: docker-custom-advanced-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config-inline: |
+            [worker.oci]
+              max-parallelism = 2
+
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -95,97 +283,29 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build core image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./docker/Dockerfile.core
-          build-args: |
-            COMFYUI_REF=v${{ env.COMFYUI_VERSION }}
-            TRANSFORMERS_VERSION=${{ env.TRANSFORMERS_VERSION }}
-          push: true
-          tags: |
-            ${{ env.CORE_IMAGE }}
-            ${{ env.CHAIN_IMAGE }}:core
-            ${{ env.CHAIN_IMAGE }}:${{ env.VERSION_SLUG }}-core
-            ${{ github.event_name == 'release' && format('{0}:{1}-core', env.CHAIN_IMAGE, github.ref_name) || '' }}
-          cache-from: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-core
-          cache-to: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-core,mode=max
-
-      - name: Build runtime tools image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./docker/Dockerfile.runtime-tools
-          build-args: |
-            BASE_IMAGE=${{ env.CORE_IMAGE }}
-          push: true
-          tags: |
-            ${{ env.TOOLS_IMAGE }}
-            ${{ env.CHAIN_IMAGE }}:runtime-tools
-            ${{ env.CHAIN_IMAGE }}:${{ env.VERSION_SLUG }}-runtime-tools
-            ${{ github.event_name == 'release' && format('{0}:{1}-runtime-tools', env.CHAIN_IMAGE, github.ref_name) || '' }}
-          cache-from: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-runtime-tools
-          cache-to: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-runtime-tools,mode=max
-
-      - name: Build optimized image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./docker/Dockerfile.optimized
-          build-args: |
-            BASE_IMAGE=${{ env.TOOLS_IMAGE }}
-            XFORMERS_VERSION=${{ env.XFORMERS_VERSION }}
-            FLASH_ATTN_VERSION=${{ env.FLASH_ATTN_VERSION }}
-          push: true
-          tags: |
-            ${{ env.OPTIMIZED_IMAGE }}
-            ${{ env.CHAIN_IMAGE }}:optimized
-            ${{ env.CHAIN_IMAGE }}:${{ env.VERSION_SLUG }}-optimized
-            ${{ github.event_name == 'release' && format('{0}:{1}-optimized', env.CHAIN_IMAGE, github.ref_name) || '' }}
-          cache-from: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-optimized
-          cache-to: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-optimized,mode=max
-
-      - name: Build basic custom node image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./docker/Dockerfile.custom-basic
-          build-args: |
-            BASE_IMAGE=${{ env.OPTIMIZED_IMAGE }}
-          push: true
-          tags: |
-            ${{ env.BASIC_IMAGE }}
-            ${{ env.CHAIN_IMAGE }}:custom-basic
-            ${{ env.CHAIN_IMAGE }}:${{ env.VERSION_SLUG }}-custom-basic
-            ${{ github.event_name == 'release' && format('{0}:{1}-custom-basic', env.CHAIN_IMAGE, github.ref_name) || '' }}
-          cache-from: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-custom-basic
-          cache-to: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-custom-basic,mode=max
-
       - name: Build advanced custom node image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/Dockerfile.custom-advanced
           build-args: |
-            BASE_IMAGE=${{ env.BASIC_IMAGE }}
+            BASE_IMAGE=${{ needs.prepare.outputs.basic_image }}
           push: true
           tags: |
-            ${{ env.ADVANCED_IMAGE }}
-            ${{ env.CHAIN_IMAGE }}:custom-advanced
-            ${{ env.CHAIN_IMAGE }}:${{ env.VERSION_SLUG }}-custom-advanced
-            ${{ github.event_name == 'release' && format('{0}:{1}-custom-advanced', env.CHAIN_IMAGE, github.ref_name) || '' }}
-            ${{ github.event_name == 'release' && format('{0}:{1}', env.CHAIN_IMAGE, github.ref_name) || '' }}
-            ${{ github.event_name == 'release' && format('{0}:latest', env.CHAIN_IMAGE) || '' }}
+            ${{ needs.prepare.outputs.advanced_image }}
+            ${{ needs.prepare.outputs.image_name_lc }}:custom-advanced
+            ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-advanced
+            ${{ github.event_name == 'release' && format('{0}:{1}-custom-advanced', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
+            ${{ github.event_name == 'release' && format('{0}:{1}', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
+            ${{ github.event_name == 'release' && format('{0}:latest', needs.prepare.outputs.image_name_lc) || '' }}
             ${{ github.event_name == 'release' && format('{0}:custom-advanced', env.DOCKERHUB_IMAGE) || '' }}
             ${{ github.event_name == 'release' && format('{0}:{1}-custom-advanced', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}
             ${{ github.event_name == 'release' && format('{0}:{1}', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}
             ${{ github.event_name == 'release' && format('{0}:latest', env.DOCKERHUB_IMAGE) || '' }}
-          cache-from: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-custom-advanced
-          cache-to: type=registry,ref=${{ env.CACHE_IMAGE }}:cache-custom-advanced,mode=max
+          cache-from: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-advanced
+          cache-to: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-advanced,mode=max
 
       - name: Smoke test final image
-        if: github.event_name == 'pull_request'
         run: |
-          docker run --rm ${{ env.ADVANCED_IMAGE }} \
+          docker run --rm ${{ needs.prepare.outputs.advanced_image }} \
             /bin/bash -lc 'source /opt/comfy/venv/bin/activate && python -c "import importlib, os, sys; from pathlib import Path; base = Path(os.environ[\"COMFYUI_DIR\"]); sys.path.insert(0, str(base)); [importlib.import_module(module) for module in (\"torch\", \"transformers\", \"xformers\", \"flash_attn\")]; missing = [str(base / \"custom_nodes\" / name) for name in (\"ComfyUI-Manager\", \"ComfyUI-KJNodes\", \"ComfyUI-Sapiens2-Easy\") if not (base / \"custom_nodes\" / name).is_dir()]; (_ for _ in ()).throw(FileNotFoundError(\"Missing baked custom node(s): \" + \", \".join(missing))) if missing else None; print(\"Workflow smoke test passed.\")"'
