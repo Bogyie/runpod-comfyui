@@ -62,7 +62,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     XFORMERS_VERSION=0.0.35
 
 ARG PYTHON_VERSION=3.11.15
-ARG COMFYUI_REF=v0.20.1
+ARG COMFYUI_REF=v0.24.0
 ARG COMFYUI_MANAGER_REF=main
 ARG IMPACT_PACK_REF=Main
 ARG WAN_VIDEO_WRAPPER_REF=main
@@ -75,6 +75,7 @@ ARG BUILD_WHEEL_CACHE=1
 ARG ENABLE_AGGRESSIVE_OPTIMIZATIONS=0
 ARG TRITON_VERSION=3.6.0
 ARG SAGEATTENTION_VERSION=0.1.0
+ARG TRANSFORMERS_VERSION=5.12.0
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -148,7 +149,9 @@ RUN --mount=type=cache,id=pip-builder,target=/root/.cache/pip \
     fi
 
 RUN --mount=type=cache,id=pip-builder,target=/root/.cache/pip \
-    "${COMFY_VENV}/bin/pip" install "huggingface_hub[cli]"
+    "${COMFY_VENV}/bin/pip" install \
+      "huggingface_hub[cli]" \
+      "transformers==${TRANSFORMERS_VERSION}"
 
 # Moved after heavy pip installs so script edits don't invalidate
 # the Python / PyTorch / xformers layers above.
