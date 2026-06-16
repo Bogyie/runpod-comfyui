@@ -17,6 +17,16 @@ env:
   TRANSFORMERS_VERSION: "5.12.0"
   XFORMERS_VERSION: "0.0.35"
   FLASH_ATTN_VERSION: "2.8.3"
+  CODE_SERVER_VERSION: "4.103.2"
+  COMFYUI_MANAGER_REF: main
+  KJNODES_REF: main
+  RGTHREE_REF: main
+  CRYSTOOLS_REF: main
+  CONTROLNET_AUX_REF: main
+  IMPACT_PACK_REF: Main
+  SAPIENS2_EASY_REF: main
+  VIDEO_HELPER_SUITE_REF: main
+  COMFYUI_3D_PACK_REF: main
 
 jobs:
   prepare:
@@ -26,34 +36,27 @@ jobs:
       version_slug: ${{ steps.tags.outputs.version_slug }}
       short_sha: ${{ steps.tags.outputs.short_sha }}
       comfyui_image: ${{ steps.tags.outputs.comfyui_image }}
+      comfyui_build_image: ${{ steps.tags.outputs.comfyui_build_image }}
       optimized_image: ${{ steps.tags.outputs.optimized_image }}
+      optimized_build_image: ${{ steps.tags.outputs.optimized_build_image }}
       tools_image: ${{ steps.tags.outputs.tools_image }}
+      tools_build_image: ${{ steps.tags.outputs.tools_build_image }}
       basic_image: ${{ steps.tags.outputs.basic_image }}
+      basic_build_image: ${{ steps.tags.outputs.basic_build_image }}
       image_image: ${{ steps.tags.outputs.image_image }}
+      image_build_image: ${{ steps.tags.outputs.image_build_image }}
       video_image: ${{ steps.tags.outputs.video_image }}
+      video_build_image: ${{ steps.tags.outputs.video_build_image }}
       threed_image: ${{ steps.tags.outputs.threed_image }}
+      threed_build_image: ${{ steps.tags.outputs.threed_build_image }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Normalize image tags
         id: tags
         shell: bash
-        run: |
-          IMAGE_NAME_LC="${IMAGE_NAME,,}"
-          BASE_TAG="${PYTORCH_BASE_IMAGE#pytorch/pytorch:}"
-          BASE_SLUG="$(echo "${BASE_TAG}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
-          V_CF="${COMFYUI_VERSION//./}"
-          VERSION_SLUG="${BASE_SLUG}-cf${V_CF}"
-          SHORT_SHA="${GITHUB_SHA::7}"
-
-          echo "image_name_lc=${IMAGE_NAME_LC}" >> "$GITHUB_OUTPUT"
-          echo "version_slug=${VERSION_SLUG}" >> "$GITHUB_OUTPUT"
-          echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
-          echo "comfyui_image=${IMAGE_NAME_LC}:sha-${SHORT_SHA}-comfyui" >> "$GITHUB_OUTPUT"
-          echo "optimized_image=${IMAGE_NAME_LC}:sha-${SHORT_SHA}-optimized" >> "$GITHUB_OUTPUT"
-          echo "tools_image=${IMAGE_NAME_LC}:sha-${SHORT_SHA}-runtime-tools" >> "$GITHUB_OUTPUT"
-          echo "basic_image=${IMAGE_NAME_LC}:sha-${SHORT_SHA}-custom-basic" >> "$GITHUB_OUTPUT"
-          echo "image_image=${IMAGE_NAME_LC}:sha-${SHORT_SHA}-custom-image" >> "$GITHUB_OUTPUT"
-          echo "video_image=${IMAGE_NAME_LC}:sha-${SHORT_SHA}-custom-video" >> "$GITHUB_OUTPUT"
-          echo "threed_image=${IMAGE_NAME_LC}:sha-${SHORT_SHA}-custom-3d" >> "$GITHUB_OUTPUT"
+        run: bash .github/scripts/compute-build-tags.sh
 
   build-comfyui:
     runs-on: ubuntu-latest
@@ -62,13 +65,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      image_ref: ${{ steps.resolve.outputs.image_ref }}
     steps:
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
-          sudo docker image prune --all --force
-          df -h /
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -86,7 +85,28 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Resolve ComfyUI image
+        id: resolve
+        run: bash .github/scripts/resolve-image.sh "${{ needs.prepare.outputs.comfyui_build_image }}"
+
+      - name: Tag existing ComfyUI image
+        if: steps.resolve.outputs.exists == 'true'
+        run: |
+          bash .github/scripts/retag-image.sh "${{ steps.resolve.outputs.image_ref }}" \
+            "${{ needs.prepare.outputs.comfyui_image }}" \
+            "${{ needs.prepare.outputs.image_name_lc }}:comfyui" \
+            "${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-comfyui" \
+            "${{ github.event_name == 'release' && format('{0}:{1}-comfyui', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}"
+
+      - name: Free disk space
+        if: steps.resolve.outputs.exists != 'true'
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
+          sudo docker image prune --all --force
+          df -h /
+
       - name: Build ComfyUI image
+        if: steps.resolve.outputs.exists != 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -97,6 +117,7 @@ jobs:
             TRANSFORMERS_VERSION=${{ env.TRANSFORMERS_VERSION }}
           push: true
           tags: |
+            ${{ needs.prepare.outputs.comfyui_build_image }}
             ${{ needs.prepare.outputs.comfyui_image }}
             ${{ needs.prepare.outputs.image_name_lc }}:comfyui
             ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-comfyui
@@ -110,7 +131,7 @@ jobs:
             type=inline
 
       - name: Verify pushed image
-        run: docker buildx imagetools inspect ${{ needs.prepare.outputs.comfyui_image }}
+        run: docker buildx imagetools inspect ${{ steps.resolve.outputs.image_ref }}
 
   build-optimized:
     runs-on: ubuntu-latest
@@ -121,13 +142,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      image_ref: ${{ steps.resolve.outputs.image_ref }}
     steps:
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
-          sudo docker image prune --all --force
-          df -h /
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -145,17 +162,39 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Resolve optimized image
+        id: resolve
+        run: bash .github/scripts/resolve-image.sh "${{ needs.prepare.outputs.optimized_build_image }}"
+
+      - name: Tag existing optimized image
+        if: steps.resolve.outputs.exists == 'true'
+        run: |
+          bash .github/scripts/retag-image.sh "${{ steps.resolve.outputs.image_ref }}" \
+            "${{ needs.prepare.outputs.optimized_image }}" \
+            "${{ needs.prepare.outputs.image_name_lc }}:optimized" \
+            "${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-optimized" \
+            "${{ github.event_name == 'release' && format('{0}:{1}-optimized', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}"
+
+      - name: Free disk space
+        if: steps.resolve.outputs.exists != 'true'
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
+          sudo docker image prune --all --force
+          df -h /
+
       - name: Build optimized image
+        if: steps.resolve.outputs.exists != 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/Dockerfile.optimized
           build-args: |
-            BASE_IMAGE=${{ needs.prepare.outputs.comfyui_image }}
+            BASE_IMAGE=${{ needs.build-comfyui.outputs.image_ref }}
             XFORMERS_VERSION=${{ env.XFORMERS_VERSION }}
             FLASH_ATTN_VERSION=${{ env.FLASH_ATTN_VERSION }}
           push: true
           tags: |
+            ${{ needs.prepare.outputs.optimized_build_image }}
             ${{ needs.prepare.outputs.optimized_image }}
             ${{ needs.prepare.outputs.image_name_lc }}:optimized
             ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-optimized
@@ -169,7 +208,7 @@ jobs:
             type=inline
 
       - name: Verify pushed image
-        run: docker buildx imagetools inspect ${{ needs.prepare.outputs.optimized_image }}
+        run: docker buildx imagetools inspect ${{ steps.resolve.outputs.image_ref }}
 
   build-runtime-tools:
     runs-on: ubuntu-latest
@@ -180,6 +219,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      image_ref: ${{ steps.resolve.outputs.image_ref }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -198,15 +239,31 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Resolve runtime tools image
+        id: resolve
+        run: bash .github/scripts/resolve-image.sh "${{ needs.prepare.outputs.tools_build_image }}"
+
+      - name: Tag existing runtime tools image
+        if: steps.resolve.outputs.exists == 'true'
+        run: |
+          bash .github/scripts/retag-image.sh "${{ steps.resolve.outputs.image_ref }}" \
+            "${{ needs.prepare.outputs.tools_image }}" \
+            "${{ needs.prepare.outputs.image_name_lc }}:runtime-tools" \
+            "${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-runtime-tools" \
+            "${{ github.event_name == 'release' && format('{0}:{1}-runtime-tools', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}"
+
       - name: Build runtime tools image
+        if: steps.resolve.outputs.exists != 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/Dockerfile.runtime-tools
           build-args: |
-            BASE_IMAGE=${{ needs.prepare.outputs.optimized_image }}
+            BASE_IMAGE=${{ needs.build-optimized.outputs.image_ref }}
+            CODE_SERVER_VERSION=${{ env.CODE_SERVER_VERSION }}
           push: true
           tags: |
+            ${{ needs.prepare.outputs.tools_build_image }}
             ${{ needs.prepare.outputs.tools_image }}
             ${{ needs.prepare.outputs.image_name_lc }}:runtime-tools
             ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-runtime-tools
@@ -220,7 +277,7 @@ jobs:
             type=inline
 
       - name: Verify pushed image
-        run: docker buildx imagetools inspect ${{ needs.prepare.outputs.tools_image }}
+        run: docker buildx imagetools inspect ${{ steps.resolve.outputs.image_ref }}
 
   build-custom-basic:
     runs-on: ubuntu-latest
@@ -231,6 +288,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      image_ref: ${{ steps.resolve.outputs.image_ref }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -249,15 +308,34 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Resolve basic custom nodes image
+        id: resolve
+        run: bash .github/scripts/resolve-image.sh "${{ needs.prepare.outputs.basic_build_image }}"
+
+      - name: Tag existing basic custom nodes image
+        if: steps.resolve.outputs.exists == 'true'
+        run: |
+          bash .github/scripts/retag-image.sh "${{ steps.resolve.outputs.image_ref }}" \
+            "${{ needs.prepare.outputs.basic_image }}" \
+            "${{ needs.prepare.outputs.image_name_lc }}:custom-basic" \
+            "${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-basic" \
+            "${{ github.event_name == 'release' && format('{0}:{1}-custom-basic', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}"
+
       - name: Build basic custom nodes image
+        if: steps.resolve.outputs.exists != 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/Dockerfile.custom-basic
           build-args: |
-            BASE_IMAGE=${{ needs.prepare.outputs.tools_image }}
+            BASE_IMAGE=${{ needs.build-runtime-tools.outputs.image_ref }}
+            COMFYUI_MANAGER_REF=${{ env.COMFYUI_MANAGER_REF }}
+            KJNODES_REF=${{ env.KJNODES_REF }}
+            RGTHREE_REF=${{ env.RGTHREE_REF }}
+            CRYSTOOLS_REF=${{ env.CRYSTOOLS_REF }}
           push: true
           tags: |
+            ${{ needs.prepare.outputs.basic_build_image }}
             ${{ needs.prepare.outputs.basic_image }}
             ${{ needs.prepare.outputs.image_name_lc }}:custom-basic
             ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-basic
@@ -271,7 +349,7 @@ jobs:
             type=inline
 
       - name: Verify pushed image
-        run: docker buildx imagetools inspect ${{ needs.prepare.outputs.basic_image }}
+        run: docker buildx imagetools inspect ${{ steps.resolve.outputs.image_ref }}
 
   build-custom-image:
     runs-on: ubuntu-latest
@@ -282,6 +360,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      image_ref: ${{ steps.resolve.outputs.image_ref }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -307,15 +387,39 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Resolve image workflow image
+        id: resolve
+        run: bash .github/scripts/resolve-image.sh "${{ needs.prepare.outputs.image_build_image }}"
+
+      - name: Tag existing image workflow image
+        if: steps.resolve.outputs.exists == 'true'
+        run: |
+          bash .github/scripts/retag-image.sh "${{ steps.resolve.outputs.image_ref }}" \
+            "${{ needs.prepare.outputs.image_image }}" \
+            "${{ needs.prepare.outputs.image_name_lc }}:custom-image" \
+            "${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-image" \
+            "${{ github.event_name == 'release' && format('{0}:{1}-custom-image', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}" \
+            "${{ github.event_name == 'release' && format('{0}:{1}', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}" \
+            "${{ github.event_name == 'release' && format('{0}:latest', needs.prepare.outputs.image_name_lc) || '' }}" \
+            "${{ github.event_name == 'release' && format('{0}:custom-image', env.DOCKERHUB_IMAGE) || '' }}" \
+            "${{ github.event_name == 'release' && format('{0}:{1}-custom-image', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}" \
+            "${{ github.event_name == 'release' && format('{0}:{1}', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}" \
+            "${{ github.event_name == 'release' && format('{0}:latest', env.DOCKERHUB_IMAGE) || '' }}"
+
       - name: Build image workflow image
+        if: steps.resolve.outputs.exists != 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/Dockerfile.custom-image
           build-args: |
-            BASE_IMAGE=${{ needs.prepare.outputs.basic_image }}
+            BASE_IMAGE=${{ needs.build-custom-basic.outputs.image_ref }}
+            CONTROLNET_AUX_REF=${{ env.CONTROLNET_AUX_REF }}
+            IMPACT_PACK_REF=${{ env.IMPACT_PACK_REF }}
+            SAPIENS2_EASY_REF=${{ env.SAPIENS2_EASY_REF }}
           push: true
           tags: |
+            ${{ needs.prepare.outputs.image_build_image }}
             ${{ needs.prepare.outputs.image_image }}
             ${{ needs.prepare.outputs.image_name_lc }}:custom-image
             ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-image
@@ -335,7 +439,7 @@ jobs:
             type=inline
 
       - name: Verify pushed image
-        run: docker buildx imagetools inspect ${{ needs.prepare.outputs.image_image }}
+        run: docker buildx imagetools inspect ${{ steps.resolve.outputs.image_ref }}
 
   build-custom-video:
     runs-on: ubuntu-latest
@@ -346,6 +450,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      image_ref: ${{ steps.resolve.outputs.image_ref }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -371,15 +477,33 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Resolve video workflow image
+        id: resolve
+        run: bash .github/scripts/resolve-image.sh "${{ needs.prepare.outputs.video_build_image }}"
+
+      - name: Tag existing video workflow image
+        if: steps.resolve.outputs.exists == 'true'
+        run: |
+          bash .github/scripts/retag-image.sh "${{ steps.resolve.outputs.image_ref }}" \
+            "${{ needs.prepare.outputs.video_image }}" \
+            "${{ needs.prepare.outputs.image_name_lc }}:custom-video" \
+            "${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-video" \
+            "${{ github.event_name == 'release' && format('{0}:{1}-custom-video', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}" \
+            "${{ github.event_name == 'release' && format('{0}:custom-video', env.DOCKERHUB_IMAGE) || '' }}" \
+            "${{ github.event_name == 'release' && format('{0}:{1}-custom-video', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}"
+
       - name: Build video workflow image
+        if: steps.resolve.outputs.exists != 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/Dockerfile.custom-video
           build-args: |
-            BASE_IMAGE=${{ needs.prepare.outputs.basic_image }}
+            BASE_IMAGE=${{ needs.build-custom-basic.outputs.image_ref }}
+            VIDEO_HELPER_SUITE_REF=${{ env.VIDEO_HELPER_SUITE_REF }}
           push: true
           tags: |
+            ${{ needs.prepare.outputs.video_build_image }}
             ${{ needs.prepare.outputs.video_image }}
             ${{ needs.prepare.outputs.image_name_lc }}:custom-video
             ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-video
@@ -395,7 +519,7 @@ jobs:
             type=inline
 
       - name: Verify pushed image
-        run: docker buildx imagetools inspect ${{ needs.prepare.outputs.video_image }}
+        run: docker buildx imagetools inspect ${{ steps.resolve.outputs.image_ref }}
 
   build-custom-3d:
     runs-on: ubuntu-latest
@@ -406,13 +530,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      image_ref: ${{ steps.resolve.outputs.image_ref }}
     steps:
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
-          sudo docker image prune --all --force
-          df -h /
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -437,15 +557,41 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Resolve 3D workflow image
+        id: resolve
+        run: bash .github/scripts/resolve-image.sh "${{ needs.prepare.outputs.threed_build_image }}"
+
+      - name: Tag existing 3D workflow image
+        if: steps.resolve.outputs.exists == 'true'
+        run: |
+          bash .github/scripts/retag-image.sh "${{ steps.resolve.outputs.image_ref }}" \
+            "${{ needs.prepare.outputs.threed_image }}" \
+            "${{ needs.prepare.outputs.image_name_lc }}:custom-3d" \
+            "${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-3d" \
+            "${{ github.event_name == 'release' && format('{0}:{1}-custom-3d', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}" \
+            "${{ github.event_name == 'release' && format('{0}:custom-3d', env.DOCKERHUB_IMAGE) || '' }}" \
+            "${{ github.event_name == 'release' && format('{0}:{1}-custom-3d', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}"
+
+      - name: Free disk space
+        if: steps.resolve.outputs.exists != 'true'
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
+          sudo docker image prune --all --force
+          df -h /
+
       - name: Build 3D workflow image
+        if: steps.resolve.outputs.exists != 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/Dockerfile.custom-3d
           build-args: |
-            BASE_IMAGE=${{ needs.prepare.outputs.basic_image }}
+            BASE_IMAGE=${{ needs.build-custom-basic.outputs.image_ref }}
+            COMFYUI_3D_PACK_REF=${{ env.COMFYUI_3D_PACK_REF }}
+            SAPIENS2_EASY_REF=${{ env.SAPIENS2_EASY_REF }}
           push: true
           tags: |
+            ${{ needs.prepare.outputs.threed_build_image }}
             ${{ needs.prepare.outputs.threed_image }}
             ${{ needs.prepare.outputs.image_name_lc }}:custom-3d
             ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-3d
@@ -461,4 +607,4 @@ jobs:
             type=inline
 
       - name: Verify pushed image
-        run: docker buildx imagetools inspect ${{ needs.prepare.outputs.threed_image }}
+        run: docker buildx imagetools inspect ${{ steps.resolve.outputs.image_ref }}

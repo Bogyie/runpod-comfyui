@@ -12,7 +12,7 @@ pytorch/pytorch:2.10.0-cuda12.8-cudnn9-devel
 
 Python, CUDA, PyTorch, torchvision, and torchaudio are intentionally inherited from that tag. The workflow does not carry separate Python/CUDA/PyTorch build arguments.
 
-Each stage produces a pushed image. The next dependent job consumes the previous stage through a SHA-scoped `BASE_IMAGE` tag.
+Each stage produces a pushed image. The next dependent job consumes the previous stage through a content-addressed `buildkey-<stage>-<hash>` image tag. If that buildkey image already exists, the job reuses it and only refreshes the run-specific tags.
 
 | Stage | Dockerfile | Adds |
 |---|---|---|
@@ -63,6 +63,7 @@ Each stage receives these tags:
 | `<release-tag>-<stage>` | `v1.0.2-custom-image` | release builds |
 | `<base-slug>-cf<comfy>-<stage>` | `2-10-0-cuda12-8-cudnn9-devel-cf0240-custom-image` | all stages |
 | `sha-<hash>-<stage>` | `sha-abc1234-custom-image` | all stages |
+| `buildkey-<stage>-<hash>` | `buildkey-custom-image-abc123...` | all stages |
 | `<release-tag>` | `v1.0.2` | `custom-image` only |
 | `latest` | `latest` | `custom-image` only |
 
@@ -138,11 +139,15 @@ Every stage job imports cache from the dedicated registry cache, the versioned s
 
 Dockerfiles keep expensive install layers before volatile verification and cleanup scripts where possible, so script-only changes avoid reinstalling apt, pip, or custom-node dependencies.
 
+Before building, each job checks whether its `buildkey-<stage>-<hash>` image already exists in GHCR. The hash includes that stage's Dockerfile, relevant build arguments, scripts copied into the image, and the parent stage build key. On a hit, the job skips Docker build and retags the existing image for the current SHA, stable stage tag, version tag, and release tags.
+
+Refs such as `main` are hashed as configured ref strings. Pin a ref to a commit SHA, or resolve remote refs before hashing, when the build must detect upstream branch movement without changing workflow parameters.
+
 ## Build-time guardrails
 
 - Each Dockerfile ends with `/opt/bootstrap/scripts/cleanup-image.sh`.
 - Each Dockerfile then runs `/opt/bootstrap/scripts/verify_image.py` for a low-cost smoke check.
-- Pushed SHA tags are verified with `docker buildx imagetools inspect`.
+- Resolved stage images are verified with `docker buildx imagetools inspect`.
 - A protected package manifest tracks `torch`, `torchvision`, `torchaudio`, `transformers`, `xformers`, `flash-attn`, `triton`, and `sageattention`.
 - The optimized stage refreshes the protected package manifest after installing xformers and FlashAttention.
 - Custom-node stages verify the manifest after each node install to catch dependency drift early.
