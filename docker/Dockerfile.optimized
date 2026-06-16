@@ -7,7 +7,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
     COMFY_HOME=/opt/comfy \
     COMFYUI_DIR=/opt/comfy/ComfyUI \
     COMFY_VENV=/opt/comfy/venv \
@@ -19,11 +18,11 @@ ARG FLASH_ATTN_VERSION=2.8.3
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-COPY scripts/ /opt/bootstrap/scripts/
+COPY scripts/resolve_flash_attn_wheel.py scripts/torch_cuda_wheel_tag.py /opt/bootstrap/scripts/
 
 # xFormers 0.0.35 stable wheels require PyTorch 2.10.0 per facebookresearch/xformers README.
 RUN --mount=type=cache,id=pip-optimized,target=/root/.cache/pip \
-    chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
+    chmod +x /opt/bootstrap/scripts/resolve_flash_attn_wheel.py /opt/bootstrap/scripts/torch_cuda_wheel_tag.py && \
     PYTORCH_CUDA_WHEEL_TAG="$("${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/torch_cuda_wheel_tag.py)" && \
     "${COMFY_VENV}/bin/python" -m pip install \
       "xformers==${XFORMERS_VERSION}" \
@@ -34,13 +33,20 @@ RUN --mount=type=cache,id=pip-optimized,target=/root/.cache/pip \
     "${COMFY_VENV}/bin/python" -m pip install \
       "${FLASH_ATTN_WHEEL_URL}" \
       --only-binary=:all: \
-      --no-deps && \
+      --no-deps
+
+COPY scripts/verify_protected_packages.py /opt/bootstrap/scripts/
+
+RUN chmod +x /opt/bootstrap/scripts/verify_protected_packages.py && \
     "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
       capture \
       /opt/bootstrap/protected-package-manifest.json && \
     "${COMFY_VENV}/bin/python" -m pip freeze > /opt/bootstrap/base-requirements.lock
 
-RUN /opt/bootstrap/scripts/cleanup-image.sh && \
+COPY scripts/ /opt/bootstrap/scripts/
+
+RUN chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
+    /opt/bootstrap/scripts/cleanup-image.sh && \
     "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_image.py \
       --stage optimized \
       --import torch \

@@ -7,7 +7,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
     COMFY_HOME=/opt/comfy \
     COMFYUI_DIR=/opt/comfy/ComfyUI \
     COMFY_VENV=/opt/comfy/venv \
@@ -21,8 +20,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
 ARG CODE_SERVER_VERSION=4.103.2
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
-COPY scripts/ /opt/bootstrap/scripts/
 
 RUN --mount=type=cache,id=apt-runtime-tools,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=aptlists-runtime-tools,target=/var/lib/apt/lists,sharing=locked \
@@ -52,14 +49,20 @@ RUN wget -q -O /usr/local/bin/runpodctl \
     chmod +x /usr/local/bin/runpodctl
 
 RUN --mount=type=cache,id=pip-runtime-tools,target=/root/.cache/pip \
-    chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
-    "${COMFY_VENV}/bin/python" -m pip install "huggingface_hub[cli]" && \
+    "${COMFY_VENV}/bin/python" -m pip install "huggingface_hub[cli]"
+
+COPY scripts/verify_protected_packages.py /opt/bootstrap/scripts/
+
+RUN chmod +x /opt/bootstrap/scripts/verify_protected_packages.py && \
     "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
       verify \
       /opt/bootstrap/protected-package-manifest.json && \
     "${COMFY_VENV}/bin/python" -m pip freeze > /opt/bootstrap/base-requirements.lock
 
-RUN /opt/bootstrap/scripts/cleanup-image.sh && \
+COPY scripts/ /opt/bootstrap/scripts/
+
+RUN chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
+    /opt/bootstrap/scripts/cleanup-image.sh && \
     command -v git && \
     command -v curl && \
     command -v wget && \

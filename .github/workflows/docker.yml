@@ -101,8 +101,13 @@ jobs:
             ${{ needs.prepare.outputs.image_name_lc }}:comfyui
             ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-comfyui
             ${{ github.event_name == 'release' && format('{0}:{1}-comfyui', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
-          cache-from: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-comfyui
-          cache-to: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-comfyui,mode=max
+          cache-from: |
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-comfyui
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-comfyui
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:comfyui
+          cache-to: |
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-comfyui,mode=max
+            type=inline
 
       - name: Verify pushed image
         run: docker buildx imagetools inspect ${{ needs.prepare.outputs.comfyui_image }}
@@ -155,8 +160,13 @@ jobs:
             ${{ needs.prepare.outputs.image_name_lc }}:optimized
             ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-optimized
             ${{ github.event_name == 'release' && format('{0}:{1}-optimized', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
-          cache-from: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-optimized
-          cache-to: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-optimized,mode=max
+          cache-from: |
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-optimized
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-optimized
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:optimized
+          cache-to: |
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-optimized,mode=max
+            type=inline
 
       - name: Verify pushed image
         run: docker buildx imagetools inspect ${{ needs.prepare.outputs.optimized_image }}
@@ -201,8 +211,13 @@ jobs:
             ${{ needs.prepare.outputs.image_name_lc }}:runtime-tools
             ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-runtime-tools
             ${{ github.event_name == 'release' && format('{0}:{1}-runtime-tools', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
-          cache-from: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-runtime-tools
-          cache-to: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-runtime-tools,mode=max
+          cache-from: |
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-runtime-tools
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-runtime-tools
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:runtime-tools
+          cache-to: |
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-runtime-tools,mode=max
+            type=inline
 
       - name: Verify pushed image
         run: docker buildx imagetools inspect ${{ needs.prepare.outputs.tools_image }}
@@ -247,8 +262,13 @@ jobs:
             ${{ needs.prepare.outputs.image_name_lc }}:custom-basic
             ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-basic
             ${{ github.event_name == 'release' && format('{0}:{1}-custom-basic', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
-          cache-from: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-basic
-          cache-to: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-basic,mode=max
+          cache-from: |
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-basic
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-basic
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:custom-basic
+          cache-to: |
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-basic,mode=max
+            type=inline
 
       - name: Verify pushed image
         run: docker buildx imagetools inspect ${{ needs.prepare.outputs.basic_image }}
@@ -306,8 +326,13 @@ jobs:
             ${{ github.event_name == 'release' && format('{0}:{1}-custom-image', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}
             ${{ github.event_name == 'release' && format('{0}:{1}', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}
             ${{ github.event_name == 'release' && format('{0}:latest', env.DOCKERHUB_IMAGE) || '' }}
-          cache-from: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-image
-          cache-to: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-image,mode=max
+          cache-from: |
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-image
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-image
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:custom-image
+          cache-to: |
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-image,mode=max
+            type=inline
 
       - name: Verify pushed image
         run: docker buildx imagetools inspect ${{ needs.prepare.outputs.image_image }}
@@ -361,8 +386,13 @@ jobs:
             ${{ github.event_name == 'release' && format('{0}:{1}-custom-video', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
             ${{ github.event_name == 'release' && format('{0}:custom-video', env.DOCKERHUB_IMAGE) || '' }}
             ${{ github.event_name == 'release' && format('{0}:{1}-custom-video', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}
-          cache-from: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-video
-          cache-to: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-video,mode=max
+          cache-from: |
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-video
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-video
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:custom-video
+          cache-to: |
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-video,mode=max
+            type=inline
 
       - name: Verify pushed image
         run: docker buildx imagetools inspect ${{ needs.prepare.outputs.video_image }}
@@ -422,8 +452,13 @@ jobs:
             ${{ github.event_name == 'release' && format('{0}:{1}-custom-3d', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
             ${{ github.event_name == 'release' && format('{0}:custom-3d', env.DOCKERHUB_IMAGE) || '' }}
             ${{ github.event_name == 'release' && format('{0}:{1}-custom-3d', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}
-          cache-from: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-3d
-          cache-to: type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-3d,mode=max
+          cache-from: |
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-3d
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-3d
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:custom-3d
+          cache-to: |
+            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-3d,mode=max
+            type=inline
 
       - name: Verify pushed image
         run: docker buildx imagetools inspect ${{ needs.prepare.outputs.threed_image }}

@@ -7,7 +7,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
     COMFY_HOME=/opt/comfy \
     COMFYUI_DIR=/opt/comfy/ComfyUI \
     COMFY_VENV=/opt/comfy/venv \
@@ -20,17 +19,20 @@ ARG CRYSTOOLS_REF=main
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-COPY scripts/ /opt/bootstrap/scripts/
+COPY scripts/install_custom_nodes.sh scripts/verify_protected_packages.py /opt/bootstrap/scripts/
 
 RUN --mount=type=cache,id=pip-custom-basic,target=/root/.cache/pip \
-    chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
+    chmod +x /opt/bootstrap/scripts/install_custom_nodes.sh /opt/bootstrap/scripts/verify_protected_packages.py && \
     /opt/bootstrap/scripts/install_custom_nodes.sh \
       ComfyUI-Manager https://github.com/Comfy-Org/ComfyUI-Manager.git "${COMFYUI_MANAGER_REF}" \
       ComfyUI-KJNodes https://github.com/kijai/ComfyUI-KJNodes.git "${KJNODES_REF}" \
       rgthree-comfy https://github.com/rgthree/rgthree-comfy.git "${RGTHREE_REF}" \
       ComfyUI-Crystools https://github.com/crystian/ComfyUI-Crystools.git "${CRYSTOOLS_REF}"
 
-RUN /opt/bootstrap/scripts/cleanup-image.sh && \
+COPY scripts/ /opt/bootstrap/scripts/
+
+RUN chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
+    /opt/bootstrap/scripts/cleanup-image.sh && \
     "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_image.py \
       --stage custom-basic \
       --node ComfyUI-Manager \

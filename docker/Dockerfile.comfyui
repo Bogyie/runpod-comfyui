@@ -7,7 +7,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
     COMFY_HOME=/opt/comfy \
     COMFYUI_DIR=/opt/comfy/ComfyUI \
     COMFY_VENV=/opt/comfy/venv \
@@ -45,16 +44,16 @@ RUN mkdir -p "${COMFY_HOME}" "${WORKSPACE_DIR}" /opt/bootstrap
 RUN git clone --depth 1 --branch "${COMFYUI_REF}" \
       https://github.com/Comfy-Org/ComfyUI.git "${COMFYUI_DIR}"
 
-COPY scripts/ /opt/bootstrap/scripts/
-COPY start.sh /opt/bootstrap/start.sh
-
-RUN chmod +x /opt/bootstrap/start.sh /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py
-
 RUN --mount=type=cache,id=pip-comfyui,target=/root/.cache/pip \
     python -m venv --system-site-packages "${COMFY_VENV}" && \
     "${COMFY_VENV}/bin/python" -m pip install --upgrade pip wheel setuptools && \
     "${COMFY_VENV}/bin/python" -m pip install -r "${COMFYUI_DIR}/requirements.txt" && \
-    "${COMFY_VENV}/bin/python" -m pip install "transformers==${TRANSFORMERS_VERSION}" && \
+    "${COMFY_VENV}/bin/python" -m pip install "transformers==${TRANSFORMERS_VERSION}"
+
+COPY scripts/ /opt/bootstrap/scripts/
+COPY start.sh /opt/bootstrap/start.sh
+
+RUN chmod +x /opt/bootstrap/start.sh /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
     "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
       capture \
       /opt/bootstrap/protected-package-manifest.json && \

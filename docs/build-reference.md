@@ -132,8 +132,11 @@ Each stage has two cache layers:
 
 - Dockerfile-level BuildKit cache mounts for apt and pip work inside the stage.
 - Registry cache per stage, for example `cache-comfyui`, `cache-optimized`, and `cache-custom-image`.
+- Inline cache metadata in each pushed stage image, so stable tags can act as fallback cache sources.
 
-Every stage job pushes its SHA-scoped image and registry cache before downstream jobs start.
+Every stage job imports cache from the dedicated registry cache, the versioned stage tag, and the stable stage tag. It then pushes its SHA-scoped image, inline cache metadata, and registry cache before downstream jobs start.
+
+Dockerfiles keep expensive install layers before volatile verification and cleanup scripts where possible, so script-only changes avoid reinstalling apt, pip, or custom-node dependencies.
 
 ## Build-time guardrails
 
