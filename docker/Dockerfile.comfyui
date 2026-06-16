@@ -11,6 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     COMFY_HOME=/opt/comfy \
     COMFYUI_DIR=/opt/comfy/ComfyUI \
     COMFY_VENV=/opt/comfy/venv \
+    PATH=/opt/comfy/venv/bin:$PATH \
     WORKSPACE_DIR=/workspace \
     STORAGE_DIR=/workspace/storage \
     COMFYUI_PORT=8188 \

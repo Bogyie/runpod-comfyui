@@ -11,6 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     COMFY_HOME=/opt/comfy \
     COMFYUI_DIR=/opt/comfy/ComfyUI \
     COMFY_VENV=/opt/comfy/venv \
+    PATH=/opt/comfy/venv/bin:$PATH \
     WORKSPACE_DIR=/workspace \
     STORAGE_DIR=/workspace/storage \
     COMFYUI_PORT=8188 \
@@ -65,7 +66,7 @@ RUN /opt/bootstrap/scripts/cleanup-image.sh && \
     command -v runpodctl && \
     command -v gh && \
     command -v code-server && \
-    (command -v hf || command -v huggingface-cli) && \
+    (command -v hf || command -v huggingface-cli || test -x "${COMFY_VENV}/bin/hf" || test -x "${COMFY_VENV}/bin/huggingface-cli") && \
     "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_image.py \
       --stage runtime-tools \
       --import huggingface_hub \

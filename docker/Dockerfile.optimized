@@ -11,6 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     COMFY_HOME=/opt/comfy \
     COMFYUI_DIR=/opt/comfy/ComfyUI \
     COMFY_VENV=/opt/comfy/venv \
+    PATH=/opt/comfy/venv/bin:$PATH \
     PYTORCH_WHEEL_INDEX_BASE=https://download.pytorch.org/whl
 
 ARG XFORMERS_VERSION=0.0.35
