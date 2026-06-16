@@ -8,7 +8,7 @@ Runpod Pod template for ComfyUI with staged Docker images, persistent volume sto
 - Keep the PyTorch/CUDA/Python stack tied to one upstream PyTorch image tag
 - Avoid rebuilding the full stack when only later layers change
 - Keep models, outputs, workflows, and most mutable custom nodes on a persistent volume
-- Publish separate final images for image, video, and 3D workflows
+- Publish separate final images for image and video workflows
 
 ## Staged image chain
 
@@ -24,7 +24,6 @@ Each repo-owned step builds and pushes its own image. The SHA-scoped tag from on
 comfyui -> optimized -> runtime-tools -> custom-basic
                                       -> custom-image
                                       -> custom-video
-                                      -> custom-3d
 ```
 
 The purpose images are built in parallel after `custom-basic`.
@@ -37,7 +36,6 @@ The purpose images are built in parallel after `custom-basic`.
 | `custom-basic` | ComfyUI-Manager, KJNodes, rgthree-comfy, and Crystools |
 | `custom-image` | controlnet aux, Impact Pack, and Sapiens2 Easy |
 | `custom-video` | VideoHelperSuite |
-| `custom-3d` | 3D Pack and Sapiens2 Easy |
 
 Each Dockerfile ends with image cleanup and a low-cost smoke verification.
 

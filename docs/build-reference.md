@@ -22,7 +22,6 @@ Each stage produces a pushed image. The next dependent job consumes the previous
 | `custom-basic` | `docker/Dockerfile.custom-basic` | ComfyUI-Manager, KJNodes, rgthree-comfy, Crystools |
 | `custom-image` | `docker/Dockerfile.custom-image` | controlnet aux, Impact Pack, Sapiens2 Easy |
 | `custom-video` | `docker/Dockerfile.custom-video` | VideoHelperSuite |
-| `custom-3d` | `docker/Dockerfile.custom-3d` | 3D Pack, Sapiens2 Easy |
 
 The dependency graph is:
 
@@ -34,7 +33,6 @@ pytorch/pytorch
   -> custom-basic
       -> custom-image
       -> custom-video
-      -> custom-3d
 ```
 
 The final purpose stages run as separate parallel jobs after `custom-basic`.
@@ -49,9 +47,8 @@ The GitHub Actions workflow publishes these GHCR stage tags:
 - `custom-basic`
 - `custom-image`
 - `custom-video`
-- `custom-3d`
 
-On release, the three purpose images are also pushed to Docker Hub. `custom-image` additionally receives the bare release tag and `latest`.
+On release, the purpose images are also pushed to Docker Hub. `custom-image` additionally receives the bare release tag and `latest`.
 
 ### Image tags
 
@@ -114,7 +111,6 @@ xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `
 | `IMPACT_PACK_REF` | `Main` | ComfyUI-Impact-Pack git ref |
 | `SAPIENS2_EASY_REF` | `main` | ComfyUI-Sapiens2-Easy git ref |
 | `VIDEO_HELPER_SUITE_REF` | `main` | ComfyUI-VideoHelperSuite git ref |
-| `COMFYUI_3D_PACK_REF` | `main` | ComfyUI-3D-Pack git ref |
 
 ## Runtime environment variables
 

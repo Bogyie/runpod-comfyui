@@ -97,17 +97,6 @@ VIDEO_KEY="$(
   } | hash_payload
 )"
 
-THREED_KEY="$(
-  {
-    printf 'stage=custom-3d\n'
-    printf 'parent_key=%s\n' "${BASIC_KEY}"
-    printf 'comfyui_3d_pack_ref=%s\n' "${COMFYUI_3D_PACK_REF}"
-    printf 'sapiens2_easy_ref=%s\n' "${SAPIENS2_EASY_REF}"
-    printf 'scripts_hash=%s\n' "${SCRIPT_HASH}"
-    hash_files .dockerignore docker/Dockerfile.custom-3d
-  } | hash_payload
-)"
-
 {
   echo "image_name_lc=${IMAGE_NAME_LC}"
   echo "version_slug=${VERSION_SLUG}"
@@ -124,6 +113,4 @@ THREED_KEY="$(
   echo "image_build_image=${IMAGE_NAME_LC}:buildkey-custom-image-${IMAGE_KEY}"
   echo "video_image=${IMAGE_NAME_LC}:sha-${SHORT_SHA}-custom-video"
   echo "video_build_image=${IMAGE_NAME_LC}:buildkey-custom-video-${VIDEO_KEY}"
-  echo "threed_image=${IMAGE_NAME_LC}:sha-${SHORT_SHA}-custom-3d"
-  echo "threed_build_image=${IMAGE_NAME_LC}:buildkey-custom-3d-${THREED_KEY}"
 } >> "${GITHUB_OUTPUT}"

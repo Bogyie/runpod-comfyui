@@ -74,7 +74,6 @@ The final purpose images split advanced nodes by workflow:
 
 - `custom-image`: `Fannovel16/comfyui_controlnet_aux`, `ltdrdata/ComfyUI-Impact-Pack`, `Bogyie/ComfyUI-Sapiens2-Easy`
 - `custom-video`: `kosinkadink/ComfyUI-VideoHelperSuite`
-- `custom-3d`: `MrForExample/ComfyUI-3D-Pack`, `Bogyie/ComfyUI-Sapiens2-Easy`
 
 ## Model path normalization
 

@@ -26,7 +26,6 @@ env:
   IMPACT_PACK_REF: Main
   SAPIENS2_EASY_REF: main
   VIDEO_HELPER_SUITE_REF: main
-  COMFYUI_3D_PACK_REF: main
 
 jobs:
   prepare:
@@ -47,8 +46,6 @@ jobs:
       image_build_image: ${{ steps.tags.outputs.image_build_image }}
       video_image: ${{ steps.tags.outputs.video_image }}
       video_build_image: ${{ steps.tags.outputs.video_build_image }}
-      threed_image: ${{ steps.tags.outputs.threed_image }}
-      threed_build_image: ${{ steps.tags.outputs.threed_build_image }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -516,94 +513,6 @@ jobs:
             type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:custom-video
           cache-to: |
             type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-video,mode=max
-            type=inline
-
-      - name: Verify pushed image
-        run: docker buildx imagetools inspect ${{ steps.resolve.outputs.image_ref }}
-
-  build-custom-3d:
-    runs-on: ubuntu-latest
-    needs:
-      - prepare
-      - build-custom-basic
-    timeout-minutes: 120
-    permissions:
-      contents: read
-      packages: write
-    outputs:
-      image_ref: ${{ steps.resolve.outputs.image_ref }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          buildkitd-config-inline: |
-            [worker.oci]
-              max-parallelism = 2
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Log in to Docker Hub
-        if: github.event_name == 'release'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Resolve 3D workflow image
-        id: resolve
-        run: bash .github/scripts/resolve-image.sh "${{ needs.prepare.outputs.threed_build_image }}"
-
-      - name: Tag existing 3D workflow image
-        if: steps.resolve.outputs.exists == 'true'
-        run: |
-          bash .github/scripts/retag-image.sh "${{ steps.resolve.outputs.image_ref }}" \
-            "${{ needs.prepare.outputs.threed_image }}" \
-            "${{ needs.prepare.outputs.image_name_lc }}:custom-3d" \
-            "${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-3d" \
-            "${{ github.event_name == 'release' && format('{0}:{1}-custom-3d', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}" \
-            "${{ github.event_name == 'release' && format('{0}:custom-3d', env.DOCKERHUB_IMAGE) || '' }}" \
-            "${{ github.event_name == 'release' && format('{0}:{1}-custom-3d', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}"
-
-      - name: Free disk space
-        if: steps.resolve.outputs.exists != 'true'
-        run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
-          sudo docker image prune --all --force
-          df -h /
-
-      - name: Build 3D workflow image
-        if: steps.resolve.outputs.exists != 'true'
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./docker/Dockerfile.custom-3d
-          build-args: |
-            BASE_IMAGE=${{ needs.build-custom-basic.outputs.image_ref }}
-            COMFYUI_3D_PACK_REF=${{ env.COMFYUI_3D_PACK_REF }}
-            SAPIENS2_EASY_REF=${{ env.SAPIENS2_EASY_REF }}
-          push: true
-          tags: |
-            ${{ needs.prepare.outputs.threed_build_image }}
-            ${{ needs.prepare.outputs.threed_image }}
-            ${{ needs.prepare.outputs.image_name_lc }}:custom-3d
-            ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-3d
-            ${{ github.event_name == 'release' && format('{0}:{1}-custom-3d', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
-            ${{ github.event_name == 'release' && format('{0}:custom-3d', env.DOCKERHUB_IMAGE) || '' }}
-            ${{ github.event_name == 'release' && format('{0}:{1}-custom-3d', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}
-          cache-from: |
-            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-3d
-            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-3d
-            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:custom-3d
-          cache-to: |
-            type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-3d,mode=max
             type=inline
 
       - name: Verify pushed image
