@@ -29,7 +29,7 @@ def verify_protected_manifest() -> None:
     manifest = Path("/opt/bootstrap/protected-package-manifest.json")
     if not manifest.is_file():
         return
-    python = Path(os.environ.get("COMFY_VENV", "/opt/conda")) / "bin" / "python"
+    python = Path(os.environ.get("COMFY_VENV", "/opt/comfy/venv")) / "bin" / "python"
     subprocess.run(
         [
             str(python),

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 COMFYUI_DIR="${COMFYUI_DIR:-/opt/comfy/ComfyUI}"
-COMFY_VENV="${COMFY_VENV:-/opt/conda}"
+COMFY_VENV="${COMFY_VENV:-/opt/comfy/venv}"
 PROTECTED_MANIFEST="${PROTECTED_MANIFEST:-/opt/bootstrap/protected-package-manifest.json}"
 
 if (( $# % 3 != 0 )); then

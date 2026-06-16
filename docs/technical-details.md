@@ -21,9 +21,9 @@ Before using the image, confirm the host driver is new enough for the CUDA runti
 
 ## Python environment
 
-The image uses the Python environment shipped by the PyTorch base image at `/opt/conda`. The project deliberately avoids compiling CPython or reinstalling PyTorch in repo-owned Dockerfiles.
+The image creates `/opt/comfy/venv` from the Python interpreter shipped by the PyTorch base image with `--system-site-packages`, so the venv can use the base image's torch installation without reinstalling PyTorch.
 
-The helper scripts keep the historical `COMFY_VENV` name for compatibility, but its default value is now `/opt/conda`.
+The helper scripts keep the historical `COMFY_VENV` name, and its default value remains `/opt/comfy/venv`.
 
 ## Stage details
 

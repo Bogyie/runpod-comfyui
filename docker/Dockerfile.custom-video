@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
     COMFY_HOME=/opt/comfy \
     COMFYUI_DIR=/opt/comfy/ComfyUI \
-    COMFY_VENV=/opt/conda
+    COMFY_VENV=/opt/comfy/venv
 
 ARG VIDEO_HELPER_SUITE_REF=main
 

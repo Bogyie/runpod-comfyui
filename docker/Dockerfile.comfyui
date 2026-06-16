@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
     COMFY_HOME=/opt/comfy \
     COMFYUI_DIR=/opt/comfy/ComfyUI \
-    COMFY_VENV=/opt/conda \
+    COMFY_VENV=/opt/comfy/venv \
     WORKSPACE_DIR=/workspace \
     STORAGE_DIR=/workspace/storage \
     COMFYUI_PORT=8188 \
@@ -32,6 +32,7 @@ RUN --mount=type=cache,id=apt-comfyui,target=/var/cache/apt,sharing=locked \
       git \
       libgl1 \
       libglib2.0-0 \
+      python3-venv \
       libsm6 \
       libxext6 \
       libxrender1 \
@@ -49,6 +50,7 @@ COPY start.sh /opt/bootstrap/start.sh
 RUN chmod +x /opt/bootstrap/start.sh /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py
 
 RUN --mount=type=cache,id=pip-comfyui,target=/root/.cache/pip \
+    python -m venv --system-site-packages "${COMFY_VENV}" && \
     "${COMFY_VENV}/bin/python" -m pip install --upgrade pip wheel setuptools && \
     "${COMFY_VENV}/bin/python" -m pip install -r "${COMFYUI_DIR}/requirements.txt" && \
     "${COMFY_VENV}/bin/python" -m pip install "transformers==${TRANSFORMERS_VERSION}" && \
