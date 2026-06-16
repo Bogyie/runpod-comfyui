@@ -14,6 +14,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 ARG VIDEO_HELPER_SUITE_REF=4ee72c065db22c9d96c2427954dc69e7b908444b
 ARG SEEDVR2_VIDEO_UPSCALER_REF=4490bd1f482e026674543386bb2a4d176da245b9
+ARG WAN_VIDEO_WRAPPER_REF=088128b224242e110d3906c6750e9a3a348a659b
+ARG LTX_VIDEO_REF=229437c6b65796d6a7a63ae34be2bd5ba31fa543
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -23,7 +25,9 @@ RUN --mount=type=cache,id=pip-custom-video,target=/root/.cache/pip \
     chmod +x /opt/bootstrap/scripts/install_custom_nodes.sh /opt/bootstrap/scripts/verify_protected_packages.py && \
     /opt/bootstrap/scripts/install_custom_nodes.sh \
       ComfyUI-VideoHelperSuite https://github.com/kosinkadink/ComfyUI-VideoHelperSuite.git "${VIDEO_HELPER_SUITE_REF}" \
-      ComfyUI-SeedVR2_VideoUpscaler https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git "${SEEDVR2_VIDEO_UPSCALER_REF}"
+      ComfyUI-SeedVR2_VideoUpscaler https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git "${SEEDVR2_VIDEO_UPSCALER_REF}" \
+      ComfyUI-WanVideoWrapper https://github.com/kijai/ComfyUI-WanVideoWrapper.git "${WAN_VIDEO_WRAPPER_REF}" \
+      ComfyUI-LTXVideo https://github.com/Lightricks/ComfyUI-LTXVideo.git "${LTX_VIDEO_REF}"
 
 COPY scripts/ /opt/bootstrap/scripts/
 
@@ -33,4 +37,6 @@ RUN chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
       --stage custom-video \
       --node ComfyUI-VideoHelperSuite \
       --node ComfyUI-SeedVR2_VideoUpscaler \
+      --node ComfyUI-WanVideoWrapper \
+      --node ComfyUI-LTXVideo \
       --path /opt/bootstrap/baked-custom-nodes

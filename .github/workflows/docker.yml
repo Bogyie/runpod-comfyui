@@ -28,6 +28,8 @@ env:
   VIDEO_HELPER_SUITE_REF: 4ee72c065db22c9d96c2427954dc69e7b908444b
   SEEDVR2_VIDEO_UPSCALER_REF: 4490bd1f482e026674543386bb2a4d176da245b9
   DEPTH_ANYTHING_V3_REF: 6b08cf418dff47430a72e07d0eec8fdb07d464b1
+  WAN_VIDEO_WRAPPER_REF: 088128b224242e110d3906c6750e9a3a348a659b
+  LTX_VIDEO_REF: 229437c6b65796d6a7a63ae34be2bd5ba31fa543
 
 jobs:
   prepare:
@@ -502,6 +504,8 @@ jobs:
             BASE_IMAGE=${{ needs.build-custom-basic.outputs.image_ref }}
             VIDEO_HELPER_SUITE_REF=${{ env.VIDEO_HELPER_SUITE_REF }}
             SEEDVR2_VIDEO_UPSCALER_REF=${{ env.SEEDVR2_VIDEO_UPSCALER_REF }}
+            WAN_VIDEO_WRAPPER_REF=${{ env.WAN_VIDEO_WRAPPER_REF }}
+            LTX_VIDEO_REF=${{ env.LTX_VIDEO_REF }}
           push: true
           tags: |
             ${{ needs.prepare.outputs.video_build_image }}

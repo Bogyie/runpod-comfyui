@@ -21,7 +21,7 @@ Each stage produces a pushed image. The next dependent job consumes the previous
 | `runtime-tools` | `docker/Dockerfile.runtime-tools` | Hugging Face CLI, git, curl, wget, runpodctl, GitHub CLI, code-server |
 | `custom-basic` | `docker/Dockerfile.custom-basic` | ComfyUI-Manager, KJNodes, rgthree-comfy, Crystools |
 | `custom-image` | `docker/Dockerfile.custom-image` | controlnet aux, Impact Pack, Sapiens2 Easy, Depth Anything V3 |
-| `custom-video` | `docker/Dockerfile.custom-video` | VideoHelperSuite, SeedVR2 Video Upscaler |
+| `custom-video` | `docker/Dockerfile.custom-video` | VideoHelperSuite, SeedVR2 Video Upscaler, WanVideoWrapper, LTXVideo |
 
 The dependency graph is:
 
@@ -113,6 +113,8 @@ xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `
 | `DEPTH_ANYTHING_V3_REF` | `6b08cf418dff47430a72e07d0eec8fdb07d464b1` | ComfyUI-DepthAnythingV3 git ref |
 | `VIDEO_HELPER_SUITE_REF` | `4ee72c065db22c9d96c2427954dc69e7b908444b` | ComfyUI-VideoHelperSuite git ref |
 | `SEEDVR2_VIDEO_UPSCALER_REF` | `4490bd1f482e026674543386bb2a4d176da245b9` | ComfyUI-SeedVR2_VideoUpscaler git ref |
+| `WAN_VIDEO_WRAPPER_REF` | `088128b224242e110d3906c6750e9a3a348a659b` | ComfyUI-WanVideoWrapper git ref |
+| `LTX_VIDEO_REF` | `229437c6b65796d6a7a63ae34be2bd5ba31fa543` | ComfyUI-LTXVideo git ref |
 
 ## Runtime environment variables
 

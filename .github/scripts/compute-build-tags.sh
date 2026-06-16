@@ -94,6 +94,8 @@ VIDEO_KEY="$(
     printf 'parent_key=%s\n' "${BASIC_KEY}"
     printf 'video_helper_suite_ref=%s\n' "${VIDEO_HELPER_SUITE_REF}"
     printf 'seedvr2_video_upscaler_ref=%s\n' "${SEEDVR2_VIDEO_UPSCALER_REF}"
+    printf 'wan_video_wrapper_ref=%s\n' "${WAN_VIDEO_WRAPPER_REF}"
+    printf 'ltx_video_ref=%s\n' "${LTX_VIDEO_REF}"
     printf 'scripts_hash=%s\n' "${SCRIPT_HASH}"
     hash_files .dockerignore docker/Dockerfile.custom-video
   } | hash_payload
