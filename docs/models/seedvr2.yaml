@@ -1,0 +1,56 @@
+---
+schema_version: 1
+checked_at: '2026-06-16'
+base_model: seedvr2
+alias: seedvr2
+path_root: models
+models:
+- type: vae
+  filename: ema_vae_fp16.safetensors
+  comfyui_dir: models/vae/seedvr2
+  target_path: models/vae/seedvr2/ema_vae_fp16.safetensors
+  source_repo: Comfy-Org/SeedVR2
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/SeedVR2/resolve/main/vae/ema_vae_fp16.safetensors
+- type: diffusion_model
+  filename: seedvr2_3b_fp16.safetensors
+  comfyui_dir: models/diffusion_models/seedvr2
+  target_path: models/diffusion_models/seedvr2/seedvr2_3b_fp16.safetensors
+  source_repo: Comfy-Org/SeedVR2
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/SeedVR2/resolve/main/diffusion_models/seedvr2_3b_fp16.safetensors
+- type: diffusion_model
+  filename: seedvr2_3b_fp8_e4m3fn.safetensors
+  comfyui_dir: models/diffusion_models/seedvr2
+  target_path: models/diffusion_models/seedvr2/seedvr2_3b_fp8_e4m3fn.safetensors
+  source_repo: Comfy-Org/SeedVR2
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/SeedVR2/resolve/main/diffusion_models/seedvr2_3b_fp8_e4m3fn.safetensors
+- type: diffusion_model
+  filename: seedvr2_7b_fp16.safetensors
+  comfyui_dir: models/diffusion_models/seedvr2
+  target_path: models/diffusion_models/seedvr2/seedvr2_7b_fp16.safetensors
+  source_repo: Comfy-Org/SeedVR2
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/SeedVR2/resolve/main/diffusion_models/seedvr2_7b_fp16.safetensors
+- type: diffusion_model
+  filename: seedvr2_7b_fp8_e4m3fn_mixed_block35_fp16.safetensors
+  comfyui_dir: models/diffusion_models/seedvr2
+  target_path: models/diffusion_models/seedvr2/seedvr2_7b_fp8_e4m3fn_mixed_block35_fp16.safetensors
+  source_repo: Comfy-Org/SeedVR2
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/SeedVR2/resolve/main/diffusion_models/seedvr2_7b_fp8_e4m3fn_mixed_block35_fp16.safetensors
+- type: diffusion_model
+  filename: seedvr2_7b_sharp_fp16.safetensors
+  comfyui_dir: models/diffusion_models/seedvr2
+  target_path: models/diffusion_models/seedvr2/seedvr2_7b_sharp_fp16.safetensors
+  source_repo: Comfy-Org/SeedVR2
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/SeedVR2/resolve/main/diffusion_models/seedvr2_7b_sharp_fp16.safetensors
+- type: diffusion_model
+  filename: seedvr2_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors
+  comfyui_dir: models/diffusion_models/seedvr2
+  target_path: models/diffusion_models/seedvr2/seedvr2_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors
+  source_repo: Comfy-Org/SeedVR2
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/SeedVR2/resolve/main/diffusion_models/seedvr2_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors

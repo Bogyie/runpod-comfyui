@@ -1,0 +1,14 @@
+---
+schema_version: 1
+checked_at: '2026-06-16'
+base_model: sam3.1
+alias: sam31
+path_root: models
+models:
+- type: checkpoint
+  filename: sam3.1_multiplex_fp16.safetensors
+  comfyui_dir: models/checkpoints/sam31
+  target_path: models/checkpoints/sam31/sam3.1_multiplex_fp16.safetensors
+  source_repo: Comfy-Org/sam3.1
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/sam3.1/resolve/main/checkpoints/sam3.1_multiplex_fp16.safetensors

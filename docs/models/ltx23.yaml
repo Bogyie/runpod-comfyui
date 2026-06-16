@@ -1,0 +1,28 @@
+---
+schema_version: 1
+checked_at: '2026-06-16'
+base_model: ltx-2.3
+alias: ltx23
+path_root: models
+models:
+- type: diffusion_model
+  filename: ltx-2.3-22b-dev.safetensors
+  comfyui_dir: models/diffusion_models/ltx23
+  target_path: models/diffusion_models/ltx23/ltx-2.3-22b-dev.safetensors
+  source_repo: Lightricks/LTX-2.3
+  source_kind: official
+  hf_down_url: https://huggingface.co/Lightricks/LTX-2.3/resolve/main/ltx-2.3-22b-dev.safetensors
+- type: diffusion_model
+  filename: ltx-2.3-22b-distilled-1.1.safetensors
+  comfyui_dir: models/diffusion_models/ltx23
+  target_path: models/diffusion_models/ltx23/ltx-2.3-22b-distilled-1.1.safetensors
+  source_repo: Lightricks/LTX-2.3
+  source_kind: official
+  hf_down_url: https://huggingface.co/Lightricks/LTX-2.3/resolve/main/ltx-2.3-22b-distilled-1.1.safetensors
+- type: diffusion_model
+  filename: ltx-2.3-22b-distilled.safetensors
+  comfyui_dir: models/diffusion_models/ltx23
+  target_path: models/diffusion_models/ltx23/ltx-2.3-22b-distilled.safetensors
+  source_repo: Lightricks/LTX-2.3
+  source_kind: official
+  hf_down_url: https://huggingface.co/Lightricks/LTX-2.3/resolve/main/ltx-2.3-22b-distilled.safetensors

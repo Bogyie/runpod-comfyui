@@ -1,0 +1,56 @@
+---
+schema_version: 1
+checked_at: '2026-06-16'
+base_model: ideogram-4
+alias: ideogram4
+path_root: models
+models:
+- type: text_encoder
+  filename: qwen3vl_8b_fp8_scaled.safetensors
+  comfyui_dir: models/text_encoders/ideogram4
+  target_path: models/text_encoders/ideogram4/qwen3vl_8b_fp8_scaled.safetensors
+  source_repo: Comfy-Org/Ideogram-4
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Ideogram-4/resolve/main/text_encoders/qwen3vl_8b_fp8_scaled.safetensors
+- type: text_encoder
+  filename: qwen3vl_8b_nvfp4.safetensors
+  comfyui_dir: models/text_encoders/ideogram4
+  target_path: models/text_encoders/ideogram4/qwen3vl_8b_nvfp4.safetensors
+  source_repo: Comfy-Org/Ideogram-4
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Ideogram-4/resolve/main/text_encoders/qwen3vl_8b_nvfp4.safetensors
+- type: vae
+  filename: flux2-vae.safetensors
+  comfyui_dir: models/vae/ideogram4
+  target_path: models/vae/ideogram4/flux2-vae.safetensors
+  source_repo: Comfy-Org/Ideogram-4
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Ideogram-4/resolve/main/vae/flux2-vae.safetensors
+- type: diffusion_model
+  filename: ideogram4_fp8_scaled.safetensors
+  comfyui_dir: models/diffusion_models/ideogram4
+  target_path: models/diffusion_models/ideogram4/ideogram4_fp8_scaled.safetensors
+  source_repo: Comfy-Org/Ideogram-4
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Ideogram-4/resolve/main/diffusion_models/ideogram4_fp8_scaled.safetensors
+- type: diffusion_model
+  filename: ideogram4_nvfp4_mixed.safetensors
+  comfyui_dir: models/diffusion_models/ideogram4
+  target_path: models/diffusion_models/ideogram4/ideogram4_nvfp4_mixed.safetensors
+  source_repo: Comfy-Org/Ideogram-4
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Ideogram-4/resolve/main/diffusion_models/ideogram4_nvfp4_mixed.safetensors
+- type: diffusion_model
+  filename: ideogram4_unconditional_fp8_scaled.safetensors
+  comfyui_dir: models/diffusion_models/ideogram4
+  target_path: models/diffusion_models/ideogram4/ideogram4_unconditional_fp8_scaled.safetensors
+  source_repo: Comfy-Org/Ideogram-4
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Ideogram-4/resolve/main/diffusion_models/ideogram4_unconditional_fp8_scaled.safetensors
+- type: diffusion_model
+  filename: ideogram4_unconditional_nvfp4_mixed.safetensors
+  comfyui_dir: models/diffusion_models/ideogram4
+  target_path: models/diffusion_models/ideogram4/ideogram4_unconditional_nvfp4_mixed.safetensors
+  source_repo: Comfy-Org/Ideogram-4
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Ideogram-4/resolve/main/diffusion_models/ideogram4_unconditional_nvfp4_mixed.safetensors

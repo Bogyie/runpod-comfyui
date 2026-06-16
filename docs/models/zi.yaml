@@ -1,0 +1,42 @@
+---
+schema_version: 1
+checked_at: '2026-06-16'
+base_model: z-image
+alias: zi
+path_root: models
+models:
+- type: text_encoder
+  filename: qwen_3_4b.safetensors
+  comfyui_dir: models/text_encoders/zi
+  target_path: models/text_encoders/zi/qwen_3_4b.safetensors
+  source_repo: Comfy-Org/z_image
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/z_image/resolve/main/split_files/text_encoders/qwen_3_4b.safetensors
+- type: text_encoder
+  filename: qwen_3_4b_fp4_mixed.safetensors
+  comfyui_dir: models/text_encoders/zi
+  target_path: models/text_encoders/zi/qwen_3_4b_fp4_mixed.safetensors
+  source_repo: Comfy-Org/z_image
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/z_image/resolve/main/split_files/text_encoders/qwen_3_4b_fp4_mixed.safetensors
+- type: text_encoder
+  filename: qwen_3_4b_fp8_mixed.safetensors
+  comfyui_dir: models/text_encoders/zi
+  target_path: models/text_encoders/zi/qwen_3_4b_fp8_mixed.safetensors
+  source_repo: Comfy-Org/z_image
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/z_image/resolve/main/split_files/text_encoders/qwen_3_4b_fp8_mixed.safetensors
+- type: vae
+  filename: ae.safetensors
+  comfyui_dir: models/vae/zi
+  target_path: models/vae/zi/ae.safetensors
+  source_repo: Comfy-Org/z_image
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/z_image/resolve/main/split_files/vae/ae.safetensors
+- type: diffusion_model
+  filename: z_image_bf16.safetensors
+  comfyui_dir: models/diffusion_models/zi
+  target_path: models/diffusion_models/zi/z_image_bf16.safetensors
+  source_repo: Comfy-Org/z_image
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/z_image/resolve/main/split_files/diffusion_models/z_image_bf16.safetensors

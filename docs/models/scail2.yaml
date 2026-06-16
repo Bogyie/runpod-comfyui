@@ -1,0 +1,59 @@
+---
+schema_version: 1
+checked_at: '2026-06-16'
+base_model: scail-2
+alias: scail2
+path_root: models
+models:
+- type: clip_vision
+  filename: clip_vision_h.safetensors
+  comfyui_dir: models/clip_vision/scail2
+  target_path: models/clip_vision/scail2/clip_vision_h.safetensors
+  source_repo: Comfy-Org/Wan_2.1_ComfyUI_repackaged
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors
+- type: text_encoder
+  filename: umt5_xxl_fp16.safetensors
+  comfyui_dir: models/text_encoders/scail2
+  target_path: models/text_encoders/scail2/umt5_xxl_fp16.safetensors
+  source_repo: Comfy-Org/Wan_2.1_ComfyUI_repackaged
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp16.safetensors
+- type: text_encoder
+  filename: umt5_xxl_fp8_e4m3fn_scaled.safetensors
+  comfyui_dir: models/text_encoders/scail2
+  target_path: models/text_encoders/scail2/umt5_xxl_fp8_e4m3fn_scaled.safetensors
+  source_repo: Comfy-Org/Wan_2.1_ComfyUI_repackaged
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors
+- type: vae
+  filename: wan_2.1_vae.safetensors
+  comfyui_dir: models/vae/scail2
+  target_path: models/vae/scail2/wan_2.1_vae.safetensors
+  source_repo: Comfy-Org/Wan_2.1_ComfyUI_repackaged
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors
+- type: diffusion_model
+  filename: wan2.1_14B_SCAIL_2_fp16.safetensors
+  comfyui_dir: models/diffusion_models/scail2
+  target_path: models/diffusion_models/scail2/wan2.1_14B_SCAIL_2_fp16.safetensors
+  source_repo: Comfy-Org/SCAIL-2
+  source_kind: comfy-org
+  requested_exception: true
+  hf_down_url: https://huggingface.co/Comfy-Org/SCAIL-2/resolve/main/diffusion_models/wan2.1_14B_SCAIL_2_fp16.safetensors
+- type: diffusion_model
+  filename: wan2.1_14B_SCAIL_2_fp8_scaled.safetensors
+  comfyui_dir: models/diffusion_models/scail2
+  target_path: models/diffusion_models/scail2/wan2.1_14B_SCAIL_2_fp8_scaled.safetensors
+  source_repo: Comfy-Org/SCAIL-2
+  source_kind: comfy-org
+  requested_exception: true
+  hf_down_url: https://huggingface.co/Comfy-Org/SCAIL-2/resolve/main/diffusion_models/wan2.1_14B_SCAIL_2_fp8_scaled.safetensors
+- type: diffusion_model
+  filename: wan2.1_14B_SCAIL_2_mxfp8.safetensors
+  comfyui_dir: models/diffusion_models/scail2
+  target_path: models/diffusion_models/scail2/wan2.1_14B_SCAIL_2_mxfp8.safetensors
+  source_repo: Comfy-Org/SCAIL-2
+  source_kind: comfy-org
+  requested_exception: true
+  hf_down_url: https://huggingface.co/Comfy-Org/SCAIL-2/resolve/main/diffusion_models/wan2.1_14B_SCAIL_2_mxfp8.safetensors

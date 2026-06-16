@@ -1,0 +1,42 @@
+---
+schema_version: 1
+checked_at: '2026-06-16'
+base_model: flux2-klein-4b
+alias: flux2k4b
+path_root: models
+models:
+- type: text_encoder
+  filename: qwen_3_4b.safetensors
+  comfyui_dir: models/text_encoders/flux2k4b
+  target_path: models/text_encoders/flux2k4b/qwen_3_4b.safetensors
+  source_repo: Comfy-Org/vae-text-encorder-for-flux-klein-4b
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b/resolve/main/split_files/text_encoders/qwen_3_4b.safetensors
+- type: text_encoder
+  filename: qwen_3_4b_fp4_flux2.safetensors
+  comfyui_dir: models/text_encoders/flux2k4b
+  target_path: models/text_encoders/flux2k4b/qwen_3_4b_fp4_flux2.safetensors
+  source_repo: Comfy-Org/vae-text-encorder-for-flux-klein-4b
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b/resolve/main/split_files/text_encoders/qwen_3_4b_fp4_flux2.safetensors
+- type: vae
+  filename: flux2-vae.safetensors
+  comfyui_dir: models/vae/flux2k4b
+  target_path: models/vae/flux2k4b/flux2-vae.safetensors
+  source_repo: Comfy-Org/vae-text-encorder-for-flux-klein-4b
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b/resolve/main/split_files/vae/flux2-vae.safetensors
+- type: diffusion_model
+  filename: flux-2-klein-4b.safetensors
+  comfyui_dir: models/diffusion_models/flux2k4b
+  target_path: models/diffusion_models/flux2k4b/flux-2-klein-4b.safetensors
+  source_repo: Comfy-Org/vae-text-encorder-for-flux-klein-4b
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b/resolve/main/split_files/diffusion_models/flux-2-klein-4b.safetensors
+- type: diffusion_model
+  filename: flux-2-klein-base-4b.safetensors
+  comfyui_dir: models/diffusion_models/flux2k4b
+  target_path: models/diffusion_models/flux2k4b/flux-2-klein-base-4b.safetensors
+  source_repo: Comfy-Org/vae-text-encorder-for-flux-klein-4b
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b/resolve/main/split_files/diffusion_models/flux-2-klein-base-4b.safetensors

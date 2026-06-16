@@ -1,0 +1,42 @@
+---
+schema_version: 1
+checked_at: '2026-06-16'
+base_model: flux2-dev
+alias: flux2dev
+path_root: models
+models:
+- type: text_encoder
+  filename: mistral_3_small_flux2_bf16.safetensors
+  comfyui_dir: models/text_encoders/flux2dev
+  target_path: models/text_encoders/flux2dev/mistral_3_small_flux2_bf16.safetensors
+  source_repo: Comfy-Org/flux2-dev
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/text_encoders/mistral_3_small_flux2_bf16.safetensors
+- type: text_encoder
+  filename: mistral_3_small_flux2_fp4_mixed.safetensors
+  comfyui_dir: models/text_encoders/flux2dev
+  target_path: models/text_encoders/flux2dev/mistral_3_small_flux2_fp4_mixed.safetensors
+  source_repo: Comfy-Org/flux2-dev
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/text_encoders/mistral_3_small_flux2_fp4_mixed.safetensors
+- type: text_encoder
+  filename: mistral_3_small_flux2_fp8.safetensors
+  comfyui_dir: models/text_encoders/flux2dev
+  target_path: models/text_encoders/flux2dev/mistral_3_small_flux2_fp8.safetensors
+  source_repo: Comfy-Org/flux2-dev
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/text_encoders/mistral_3_small_flux2_fp8.safetensors
+- type: vae
+  filename: flux2-vae.safetensors
+  comfyui_dir: models/vae/flux2dev
+  target_path: models/vae/flux2dev/flux2-vae.safetensors
+  source_repo: Comfy-Org/flux2-dev
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/vae/flux2-vae.safetensors
+- type: diffusion_model
+  filename: flux2_dev_fp8mixed.safetensors
+  comfyui_dir: models/diffusion_models/flux2dev
+  target_path: models/diffusion_models/flux2dev/flux2_dev_fp8mixed.safetensors
+  source_repo: Comfy-Org/flux2-dev
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/diffusion_models/flux2_dev_fp8mixed.safetensors

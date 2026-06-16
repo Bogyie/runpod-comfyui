@@ -1,0 +1,70 @@
+---
+schema_version: 1
+checked_at: '2026-06-16'
+base_model: ltx-2
+alias: ltx2
+path_root: models
+models:
+- type: text_encoder
+  filename: gemma_3_12B_it.safetensors
+  comfyui_dir: models/text_encoders/ltx2
+  target_path: models/text_encoders/ltx2/gemma_3_12B_it.safetensors
+  source_repo: Comfy-Org/ltx-2
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/ltx-2/resolve/main/split_files/text_encoders/gemma_3_12B_it.safetensors
+- type: text_encoder
+  filename: gemma_3_12B_it_fp4_mixed.safetensors
+  comfyui_dir: models/text_encoders/ltx2
+  target_path: models/text_encoders/ltx2/gemma_3_12B_it_fp4_mixed.safetensors
+  source_repo: Comfy-Org/ltx-2
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/ltx-2/resolve/main/split_files/text_encoders/gemma_3_12B_it_fp4_mixed.safetensors
+- type: text_encoder
+  filename: gemma_3_12B_it_fp8_scaled.safetensors
+  comfyui_dir: models/text_encoders/ltx2
+  target_path: models/text_encoders/ltx2/gemma_3_12B_it_fp8_scaled.safetensors
+  source_repo: Comfy-Org/ltx-2
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/ltx-2/resolve/main/split_files/text_encoders/gemma_3_12B_it_fp8_scaled.safetensors
+- type: text_encoder
+  filename: gemma_3_12B_it_fpmixed.safetensors
+  comfyui_dir: models/text_encoders/ltx2
+  target_path: models/text_encoders/ltx2/gemma_3_12B_it_fpmixed.safetensors
+  source_repo: Comfy-Org/ltx-2
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/ltx-2/resolve/main/split_files/text_encoders/gemma_3_12B_it_fpmixed.safetensors
+- type: diffusion_model
+  filename: ltx-2-19b-dev-fp4.safetensors
+  comfyui_dir: models/diffusion_models/ltx2
+  target_path: models/diffusion_models/ltx2/ltx-2-19b-dev-fp4.safetensors
+  source_repo: Lightricks/LTX-2
+  source_kind: official
+  hf_down_url: https://huggingface.co/Lightricks/LTX-2/resolve/main/ltx-2-19b-dev-fp4.safetensors
+- type: diffusion_model
+  filename: ltx-2-19b-dev-fp8.safetensors
+  comfyui_dir: models/diffusion_models/ltx2
+  target_path: models/diffusion_models/ltx2/ltx-2-19b-dev-fp8.safetensors
+  source_repo: Lightricks/LTX-2
+  source_kind: official
+  hf_down_url: https://huggingface.co/Lightricks/LTX-2/resolve/main/ltx-2-19b-dev-fp8.safetensors
+- type: diffusion_model
+  filename: ltx-2-19b-dev.safetensors
+  comfyui_dir: models/diffusion_models/ltx2
+  target_path: models/diffusion_models/ltx2/ltx-2-19b-dev.safetensors
+  source_repo: Lightricks/LTX-2
+  source_kind: official
+  hf_down_url: https://huggingface.co/Lightricks/LTX-2/resolve/main/ltx-2-19b-dev.safetensors
+- type: diffusion_model
+  filename: ltx-2-19b-distilled-fp8.safetensors
+  comfyui_dir: models/diffusion_models/ltx2
+  target_path: models/diffusion_models/ltx2/ltx-2-19b-distilled-fp8.safetensors
+  source_repo: Lightricks/LTX-2
+  source_kind: official
+  hf_down_url: https://huggingface.co/Lightricks/LTX-2/resolve/main/ltx-2-19b-distilled-fp8.safetensors
+- type: diffusion_model
+  filename: ltx-2-19b-distilled.safetensors
+  comfyui_dir: models/diffusion_models/ltx2
+  target_path: models/diffusion_models/ltx2/ltx-2-19b-distilled.safetensors
+  source_repo: Lightricks/LTX-2
+  source_kind: official
+  hf_down_url: https://huggingface.co/Lightricks/LTX-2/resolve/main/ltx-2-19b-distilled.safetensors

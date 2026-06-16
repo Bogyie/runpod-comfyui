@@ -1,0 +1,35 @@
+---
+schema_version: 1
+checked_at: '2026-06-16'
+base_model: depth-anything-3
+alias: da3
+path_root: models
+models:
+- type: geometry_estimation
+  filename: depth_anything_3_base.safetensors
+  comfyui_dir: models/geometry_estimation/da3
+  target_path: models/geometry_estimation/da3/depth_anything_3_base.safetensors
+  source_repo: Comfy-Org/Depth-Anything-3
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Depth-Anything-3/resolve/main/geometry_estimation/depth_anything_3_base.safetensors
+- type: geometry_estimation
+  filename: depth_anything_3_metric_large.safetensors
+  comfyui_dir: models/geometry_estimation/da3
+  target_path: models/geometry_estimation/da3/depth_anything_3_metric_large.safetensors
+  source_repo: Comfy-Org/Depth-Anything-3
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Depth-Anything-3/resolve/main/geometry_estimation/depth_anything_3_metric_large.safetensors
+- type: geometry_estimation
+  filename: depth_anything_3_mono_large.safetensors
+  comfyui_dir: models/geometry_estimation/da3
+  target_path: models/geometry_estimation/da3/depth_anything_3_mono_large.safetensors
+  source_repo: Comfy-Org/Depth-Anything-3
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Depth-Anything-3/resolve/main/geometry_estimation/depth_anything_3_mono_large.safetensors
+- type: geometry_estimation
+  filename: depth_anything_3_small.safetensors
+  comfyui_dir: models/geometry_estimation/da3
+  target_path: models/geometry_estimation/da3/depth_anything_3_small.safetensors
+  source_repo: Comfy-Org/Depth-Anything-3
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Depth-Anything-3/resolve/main/geometry_estimation/depth_anything_3_small.safetensors

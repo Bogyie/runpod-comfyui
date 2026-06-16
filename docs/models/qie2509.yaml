@@ -1,0 +1,56 @@
+---
+schema_version: 1
+checked_at: '2026-06-16'
+base_model: qwen-image-edit-2509
+alias: qie2509
+path_root: models
+models:
+- type: text_encoder
+  filename: qwen_2.5_vl_7b.safetensors
+  comfyui_dir: models/text_encoders/qie2509
+  target_path: models/text_encoders/qie2509/qwen_2.5_vl_7b.safetensors
+  source_repo: Comfy-Org/Qwen-Image_ComfyUI
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/text_encoders/qwen_2.5_vl_7b.safetensors
+- type: text_encoder
+  filename: qwen_2.5_vl_7b_fp8_scaled.safetensors
+  comfyui_dir: models/text_encoders/qie2509
+  target_path: models/text_encoders/qie2509/qwen_2.5_vl_7b_fp8_scaled.safetensors
+  source_repo: Comfy-Org/Qwen-Image_ComfyUI
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors
+- type: text_encoder
+  filename: qwen_2.5_vl_7b_nvfp4.safetensors
+  comfyui_dir: models/text_encoders/qie2509
+  target_path: models/text_encoders/qie2509/qwen_2.5_vl_7b_nvfp4.safetensors
+  source_repo: Comfy-Org/Qwen-Image_ComfyUI
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/text_encoders/qwen_2.5_vl_7b_nvfp4.safetensors
+- type: vae
+  filename: qwen_image_vae.safetensors
+  comfyui_dir: models/vae/qie2509
+  target_path: models/vae/qie2509/qwen_image_vae.safetensors
+  source_repo: Comfy-Org/Qwen-Image_ComfyUI
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/vae/qwen_image_vae.safetensors
+- type: diffusion_model
+  filename: qwen_image_edit_2509_bf16.safetensors
+  comfyui_dir: models/diffusion_models/qie2509
+  target_path: models/diffusion_models/qie2509/qwen_image_edit_2509_bf16.safetensors
+  source_repo: Comfy-Org/Qwen-Image-Edit_ComfyUI
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/resolve/main/split_files/diffusion_models/qwen_image_edit_2509_bf16.safetensors
+- type: diffusion_model
+  filename: qwen_image_edit_2509_fp8_e4m3fn.safetensors
+  comfyui_dir: models/diffusion_models/qie2509
+  target_path: models/diffusion_models/qie2509/qwen_image_edit_2509_fp8_e4m3fn.safetensors
+  source_repo: Comfy-Org/Qwen-Image-Edit_ComfyUI
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/resolve/main/split_files/diffusion_models/qwen_image_edit_2509_fp8_e4m3fn.safetensors
+- type: diffusion_model
+  filename: qwen_image_edit_2509_fp8mixed.safetensors
+  comfyui_dir: models/diffusion_models/qie2509
+  target_path: models/diffusion_models/qie2509/qwen_image_edit_2509_fp8mixed.safetensors
+  source_repo: Comfy-Org/Qwen-Image-Edit_ComfyUI
+  source_kind: comfy-org
+  hf_down_url: https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/resolve/main/split_files/diffusion_models/qwen_image_edit_2509_fp8mixed.safetensors

@@ -72,7 +72,7 @@ The basic custom-node image adds:
 
 The final purpose images split advanced nodes by workflow:
 
-- `custom-image`: `Fannovel16/comfyui_controlnet_aux`, `ltdrdata/ComfyUI-Impact-Pack`, `Bogyie/ComfyUI-Sapiens2-Easy`
+- `custom-image`: `Fannovel16/comfyui_controlnet_aux`, `ltdrdata/ComfyUI-Impact-Pack`, `Bogyie/ComfyUI-Sapiens2-Easy`, `PozzettiAndrea/ComfyUI-DepthAnythingV3`
 - `custom-video`: `kosinkadink/ComfyUI-VideoHelperSuite`, `numz/ComfyUI-SeedVR2_VideoUpscaler`
 
 ## Model path normalization

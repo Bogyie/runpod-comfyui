@@ -1,0 +1,122 @@
+---
+schema_version: 1
+checked_at: '2026-06-16'
+path_root: models
+source_priority:
+- comfy-org
+- official
+base_model_alias:
+- name: z-image
+  alias: zi
+- name: z-image-turbo
+  alias: zit
+- name: wan2.1
+  alias: wan21
+- name: scail-2
+  alias: scail2
+- name: wan2.2
+  alias: wan22
+- name: qwen-image
+  alias: qi
+- name: qwen-image-2512
+  alias: qi2512
+- name: qwen-image-edit-2509
+  alias: qie2509
+- name: qwen-image-edit-2511
+  alias: qie2511
+- name: ideogram-4
+  alias: ideogram4
+- name: depth-anything-3
+  alias: da3
+- name: seedvr2
+  alias: seedvr2
+- name: sam3.1
+  alias: sam31
+- name: flux2-dev
+  alias: flux2dev
+- name: flux2-klein-4b
+  alias: flux2k4b
+- name: flux2-klein-9b
+  alias: flux2k9b
+- name: ltx-2
+  alias: ltx2
+- name: ltx-2.3
+  alias: ltx23
+notes:
+- Common helper assets are intentionally duplicated per base model so each model can be downloaded into its own alias directory.
+- The target_path field is the canonical download target. comfyui_dir and filename are included for script convenience.
+- Diffusion model files are included per base model when available from Comfy-Org or an official repository. LoRA files are excluded unless explicitly added later.
+- Community sources are intentionally excluded.
+model_files:
+- base_model: z-image
+  alias: zi
+  file: models/zi.yaml
+  model_count: 5
+- base_model: z-image-turbo
+  alias: zit
+  file: models/zit.yaml
+  model_count: 17
+- base_model: wan2.1
+  alias: wan21
+  file: models/wan21.yaml
+  model_count: 32
+- base_model: scail-2
+  alias: scail2
+  file: models/scail2.yaml
+  model_count: 7
+- base_model: wan2.2
+  alias: wan22
+  file: models/wan22.yaml
+  model_count: 36
+- base_model: qwen-image
+  alias: qi
+  file: models/qi.yaml
+  model_count: 11
+- base_model: qwen-image-2512
+  alias: qi2512
+  file: models/qi2512.yaml
+  model_count: 8
+- base_model: qwen-image-edit-2509
+  alias: qie2509
+  file: models/qie2509.yaml
+  model_count: 7
+- base_model: qwen-image-edit-2511
+  alias: qie2511
+  file: models/qie2511.yaml
+  model_count: 6
+- base_model: ideogram-4
+  alias: ideogram4
+  file: models/ideogram4.yaml
+  model_count: 7
+- base_model: depth-anything-3
+  alias: da3
+  file: models/da3.yaml
+  model_count: 4
+- base_model: seedvr2
+  alias: seedvr2
+  file: models/seedvr2.yaml
+  model_count: 7
+- base_model: sam3.1
+  alias: sam31
+  file: models/sam31.yaml
+  model_count: 1
+- base_model: flux2-dev
+  alias: flux2dev
+  file: models/flux2dev.yaml
+  model_count: 5
+- base_model: flux2-klein-4b
+  alias: flux2k4b
+  file: models/flux2k4b.yaml
+  model_count: 5
+- base_model: flux2-klein-9b
+  alias: flux2k9b
+  file: models/flux2k9b.yaml
+  model_count: 4
+- base_model: ltx-2
+  alias: ltx2
+  file: models/ltx2.yaml
+  model_count: 9
+- base_model: ltx-2.3
+  alias: ltx23
+  file: models/ltx23.yaml
+  model_count: 3
