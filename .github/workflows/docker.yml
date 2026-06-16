@@ -26,6 +26,7 @@ env:
   IMPACT_PACK_REF: 429d0159ad429e64d2b3916e6e7be9c22d025c3c
   SAPIENS2_EASY_REF: 51958bb75a2ee7644018d55b4f2b6f6d535101ad
   VIDEO_HELPER_SUITE_REF: 4ee72c065db22c9d96c2427954dc69e7b908444b
+  SEEDVR2_VIDEO_UPSCALER_REF: 4490bd1f482e026674543386bb2a4d176da245b9
 
 jobs:
   prepare:
@@ -498,6 +499,7 @@ jobs:
           build-args: |
             BASE_IMAGE=${{ needs.build-custom-basic.outputs.image_ref }}
             VIDEO_HELPER_SUITE_REF=${{ env.VIDEO_HELPER_SUITE_REF }}
+            SEEDVR2_VIDEO_UPSCALER_REF=${{ env.SEEDVR2_VIDEO_UPSCALER_REF }}
           push: true
           tags: |
             ${{ needs.prepare.outputs.video_build_image }}

@@ -21,7 +21,7 @@ Each stage produces a pushed image. The next dependent job consumes the previous
 | `runtime-tools` | `docker/Dockerfile.runtime-tools` | Hugging Face CLI, git, curl, wget, runpodctl, GitHub CLI, code-server |
 | `custom-basic` | `docker/Dockerfile.custom-basic` | ComfyUI-Manager, KJNodes, rgthree-comfy, Crystools |
 | `custom-image` | `docker/Dockerfile.custom-image` | controlnet aux, Impact Pack, Sapiens2 Easy |
-| `custom-video` | `docker/Dockerfile.custom-video` | VideoHelperSuite |
+| `custom-video` | `docker/Dockerfile.custom-video` | VideoHelperSuite, SeedVR2 Video Upscaler |
 
 The dependency graph is:
 
@@ -111,6 +111,7 @@ xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `
 | `IMPACT_PACK_REF` | `429d0159ad429e64d2b3916e6e7be9c22d025c3c` | ComfyUI-Impact-Pack git ref |
 | `SAPIENS2_EASY_REF` | `51958bb75a2ee7644018d55b4f2b6f6d535101ad` | ComfyUI-Sapiens2-Easy git ref |
 | `VIDEO_HELPER_SUITE_REF` | `4ee72c065db22c9d96c2427954dc69e7b908444b` | ComfyUI-VideoHelperSuite git ref |
+| `SEEDVR2_VIDEO_UPSCALER_REF` | `4490bd1f482e026674543386bb2a4d176da245b9` | ComfyUI-SeedVR2_VideoUpscaler git ref |
 
 ## Runtime environment variables
 

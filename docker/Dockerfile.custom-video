@@ -12,7 +12,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     COMFY_VENV=/opt/comfy/venv \
     PATH=/opt/comfy/venv/bin:$PATH
 
-ARG VIDEO_HELPER_SUITE_REF=main
+ARG VIDEO_HELPER_SUITE_REF=4ee72c065db22c9d96c2427954dc69e7b908444b
+ARG SEEDVR2_VIDEO_UPSCALER_REF=4490bd1f482e026674543386bb2a4d176da245b9
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -21,7 +22,8 @@ COPY scripts/install_custom_nodes.sh scripts/verify_protected_packages.py /opt/b
 RUN --mount=type=cache,id=pip-custom-video,target=/root/.cache/pip \
     chmod +x /opt/bootstrap/scripts/install_custom_nodes.sh /opt/bootstrap/scripts/verify_protected_packages.py && \
     /opt/bootstrap/scripts/install_custom_nodes.sh \
-      ComfyUI-VideoHelperSuite https://github.com/kosinkadink/ComfyUI-VideoHelperSuite.git "${VIDEO_HELPER_SUITE_REF}"
+      ComfyUI-VideoHelperSuite https://github.com/kosinkadink/ComfyUI-VideoHelperSuite.git "${VIDEO_HELPER_SUITE_REF}" \
+      ComfyUI-SeedVR2_VideoUpscaler https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git "${SEEDVR2_VIDEO_UPSCALER_REF}"
 
 COPY scripts/ /opt/bootstrap/scripts/
 
@@ -30,4 +32,5 @@ RUN chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
     "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_image.py \
       --stage custom-video \
       --node ComfyUI-VideoHelperSuite \
+      --node ComfyUI-SeedVR2_VideoUpscaler \
       --path /opt/bootstrap/baked-custom-nodes
