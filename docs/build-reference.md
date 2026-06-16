@@ -98,19 +98,19 @@ xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `
 | Name | Default | Purpose |
 |---|---|---|
 | `BASE_IMAGE` | required | Previous stage image |
-| `COMFYUI_MANAGER_REF` | `main` | ComfyUI-Manager git ref |
-| `KJNODES_REF` | `main` | ComfyUI-KJNodes git ref |
-| `RGTHREE_REF` | `main` | rgthree-comfy git ref |
-| `CRYSTOOLS_REF` | `main` | ComfyUI-Crystools git ref |
+| `COMFYUI_MANAGER_REF` | `e4c5401dd5da96e901f8b8cb8a7eca63e13e8ee5` | ComfyUI-Manager git ref |
+| `KJNODES_REF` | `8a225698ae7cb87632817419f83a64ecf571fe76` | ComfyUI-KJNodes git ref |
+| `RGTHREE_REF` | `738105af5fb14e96fbecaf406dc356e284797e8c` | rgthree-comfy git ref |
+| `CRYSTOOLS_REF` | `2f18256c5b5063937106f29a8e0a7db3ae3869b7` | ComfyUI-Crystools git ref |
 
 ### Purpose custom nodes
 
 | Name | Default | Purpose |
 |---|---|---|
-| `CONTROLNET_AUX_REF` | `main` | comfyui_controlnet_aux git ref |
-| `IMPACT_PACK_REF` | `Main` | ComfyUI-Impact-Pack git ref |
-| `SAPIENS2_EASY_REF` | `main` | ComfyUI-Sapiens2-Easy git ref |
-| `VIDEO_HELPER_SUITE_REF` | `main` | ComfyUI-VideoHelperSuite git ref |
+| `CONTROLNET_AUX_REF` | `e8b689a513c3e6b63edc44066560ca5919c0576e` | comfyui_controlnet_aux git ref |
+| `IMPACT_PACK_REF` | `429d0159ad429e64d2b3916e6e7be9c22d025c3c` | ComfyUI-Impact-Pack git ref |
+| `SAPIENS2_EASY_REF` | `51958bb75a2ee7644018d55b4f2b6f6d535101ad` | ComfyUI-Sapiens2-Easy git ref |
+| `VIDEO_HELPER_SUITE_REF` | `4ee72c065db22c9d96c2427954dc69e7b908444b` | ComfyUI-VideoHelperSuite git ref |
 
 ## Runtime environment variables
 
@@ -137,7 +137,7 @@ Dockerfiles keep expensive install layers before volatile verification and clean
 
 Before building, each job checks whether its `buildkey-<stage>-<hash>` image already exists in GHCR. The hash includes that stage's Dockerfile, relevant build arguments, scripts copied into the image, and the parent stage build key. On a hit, the job skips Docker build and retags the existing image for the current SHA, stable stage tag, version tag, and release tags.
 
-Refs such as `main` are hashed as configured ref strings. Pin a ref to a commit SHA, or resolve remote refs before hashing, when the build must detect upstream branch movement without changing workflow parameters.
+Custom-node refs are pinned to commit SHAs by default. Updating a ref intentionally changes that stage's build key and rebuilds only the affected downstream images.
 
 ## Build-time guardrails
 
