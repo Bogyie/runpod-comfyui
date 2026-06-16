@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
     COMFY_HOME=/opt/comfy \
     COMFYUI_DIR=/opt/comfy/ComfyUI \
-    COMFY_VENV=/opt/comfy/venv \
+    COMFY_VENV=/opt/conda \
     WORKSPACE_DIR=/workspace \
     STORAGE_DIR=/workspace/storage \
     COMFYUI_PORT=8188 \
@@ -21,14 +21,25 @@ ARG CODE_SERVER_VERSION=4.103.2
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+COPY scripts/ /opt/bootstrap/scripts/
+
 RUN --mount=type=cache,id=apt-runtime-tools,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=aptlists-runtime-tools,target=/var/lib/apt/lists,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates \
       curl \
+      gpg \
+      git \
       jq \
       openssh-client \
-      wget
+      wget && \
+    mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+      -o /etc/apt/keyrings/githubcli-archive-keyring.gpg && \
+    chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+      > /etc/apt/sources.list.d/github-cli.list && \
+    apt-get update && apt-get install -y --no-install-recommends gh
 
 RUN curl -fsSL -o /tmp/code-server.deb \
       "https://github.com/coder/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_amd64.deb" && \
@@ -40,10 +51,24 @@ RUN wget -q -O /usr/local/bin/runpodctl \
     chmod +x /usr/local/bin/runpodctl
 
 RUN --mount=type=cache,id=pip-runtime-tools,target=/root/.cache/pip \
-    "${COMFY_VENV}/bin/pip" install "huggingface_hub[cli]" && \
+    chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
+    "${COMFY_VENV}/bin/python" -m pip install "huggingface_hub[cli]" && \
     "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
       verify \
       /opt/bootstrap/protected-package-manifest.json && \
-    "${COMFY_VENV}/bin/pip" freeze > /opt/bootstrap/base-requirements.lock
+    "${COMFY_VENV}/bin/python" -m pip freeze > /opt/bootstrap/base-requirements.lock
+
+RUN /opt/bootstrap/scripts/cleanup-image.sh && \
+    command -v git && \
+    command -v curl && \
+    command -v wget && \
+    command -v runpodctl && \
+    command -v gh && \
+    command -v code-server && \
+    (command -v hf || command -v huggingface-cli) && \
+    "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_image.py \
+      --stage runtime-tools \
+      --import huggingface_hub \
+      --path /opt/bootstrap/base-requirements.lock
 
 EXPOSE 8080

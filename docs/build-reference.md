@@ -2,68 +2,81 @@
 
 ## Image model
 
-### Linear stage chain
+### Stage chain
 
-The build is intentionally linear. Each Dockerfile produces a published stage image, and the next Dockerfile consumes that image through `BASE_IMAGE`.
+The build uses the PyTorch Docker Hub image directly as its external base:
+
+```text
+pytorch/pytorch:2.10.0-cuda12.8-cudnn9-devel
+```
+
+Python, CUDA, PyTorch, torchvision, and torchaudio are intentionally inherited from that tag. The workflow does not carry separate Python/CUDA/PyTorch build arguments.
+
+Each stage produces a pushed image. The next dependent job consumes the previous stage through a SHA-scoped `BASE_IMAGE` tag.
 
 | Stage | Dockerfile | Adds |
 |---|---|---|
-| `core` | `docker/Dockerfile.core` | CUDA runtime, CPython, ComfyUI, PyTorch, Transformers, `ComfyUI-Manager` |
-| `runtime-tools` | `docker/Dockerfile.runtime-tools` | `huggingface_hub[cli]`, `runpodctl`, `wget`, `jq`, SSH client, `code-server` |
-| `optimized` | `docker/Dockerfile.optimized` | xformers and FlashAttention |
-| `custom-basic` | `docker/Dockerfile.custom-basic` | `kijai/ComfyUI-KJNodes` |
-| `custom-advanced` | `docker/Dockerfile.custom-advanced` | `Bogyie/ComfyUI-Sapiens2-Easy` |
+| `comfyui` | `docker/Dockerfile.comfyui` | ComfyUI, Transformers, startup scripts, storage helpers |
+| `optimized` | `docker/Dockerfile.optimized` | xformers and FlashAttention wheels |
+| `runtime-tools` | `docker/Dockerfile.runtime-tools` | Hugging Face CLI, git, curl, wget, runpodctl, GitHub CLI, code-server |
+| `custom-basic` | `docker/Dockerfile.custom-basic` | ComfyUI-Manager, KJNodes, rgthree-comfy, Crystools |
+| `custom-image` | `docker/Dockerfile.custom-image` | controlnet aux, Impact Pack, Sapiens2 Easy |
+| `custom-video` | `docker/Dockerfile.custom-video` | VideoHelperSuite |
+| `custom-3d` | `docker/Dockerfile.custom-3d` | 3D Pack, Sapiens2 Easy |
 
-The purpose is to keep expensive base layers reusable. A custom-node-only change should rebuild only the custom-node stage and its downstream stages, not Python, PyTorch, ComfyUI, or runtime tools.
+The dependency graph is:
 
-Within a workflow run, `BASE_IMAGE` points at the SHA-scoped stage tag such as `sha-abc1234-core` instead of the mutable `core` tag. This avoids cross-branch or concurrent-run collisions while still publishing readable stage tags.
+```text
+pytorch/pytorch
+  -> comfyui
+  -> optimized
+  -> runtime-tools
+  -> custom-basic
+      -> custom-image
+      -> custom-video
+      -> custom-3d
+```
+
+The final purpose stages run as separate parallel jobs after `custom-basic`.
 
 ### Published stage tags
 
-The GitHub Actions workflow publishes these stage tags:
+The GitHub Actions workflow publishes these GHCR stage tags:
 
-- `core`
-- `runtime-tools`
+- `comfyui`
 - `optimized`
+- `runtime-tools`
 - `custom-basic`
-- `custom-advanced`
+- `custom-image`
+- `custom-video`
+- `custom-3d`
 
-`custom-advanced` is treated as the canonical final image and receives `latest` and bare release tags.
+On release, the three purpose images are also pushed to Docker Hub. `custom-image` additionally receives the bare release tag and `latest`.
 
 ### Image tags
 
-Each stage receives the following tags on release:
+Each stage receives these tags:
 
 | Tag pattern | Example | Scope |
 |---|---|---|
-| `<stage>` | `custom-advanced` | all stages |
-| `<release-tag>-<stage>` | `v1.0.2-custom-advanced` | all stages |
-| `<version-slug>-<stage>` | `py311-pt210-cu128-cf024-custom-advanced` | all stages |
-| `sha-<hash>-<stage>` | `sha-abc1234-custom-advanced` | all stages |
-| `<release-tag>` | `v1.0.2` | canonical final only |
-| `latest` | `latest` | canonical final only |
+| `<stage>` | `custom-image` | all stages |
+| `<release-tag>-<stage>` | `v1.0.2-custom-image` | release builds |
+| `<base-slug>-cf<comfy>-<stage>` | `2-10-0-cuda12-8-cudnn9-devel-cf0240-custom-image` | all stages |
+| `sha-<hash>-<stage>` | `sha-abc1234-custom-image` | all stages |
+| `<release-tag>` | `v1.0.2` | `custom-image` only |
+| `latest` | `latest` | `custom-image` only |
 
-The version slug encodes Python, PyTorch, CUDA, and ComfyUI versions.
-
-The canonical final image is also pushed to Docker Hub as `docker.io/bogyie/runpod-comfyui` on release.
+The base slug is derived from `PYTORCH_BASE_IMAGE`; it is not reconstructed from separate Python/CUDA/PyTorch variables.
 
 ## Build arguments
 
-### Core
+### ComfyUI
 
 | Name | Default | Purpose |
 |---|---|---|
+| `BASE_IMAGE` | `pytorch/pytorch:2.10.0-cuda12.8-cudnn9-devel` | Upstream PyTorch image tag |
 | `COMFYUI_REF` | `v0.24.0` | ComfyUI git ref |
-| `COMFYUI_MANAGER_REF` | `main` | ComfyUI-Manager git ref |
 | `TRANSFORMERS_VERSION` | `5.12.0` | Transformers version |
-| `PYTHON_VERSION` | `3.11.15` | Exact CPython version compiled into the image |
-
-### Runtime tools
-
-| Name | Default | Purpose |
-|---|---|---|
-| `BASE_IMAGE` | required | Previous stage image |
-| `CODE_SERVER_VERSION` | `4.103.2` | code-server version |
 
 ### Optimized
 
@@ -72,15 +85,35 @@ The canonical final image is also pushed to Docker Hub as `docker.io/bogyie/runp
 | `BASE_IMAGE` | required | Previous stage image |
 | `XFORMERS_VERSION` | `0.0.35` | xformers version |
 | `FLASH_ATTN_VERSION` | `2.8.3` | FlashAttention version |
-| `MAX_JOBS` | `4` | FlashAttention build parallelism cap |
 
-### Custom nodes
+xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `--only-binary`. The CUDA index suffix, such as `cu128`, is derived from the `torch.version.cuda` value inside the selected PyTorch base image. FlashAttention is resolved from the mjunya prebuilt wheel releases by detecting the Python ABI, torch version, CUDA version, and CPU architecture inside the current image.
+
+### Runtime tools
 
 | Name | Default | Purpose |
 |---|---|---|
 | `BASE_IMAGE` | required | Previous stage image |
-| `BASIC_NODE_REF` | `main` | `ComfyUI-KJNodes` git ref |
-| `ADVANCED_NODE_REF` | `main` | `ComfyUI-Sapiens2-Easy` git ref |
+| `CODE_SERVER_VERSION` | `4.103.2` | code-server version |
+
+### Basic custom nodes
+
+| Name | Default | Purpose |
+|---|---|---|
+| `BASE_IMAGE` | required | Previous stage image |
+| `COMFYUI_MANAGER_REF` | `main` | ComfyUI-Manager git ref |
+| `KJNODES_REF` | `main` | ComfyUI-KJNodes git ref |
+| `RGTHREE_REF` | `main` | rgthree-comfy git ref |
+| `CRYSTOOLS_REF` | `main` | ComfyUI-Crystools git ref |
+
+### Purpose custom nodes
+
+| Name | Default | Purpose |
+|---|---|---|
+| `CONTROLNET_AUX_REF` | `main` | comfyui_controlnet_aux git ref |
+| `IMPACT_PACK_REF` | `Main` | ComfyUI-Impact-Pack git ref |
+| `SAPIENS2_EASY_REF` | `main` | ComfyUI-Sapiens2-Easy git ref |
+| `VIDEO_HELPER_SUITE_REF` | `main` | ComfyUI-VideoHelperSuite git ref |
+| `COMFYUI_3D_PACK_REF` | `main` | ComfyUI-3D-Pack git ref |
 
 ## Runtime environment variables
 
@@ -98,34 +131,23 @@ The canonical final image is also pushed to Docker Hub as `docker.io/bogyie/runp
 Each stage has two cache layers:
 
 - Dockerfile-level BuildKit cache mounts for apt and pip work inside the stage.
-- Registry cache per stage, for example `cache-core`, `cache-optimized`, and `cache-custom-advanced`.
+- Registry cache per stage, for example `cache-comfyui`, `cache-optimized`, and `cache-custom-image`.
 
-The workflow builds stages in order:
-
-```text
-core -> runtime-tools -> optimized -> custom-basic -> custom-advanced
-```
-
-On release and manual dispatch, each stage runs in its own GitHub Actions job. A stage job pushes its SHA-scoped image and registry cache to GHCR before the next job consumes that image through `BASE_IMAGE`.
+Every stage job pushes its SHA-scoped image and registry cache before downstream jobs start.
 
 ## Build-time guardrails
 
-- A protected package manifest is captured after the core dependency install.
-- The manifest tracks `torch`, `torchvision`, `torchaudio`, `transformers`, `xformers`, `flash-attn`, `triton`, and `sageattention`.
-- The optimized stage refreshes the manifest after installing xformers and FlashAttention.
-- Custom-node stages verify the manifest after installing node requirements.
-- If a custom node replaces protected packages unexpectedly, the Docker build fails.
+- Each Dockerfile ends with `/opt/bootstrap/scripts/cleanup-image.sh`.
+- Each Dockerfile then runs `/opt/bootstrap/scripts/verify_image.py` for a low-cost smoke check.
+- Pushed SHA tags are verified with `docker buildx imagetools inspect`.
+- A protected package manifest tracks `torch`, `torchvision`, `torchaudio`, `transformers`, `xformers`, `flash-attn`, `triton`, and `sageattention`.
+- The optimized stage refreshes the protected package manifest after installing xformers and FlashAttention.
+- Custom-node stages verify the manifest after each node install to catch dependency drift early.
 
 ## GitHub Actions notes
 
 - Builds are triggered on **GitHub Release** (published) and **manual dispatch**.
-- The workflow uses dependent jobs instead of a matrix so each stage can reuse the previous stage image while remaining separately visible and retryable in GitHub Actions.
-- Each stage has its own timeout so a later-stage failure does not consume the same budget as the full chain.
+- The workflow uses dependent jobs instead of a matrix for the shared chain.
+- The final purpose images are independent jobs and run in parallel after `custom-basic`.
 - `concurrency` cancels in-progress builds for the same ref.
-- The final `custom-advanced` job runs a GPU-safe smoke test without requiring an NVIDIA driver.
-
-## Suggested next improvements
-
-- Pin known-good git commits for ComfyUI-Manager and both baked custom nodes.
-- Add a healthcheck script for ports `8188` and `8080`.
-- Add helper scripts for downloading models into the persistent volume.
+- Smoke checks are CPU/GPU-driver safe and avoid launching ComfyUI.

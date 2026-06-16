@@ -1,59 +1,42 @@
 # Technical Details
 
-## Current baseline stack
+## Current baseline
 
-- CUDA `12.8`
-- Python `3.11.15`
-- PyTorch `2.10.0` with `cu128`
-- torchvision `0.25.0`
-- torchaudio `2.10.0`
-- Transformers `5.12.0`
-- xformers `0.0.35`
-- FlashAttention `2.8.3`
-- ComfyUI `v0.24.0`
+- Base image: `pytorch/pytorch:2.10.0-cuda12.8-cudnn9-devel`
+- ComfyUI: `v0.24.0`
+- Transformers: `5.12.0`
+- xformers: `0.0.35`
+- FlashAttention: `2.8.3`
 
-This image is aligned to a `CUDA 12.8 + PyTorch 2.10.0 cu128 + Python 3.11.15` stack for Blackwell-class GPUs such as RTX 5090 and RTX PRO 6000 while remaining suitable for H100.
+Python, CUDA, PyTorch, torchvision, and torchaudio come from the PyTorch base image tag. Changing that tag is the intended way to move the low-level ML stack.
 
-Before using the image, confirm the host driver is new enough for CUDA 12.8.
+Before using the image, confirm the host driver is new enough for the CUDA runtime provided by the selected PyTorch image.
 
 ## Compatibility checks
 
-- ComfyUI `v0.24.0` declares Python `>=3.10`, so Python `3.11.15` is within range.
-- Transformers `5.12.0` declares Python `3.10+` and PyTorch `2.4+`, so PyTorch `2.10.0` is within range.
-- xformers `0.0.35` declares `torch>=2.10`, matching the pinned torch version.
-- FlashAttention requires CUDA `12.0+` and PyTorch `2.2+`; the current stack uses CUDA `12.8` and PyTorch `2.10.0`.
+- ComfyUI `v0.24.0` declares Python `>=3.10`.
+- Transformers `5.12.0` declares Python `3.10+` and PyTorch `2.4+`.
+- xformers is installed from the PyTorch CUDA wheel index derived from the selected PyTorch base image.
+- FlashAttention is installed from the mjunya prebuilt wheel releases; the build fails before compiling if no matching wheel exists.
 
-## Python
+## Python environment
 
-- This image builds CPython `3.11.15` from the upstream Python release tarball instead of relying on Ubuntu's distro Python packages.
-- That keeps the interpreter version stable across GitHub Actions runner changes and Ubuntu package updates.
-- Python compilation is isolated in `docker/Dockerfile.core`, so later stage changes do not trigger a Python rebuild.
+The image uses the Python environment shipped by the PyTorch base image at `/opt/conda`. The project deliberately avoids compiling CPython or reinstalling PyTorch in repo-owned Dockerfiles.
+
+The helper scripts keep the historical `COMFY_VENV` name for compatibility, but its default value is now `/opt/conda`.
 
 ## Stage details
 
-### Core
+### ComfyUI
 
-The core image installs:
+The ComfyUI image installs:
 
 - ComfyUI `v0.24.0`
-- PyTorch, torchvision, and torchaudio from the CUDA 12.8 PyTorch wheel index
 - Transformers `5.12.0`
-- `ComfyUI-Manager`
+- startup and recovery scripts
+- storage initialization helpers
 
-The core image captures the first protected package manifest.
-
-### Runtime tools
-
-The runtime tools image adds operational tooling:
-
-- `huggingface_hub[cli]`
-- `runpodctl`
-- `wget`
-- `jq`
-- SSH client
-- `code-server`
-
-This stage is separate so operational tool changes do not rebuild ComfyUI or PyTorch.
+It captures the first protected package manifest after ComfyUI dependencies are installed.
 
 ### Optimized
 
@@ -62,16 +45,36 @@ The optimized image adds:
 - xformers `0.0.35`
 - FlashAttention `2.8.3`
 
-FlashAttention can be expensive to compile. Keeping it in a separate stage isolates that cost from core runtime and custom-node changes.
+Both installs require binary wheels. FlashAttention wheel selection is dynamic and based on the currently installed Python ABI, torch version, CUDA version, and architecture.
 
-### Custom nodes
+### Runtime tools
 
-Only two baked custom nodes are included:
+The runtime tools image adds:
 
-- Basic: `kijai/ComfyUI-KJNodes`
-- Advanced: `Bogyie/ComfyUI-Sapiens2-Easy`
+- `huggingface_hub[cli]`
+- git
+- curl
+- wget
+- runpodctl
+- GitHub CLI
+- code-server
 
-The previous broad baked-node pack was removed. This reduces dependency drift and narrows the rebuild surface.
+### Basic custom nodes
+
+The basic custom-node image adds:
+
+- `Comfy-Org/ComfyUI-Manager`
+- `kijai/ComfyUI-KJNodes`
+- `rgthree/rgthree-comfy`
+- `crystian/ComfyUI-Crystools`
+
+### Purpose custom nodes
+
+The final purpose images split advanced nodes by workflow:
+
+- `custom-image`: `Fannovel16/comfyui_controlnet_aux`, `ltdrdata/ComfyUI-Impact-Pack`, `Bogyie/ComfyUI-Sapiens2-Easy`
+- `custom-video`: `kosinkadink/ComfyUI-VideoHelperSuite`
+- `custom-3d`: `MrForExample/ComfyUI-3D-Pack`, `Bogyie/ComfyUI-Sapiens2-Easy`
 
 ## Model path normalization
 
@@ -79,13 +82,9 @@ The previous broad baked-node pack was removed. This reduces dependency drift an
 - Common folder aliases are normalized with symlinks so either naming convention works.
 - Current aliases include `unet -> diffusion_models`, `text_encoders -> clip`, and `t2i_adapter -> controlnet`.
 
-## PyTorch behavior changes
-
-- PyTorch `2.6+` changed the default behavior of `torch.load` toward `weights_only=True`.
-- Some ComfyUI custom nodes and model loaders still assume the older behavior, so checkpoint-loading regressions can still appear in specific nodes even when the base image is healthy.
-
 ## Guardrails
 
 - Protected package drift is checked during build.
 - The guarded package set includes torch, torchvision, torchaudio, transformers, xformers, flash-attn, triton, and sageattention.
 - Custom-node stages verify that node requirements did not replace those packages unexpectedly.
+- Each image removes apt lists, pip caches, `.git` directories, and Python bytecode before running a final smoke verification.

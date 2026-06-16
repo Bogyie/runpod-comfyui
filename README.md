@@ -1,71 +1,68 @@
 # runpod-comfyui
 
-Runpod Pod template for ComfyUI with staged Docker images, persistent volume storage, a small baked custom-node baseline, and built-in recovery helpers.
+Runpod Pod template for ComfyUI with staged Docker images, persistent volume storage, purpose-built custom-node variants, and built-in recovery helpers.
 
 ## What this image is for
 
 - Start ComfyUI quickly on Runpod
+- Keep the PyTorch/CUDA/Python stack tied to one upstream PyTorch image tag
 - Avoid rebuilding the full stack when only later layers change
-- Keep models, outputs, workflows, and most custom nodes on a persistent volume
-- Bake in a narrow custom-node baseline so recovery is predictable
-- Support modern NVIDIA GPUs such as RTX 5090, H100, and RTX PRO 6000
+- Keep models, outputs, workflows, and most mutable custom nodes on a persistent volume
+- Publish separate final images for image, video, and 3D workflows
 
 ## Staged image chain
 
-The image is built as a linear chain. Each step uses the previous step image as `BASE_IMAGE`.
-
-1. `core`
-   ComfyUI, CUDA, Python, PyTorch, Transformers, and `ComfyUI-Manager`.
-2. `runtime-tools`
-   Adds operational tools such as `huggingface_hub[cli]`, `runpodctl`, `wget`, `jq`, SSH client, and `code-server`.
-3. `optimized`
-   Adds xformers and FlashAttention.
-4. `custom-basic`
-   Adds the basic custom node: `kijai/ComfyUI-KJNodes`.
-5. `custom-advanced`
-   Adds the advanced custom node: `Bogyie/ComfyUI-Sapiens2-Easy`.
-
-The final recommended image is `custom-advanced`.
-
-Image tags include stage tags and version-slug tags, for example:
+The build starts from the upstream PyTorch image:
 
 ```text
-ghcr.io/bogyie/runpod-comfyui:custom-advanced
-ghcr.io/bogyie/runpod-comfyui:py311-pt210-cu128-cf024-custom-advanced
-ghcr.io/bogyie/runpod-comfyui:v1.0.2-custom-advanced
-ghcr.io/bogyie/runpod-comfyui:v1.0.2
-ghcr.io/bogyie/runpod-comfyui:latest
+pytorch/pytorch:2.10.0-cuda12.8-cudnn9-devel
 ```
 
-Use a pinned release or version-slug tag for production templates rather than `latest`.
+Each repo-owned step builds and pushes its own image. The SHA-scoped tag from one step becomes the next step's `BASE_IMAGE`.
 
-## Current baseline stack
+```text
+comfyui -> optimized -> runtime-tools -> custom-basic
+                                      -> custom-image
+                                      -> custom-video
+                                      -> custom-3d
+```
 
-- ComfyUI `v0.24.0`
-- CUDA `12.8`
-- Python `3.11.15`
-- PyTorch `2.10.0` with `cu128`
-- torchvision `0.25.0`
-- torchaudio `2.10.0`
-- Transformers `5.12.0`
-- xformers `0.0.35`
-- FlashAttention `2.8.3`
+The purpose images are built in parallel after `custom-basic`.
 
-## Included custom nodes
+| Stage | Adds |
+|---|---|
+| `comfyui` | ComfyUI and baseline runtime files |
+| `optimized` | xformers and FlashAttention from prebuilt wheels |
+| `runtime-tools` | Hugging Face CLI, git, curl, wget, runpodctl, GitHub CLI, and code-server |
+| `custom-basic` | ComfyUI-Manager, KJNodes, rgthree-comfy, and Crystools |
+| `custom-image` | controlnet aux, Impact Pack, and Sapiens2 Easy |
+| `custom-video` | VideoHelperSuite |
+| `custom-3d` | 3D Pack and Sapiens2 Easy |
 
-Core image:
+Each Dockerfile ends with image cleanup and a low-cost smoke verification.
 
-- `ComfyUI-Manager`
+## Image tags
 
-Basic custom-node image:
+Image tags include stage tags, release tags, SHA tags, and a slug derived from the PyTorch base image tag plus ComfyUI version.
 
-- `ComfyUI-KJNodes`
+```text
+ghcr.io/bogyie/runpod-comfyui:custom-image
+ghcr.io/bogyie/runpod-comfyui:2-10-0-cuda12-8-cudnn9-devel-cf0240-custom-image
+ghcr.io/bogyie/runpod-comfyui:v1.0.2-custom-image
+ghcr.io/bogyie/runpod-comfyui:sha-abc1234-custom-image
+```
 
-Advanced custom-node image:
+On release, `custom-image` is also published as the bare release tag and `latest`. Use a pinned release, SHA, or version-slug tag for production templates rather than `latest`.
 
-- `ComfyUI-Sapiens2-Easy`
+## Current baseline
 
-Other custom nodes were intentionally removed from the baked baseline. Add them later only after validating their build-time and dependency impact.
+- Base image: `pytorch/pytorch:2.10.0-cuda12.8-cudnn9-devel`
+- ComfyUI: `v0.24.0`
+- Transformers: `5.12.0`
+- xformers: `0.0.35`
+- FlashAttention: `2.8.3`
+
+Python, CUDA, PyTorch, torchvision, and torchaudio come from the PyTorch base image tag, not from separate build arguments.
 
 ## Persistent volume
 

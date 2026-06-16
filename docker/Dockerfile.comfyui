@@ -1,0 +1,72 @@
+# syntax=docker/dockerfile:1.7
+
+ARG BASE_IMAGE=pytorch/pytorch:2.10.0-cuda12.8-cudnn9-devel
+FROM ${BASE_IMAGE}
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    COMFY_HOME=/opt/comfy \
+    COMFYUI_DIR=/opt/comfy/ComfyUI \
+    COMFY_VENV=/opt/conda \
+    WORKSPACE_DIR=/workspace \
+    STORAGE_DIR=/workspace/storage \
+    COMFYUI_PORT=8188 \
+    CODE_SERVER_PORT=8080 \
+    CLI_ARGS=
+
+ARG COMFYUI_REF=v0.24.0
+ARG TRANSFORMERS_VERSION=5.12.0
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN --mount=type=cache,id=apt-comfyui,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=aptlists-comfyui,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates \
+      curl \
+      dumb-init \
+      ffmpeg \
+      git \
+      libgl1 \
+      libglib2.0-0 \
+      libsm6 \
+      libxext6 \
+      libxrender1 \
+      rsync \
+      unzip
+
+RUN mkdir -p "${COMFY_HOME}" "${WORKSPACE_DIR}" /opt/bootstrap
+
+RUN git clone --depth 1 --branch "${COMFYUI_REF}" \
+      https://github.com/Comfy-Org/ComfyUI.git "${COMFYUI_DIR}"
+
+COPY scripts/ /opt/bootstrap/scripts/
+COPY start.sh /opt/bootstrap/start.sh
+
+RUN chmod +x /opt/bootstrap/start.sh /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py
+
+RUN --mount=type=cache,id=pip-comfyui,target=/root/.cache/pip \
+    "${COMFY_VENV}/bin/python" -m pip install --upgrade pip wheel setuptools && \
+    "${COMFY_VENV}/bin/python" -m pip install -r "${COMFYUI_DIR}/requirements.txt" && \
+    "${COMFY_VENV}/bin/python" -m pip install "transformers==${TRANSFORMERS_VERSION}" && \
+    "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
+      capture \
+      /opt/bootstrap/protected-package-manifest.json && \
+    "${COMFY_VENV}/bin/python" -m pip freeze > /opt/bootstrap/base-requirements.lock
+
+RUN /opt/bootstrap/scripts/cleanup-image.sh && \
+    "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_image.py \
+      --stage comfyui \
+      --import torch \
+      --import transformers \
+      --path "${COMFYUI_DIR}/main.py" \
+      --path "${COMFYUI_DIR}/server.py" \
+      --path /opt/bootstrap/start.sh
+
+EXPOSE 8188
+
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+CMD ["/opt/bootstrap/start.sh"]

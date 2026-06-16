@@ -1,83 +1,39 @@
 # syntax=docker/dockerfile:1.7
 
 ARG BASE_IMAGE
-FROM ${BASE_IMAGE} AS base
-
-FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04 AS builder
+FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
     COMFY_HOME=/opt/comfy \
     COMFYUI_DIR=/opt/comfy/ComfyUI \
-    COMFY_VENV=/opt/comfy/venv
+    COMFY_VENV=/opt/conda
 
-ARG BASIC_NODE_REF=main
+ARG COMFYUI_MANAGER_REF=main
+ARG KJNODES_REF=main
+ARG RGTHREE_REF=main
+ARG CRYSTOOLS_REF=main
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN --mount=type=cache,id=apt-custom-basic-builder,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,id=aptlists-custom-basic-builder,target=/var/lib/apt/lists,sharing=locked \
-    apt-get update && apt-get install -y --no-install-recommends \
-      build-essential \
-      ca-certificates \
-      git \
-      libbz2-1.0 \
-      libffi8 \
-      libgdbm6 \
-      liblzma5 \
-      libncursesw6 \
-      libnss3 \
-      libreadline8 \
-      libsqlite3-0 \
-      libssl3 \
-      rsync \
-      tk \
-      zlib1g
-
-COPY --from=base /opt /opt
+COPY scripts/ /opt/bootstrap/scripts/
 
 RUN --mount=type=cache,id=pip-custom-basic,target=/root/.cache/pip \
-    source "${COMFY_VENV}/bin/activate" && \
-    checkout_repo_ref() { \
-      local repo_dir="$1"; \
-      local ref="$2"; \
-      [[ -n "${ref}" ]] || return 0; \
-      if git -C "${repo_dir}" show-ref --verify --quiet "refs/remotes/origin/${ref}"; then \
-        git -C "${repo_dir}" checkout -B "${ref}" "origin/${ref}"; \
-      elif git -C "${repo_dir}" rev-parse --verify --quiet "${ref}^{commit}" >/dev/null; then \
-        git -C "${repo_dir}" checkout "${ref}"; \
-      else \
-        echo "Requested ref '${ref}' was not found for ${repo_dir}" >&2; \
-        exit 1; \
-      fi; \
-    }; \
-    node_dir="${COMFYUI_DIR}/custom_nodes/ComfyUI-KJNodes"; \
-    rm -rf "${node_dir}" && \
-    git clone --depth 1 "https://github.com/kijai/ComfyUI-KJNodes.git" "${node_dir}" && \
-    checkout_repo_ref "${node_dir}" "${BASIC_NODE_REF}" && \
-    if [[ -f "${node_dir}/requirements.txt" ]]; then \
-      python -m pip install -r "${node_dir}/requirements.txt"; \
-    fi && \
-    if [[ -f "${node_dir}/install.py" ]]; then \
-      (cd "${node_dir}" && COMFYUI_FOLDERS_BASE_PATH="${COMFYUI_DIR}" python install.py); \
-    fi && \
-    python /opt/bootstrap/scripts/verify_protected_packages.py \
-      verify \
-      /opt/bootstrap/protected-package-manifest.json && \
-    rm -rf /opt/bootstrap/baked-custom-nodes && \
-    mkdir -p /opt/bootstrap/baked-custom-nodes && \
-    cp -a "${COMFYUI_DIR}/custom_nodes/." /opt/bootstrap/baked-custom-nodes/ && \
-    python -m pip freeze > /opt/bootstrap/base-requirements.lock
+    chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
+    /opt/bootstrap/scripts/install_custom_nodes.sh \
+      ComfyUI-Manager https://github.com/Comfy-Org/ComfyUI-Manager.git "${COMFYUI_MANAGER_REF}" \
+      ComfyUI-KJNodes https://github.com/kijai/ComfyUI-KJNodes.git "${KJNODES_REF}" \
+      rgthree-comfy https://github.com/rgthree/rgthree-comfy.git "${RGTHREE_REF}" \
+      ComfyUI-Crystools https://github.com/crystian/ComfyUI-Crystools.git "${CRYSTOOLS_REF}"
 
-FROM base
-
-COPY --from=builder /opt/comfy /opt/comfy
-COPY --from=builder /opt/bootstrap/baked-custom-nodes /opt/bootstrap/baked-custom-nodes
-COPY --from=builder /opt/bootstrap/base-requirements.lock /opt/bootstrap/base-requirements.lock
-
-RUN test -d "${COMFYUI_DIR}/custom_nodes/ComfyUI-KJNodes" && \
-    "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
-      verify \
-      /opt/bootstrap/protected-package-manifest.json
+RUN /opt/bootstrap/scripts/cleanup-image.sh && \
+    "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_image.py \
+      --stage custom-basic \
+      --node ComfyUI-Manager \
+      --node ComfyUI-KJNodes \
+      --node rgthree-comfy \
+      --node ComfyUI-Crystools \
+      --path /opt/bootstrap/baked-custom-nodes
