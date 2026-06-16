@@ -34,7 +34,7 @@ The purpose images are built in parallel after `custom-basic`.
 | `optimized` | xformers and FlashAttention from prebuilt wheels |
 | `runtime-tools` | Hugging Face CLI, git, curl, wget, runpodctl, GitHub CLI, and code-server |
 | `custom-basic` | ComfyUI-Manager, KJNodes, rgthree-comfy, and Crystools |
-| `custom-image` | controlnet aux, Impact Pack, and Sapiens2 Easy |
+| `custom-image` | controlnet aux, Impact Pack, Sapiens2 Easy, and Depth Anything V3 |
 | `custom-video` | VideoHelperSuite and SeedVR2 Video Upscaler |
 
 Each Dockerfile ends with image cleanup and a low-cost smoke verification.

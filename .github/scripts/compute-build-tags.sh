@@ -82,6 +82,7 @@ IMAGE_KEY="$(
     printf 'controlnet_aux_ref=%s\n' "${CONTROLNET_AUX_REF}"
     printf 'impact_pack_ref=%s\n' "${IMPACT_PACK_REF}"
     printf 'sapiens2_easy_ref=%s\n' "${SAPIENS2_EASY_REF}"
+    printf 'depth_anything_v3_ref=%s\n' "${DEPTH_ANYTHING_V3_REF}"
     printf 'scripts_hash=%s\n' "${SCRIPT_HASH}"
     hash_files .dockerignore docker/Dockerfile.custom-image
   } | hash_payload

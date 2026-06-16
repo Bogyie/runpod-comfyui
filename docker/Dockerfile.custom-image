@@ -15,6 +15,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 ARG CONTROLNET_AUX_REF=e8b689a513c3e6b63edc44066560ca5919c0576e
 ARG IMPACT_PACK_REF=429d0159ad429e64d2b3916e6e7be9c22d025c3c
 ARG SAPIENS2_EASY_REF=51958bb75a2ee7644018d55b4f2b6f6d535101ad
+ARG DEPTH_ANYTHING_V3_REF=6b08cf418dff47430a72e07d0eec8fdb07d464b1
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -25,7 +26,8 @@ RUN --mount=type=cache,id=pip-custom-image,target=/root/.cache/pip \
     /opt/bootstrap/scripts/install_custom_nodes.sh \
       comfyui_controlnet_aux https://github.com/Fannovel16/comfyui_controlnet_aux.git "${CONTROLNET_AUX_REF}" \
       ComfyUI-Impact-Pack https://github.com/ltdrdata/ComfyUI-Impact-Pack.git "${IMPACT_PACK_REF}" \
-      ComfyUI-Sapiens2-Easy https://github.com/Bogyie/ComfyUI-Sapiens2-Easy.git "${SAPIENS2_EASY_REF}"
+      ComfyUI-Sapiens2-Easy https://github.com/Bogyie/ComfyUI-Sapiens2-Easy.git "${SAPIENS2_EASY_REF}" \
+      ComfyUI-DepthAnythingV3 https://github.com/PozzettiAndrea/ComfyUI-DepthAnythingV3.git "${DEPTH_ANYTHING_V3_REF}"
 
 COPY scripts/ /opt/bootstrap/scripts/
 
@@ -36,4 +38,5 @@ RUN chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
       --node comfyui_controlnet_aux \
       --node ComfyUI-Impact-Pack \
       --node ComfyUI-Sapiens2-Easy \
+      --node ComfyUI-DepthAnythingV3 \
       --path /opt/bootstrap/baked-custom-nodes
