@@ -48,7 +48,7 @@ The GitHub Actions workflow publishes these GHCR stage tags:
 - `custom-image`
 - `custom-video`
 
-On release, the purpose images are also pushed to Docker Hub. `custom-image` additionally receives the bare release tag and `latest`.
+On release, the three final purpose images are also pushed to Docker Hub. `custom-basic` receives the default `latest` alias.
 
 ### Image tags
 
@@ -61,8 +61,18 @@ Each stage receives these tags:
 | `<base-slug>-cf<comfy>-<stage>` | `2-10-0-cuda12-8-cudnn9-runtime-cf0240-custom-image` | all stages |
 | `sha-<hash>-<stage>` | `sha-abc1234-custom-image` | all stages |
 | `buildkey-<stage>-<hash>` | `buildkey-custom-image-abc123...` | all stages |
-| `<release-tag>` | `v1.0.2` | `custom-image` only |
-| `latest` | `latest` | `custom-image` only |
+
+Docker Hub receives these release aliases:
+
+| Tag pattern | Example | Image |
+|---|---|---|
+| `latest` | `latest` | `custom-basic` |
+| `latest-basic` | `latest-basic` | `custom-basic` |
+| `<release-tag>-basic` | `v1.0.2-basic` | `custom-basic` |
+| `latest-image` | `latest-image` | `custom-image` |
+| `<release-tag>-image` | `v1.0.2-image` | `custom-image` |
+| `latest-video` | `latest-video` | `custom-video` |
+| `<release-tag>-video` | `v1.0.2-video` | `custom-video` |
 
 The base slug is derived from `PYTORCH_BASE_IMAGE`; it is not reconstructed from separate Python/CUDA/PyTorch variables.
 

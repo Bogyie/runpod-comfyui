@@ -9,7 +9,7 @@ Runpod Pod template for ComfyUI with staged Docker images, persistent volume sto
 - Keep the PyTorch/CUDA/Python stack tied to one upstream PyTorch image tag
 - Avoid rebuilding the full stack when only later layers change
 - Keep models, outputs, workflows, and most mutable custom nodes on a persistent volume
-- Publish separate final images for image and video workflows
+- Publish separate final images for basic, image, and video workflows
 
 ## Staged image chain
 
@@ -51,7 +51,15 @@ ghcr.io/bogyie/runpod-comfyui:v1.0.2-custom-image
 ghcr.io/bogyie/runpod-comfyui:sha-abc1234-custom-image
 ```
 
-On release, `custom-image` is also published as the bare release tag and `latest`. Use a pinned release, SHA, or version-slug tag for production templates rather than `latest`.
+On release, the three final purpose images are also published to Docker Hub:
+
+| Docker Hub tag | Image |
+|---|---|
+| `latest`, `latest-basic`, `v1.0.2-basic` | `custom-basic` |
+| `latest-image`, `v1.0.2-image` | `custom-image` |
+| `latest-video`, `v1.0.2-video` | `custom-video` |
+
+Use a pinned release, SHA, or version-slug tag for production templates rather than `latest`.
 
 ## Current baseline
 

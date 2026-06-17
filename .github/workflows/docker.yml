@@ -311,6 +311,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Log in to Docker Hub
+        if: github.event_name == 'release'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Resolve basic custom nodes image
         id: resolve
         run: bash .github/scripts/resolve-image.sh "${{ needs.prepare.outputs.basic_build_image }}"
@@ -322,7 +329,10 @@ jobs:
             "${{ needs.prepare.outputs.basic_image }}" \
             "${{ needs.prepare.outputs.image_name_lc }}:custom-basic" \
             "${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-basic" \
-            "${{ github.event_name == 'release' && format('{0}:{1}-custom-basic', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}"
+            "${{ github.event_name == 'release' && format('{0}:{1}-custom-basic', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}" \
+            "${{ github.event_name == 'release' && format('{0}:latest', env.DOCKERHUB_IMAGE) || '' }}" \
+            "${{ github.event_name == 'release' && format('{0}:latest-basic', env.DOCKERHUB_IMAGE) || '' }}" \
+            "${{ github.event_name == 'release' && format('{0}:{1}-basic', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}"
 
       - name: Free disk space
         if: steps.resolve.outputs.exists != 'true'
@@ -347,6 +357,9 @@ jobs:
             ${{ needs.prepare.outputs.image_name_lc }}:custom-basic
             ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-basic
             ${{ github.event_name == 'release' && format('{0}:{1}-custom-basic', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
+            ${{ github.event_name == 'release' && format('{0}:latest', env.DOCKERHUB_IMAGE) || '' }}
+            ${{ github.event_name == 'release' && format('{0}:latest-basic', env.DOCKERHUB_IMAGE) || '' }}
+            ${{ github.event_name == 'release' && format('{0}:{1}-basic', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}
           cache-from: |
             type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-basic
             type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-basic
@@ -406,12 +419,8 @@ jobs:
             "${{ needs.prepare.outputs.image_name_lc }}:custom-image" \
             "${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-image" \
             "${{ github.event_name == 'release' && format('{0}:{1}-custom-image', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}" \
-            "${{ github.event_name == 'release' && format('{0}:{1}', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}" \
-            "${{ github.event_name == 'release' && format('{0}:latest', needs.prepare.outputs.image_name_lc) || '' }}" \
-            "${{ github.event_name == 'release' && format('{0}:custom-image', env.DOCKERHUB_IMAGE) || '' }}" \
-            "${{ github.event_name == 'release' && format('{0}:{1}-custom-image', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}" \
-            "${{ github.event_name == 'release' && format('{0}:{1}', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}" \
-            "${{ github.event_name == 'release' && format('{0}:latest', env.DOCKERHUB_IMAGE) || '' }}"
+            "${{ github.event_name == 'release' && format('{0}:latest-image', env.DOCKERHUB_IMAGE) || '' }}" \
+            "${{ github.event_name == 'release' && format('{0}:{1}-image', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}"
 
       - name: Free disk space
         if: steps.resolve.outputs.exists != 'true'
@@ -436,12 +445,8 @@ jobs:
             ${{ needs.prepare.outputs.image_name_lc }}:custom-image
             ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-image
             ${{ github.event_name == 'release' && format('{0}:{1}-custom-image', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
-            ${{ github.event_name == 'release' && format('{0}:{1}', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
-            ${{ github.event_name == 'release' && format('{0}:latest', needs.prepare.outputs.image_name_lc) || '' }}
-            ${{ github.event_name == 'release' && format('{0}:custom-image', env.DOCKERHUB_IMAGE) || '' }}
-            ${{ github.event_name == 'release' && format('{0}:{1}-custom-image', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}
-            ${{ github.event_name == 'release' && format('{0}:{1}', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}
-            ${{ github.event_name == 'release' && format('{0}:latest', env.DOCKERHUB_IMAGE) || '' }}
+            ${{ github.event_name == 'release' && format('{0}:latest-image', env.DOCKERHUB_IMAGE) || '' }}
+            ${{ github.event_name == 'release' && format('{0}:{1}-image', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}
           cache-from: |
             type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-image
             type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-image
@@ -501,8 +506,8 @@ jobs:
             "${{ needs.prepare.outputs.image_name_lc }}:custom-video" \
             "${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-video" \
             "${{ github.event_name == 'release' && format('{0}:{1}-custom-video', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}" \
-            "${{ github.event_name == 'release' && format('{0}:custom-video', env.DOCKERHUB_IMAGE) || '' }}" \
-            "${{ github.event_name == 'release' && format('{0}:{1}-custom-video', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}"
+            "${{ github.event_name == 'release' && format('{0}:latest-video', env.DOCKERHUB_IMAGE) || '' }}" \
+            "${{ github.event_name == 'release' && format('{0}:{1}-video', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}"
 
       - name: Free disk space
         if: steps.resolve.outputs.exists != 'true'
@@ -527,8 +532,8 @@ jobs:
             ${{ needs.prepare.outputs.image_name_lc }}:custom-video
             ${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-video
             ${{ github.event_name == 'release' && format('{0}:{1}-custom-video', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}
-            ${{ github.event_name == 'release' && format('{0}:custom-video', env.DOCKERHUB_IMAGE) || '' }}
-            ${{ github.event_name == 'release' && format('{0}:{1}-custom-video', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}
+            ${{ github.event_name == 'release' && format('{0}:latest-video', env.DOCKERHUB_IMAGE) || '' }}
+            ${{ github.event_name == 'release' && format('{0}:{1}-video', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}
           cache-from: |
             type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:cache-custom-video
             type=registry,ref=${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-video
