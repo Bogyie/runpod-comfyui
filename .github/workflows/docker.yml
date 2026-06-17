@@ -103,10 +103,7 @@ jobs:
 
       - name: Free disk space
         if: steps.resolve.outputs.exists != 'true'
-        run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
-          sudo docker image prune --all --force
-          df -h /
+        run: bash .github/scripts/free-disk-space.sh
 
       - name: Build ComfyUI image
         if: steps.resolve.outputs.exists != 'true'
@@ -180,10 +177,7 @@ jobs:
 
       - name: Free disk space
         if: steps.resolve.outputs.exists != 'true'
-        run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
-          sudo docker image prune --all --force
-          df -h /
+        run: bash .github/scripts/free-disk-space.sh
 
       - name: Build optimized image
         if: steps.resolve.outputs.exists != 'true'
@@ -255,6 +249,10 @@ jobs:
             "${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-runtime-tools" \
             "${{ github.event_name == 'release' && format('{0}:{1}-runtime-tools', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}"
 
+      - name: Free disk space
+        if: steps.resolve.outputs.exists != 'true'
+        run: bash .github/scripts/free-disk-space.sh
+
       - name: Build runtime tools image
         if: steps.resolve.outputs.exists != 'true'
         uses: docker/build-push-action@v6
@@ -325,6 +323,10 @@ jobs:
             "${{ needs.prepare.outputs.image_name_lc }}:custom-basic" \
             "${{ needs.prepare.outputs.image_name_lc }}:${{ needs.prepare.outputs.version_slug }}-custom-basic" \
             "${{ github.event_name == 'release' && format('{0}:{1}-custom-basic', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}"
+
+      - name: Free disk space
+        if: steps.resolve.outputs.exists != 'true'
+        run: bash .github/scripts/free-disk-space.sh
 
       - name: Build basic custom nodes image
         if: steps.resolve.outputs.exists != 'true'
@@ -410,6 +412,10 @@ jobs:
             "${{ github.event_name == 'release' && format('{0}:{1}-custom-image', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}" \
             "${{ github.event_name == 'release' && format('{0}:{1}', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}" \
             "${{ github.event_name == 'release' && format('{0}:latest', env.DOCKERHUB_IMAGE) || '' }}"
+
+      - name: Free disk space
+        if: steps.resolve.outputs.exists != 'true'
+        run: bash .github/scripts/free-disk-space.sh
 
       - name: Build image workflow image
         if: steps.resolve.outputs.exists != 'true'
@@ -497,6 +503,10 @@ jobs:
             "${{ github.event_name == 'release' && format('{0}:{1}-custom-video', needs.prepare.outputs.image_name_lc, github.ref_name) || '' }}" \
             "${{ github.event_name == 'release' && format('{0}:custom-video', env.DOCKERHUB_IMAGE) || '' }}" \
             "${{ github.event_name == 'release' && format('{0}:{1}-custom-video', env.DOCKERHUB_IMAGE, github.ref_name) || '' }}"
+
+      - name: Free disk space
+        if: steps.resolve.outputs.exists != 'true'
+        run: bash .github/scripts/free-disk-space.sh
 
       - name: Build video workflow image
         if: steps.resolve.outputs.exists != 'true'
