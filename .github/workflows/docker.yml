@@ -75,8 +75,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    outputs:
-      image_ref: ${{ steps.resolve.outputs.image_ref }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -150,8 +148,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    outputs:
-      image_ref: ${{ steps.resolve.outputs.image_ref }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -195,7 +191,7 @@ jobs:
           context: .
           file: ./docker/Dockerfile.optimized
           build-args: |
-            BASE_IMAGE=${{ needs.build-comfyui.outputs.image_ref }}
+            BASE_IMAGE=${{ needs.prepare.outputs.comfyui_build_image }}
             XFORMERS_VERSION=${{ env.XFORMERS_VERSION }}
             FLASH_ATTN_VERSION=${{ env.FLASH_ATTN_VERSION }}
           push: true
@@ -225,8 +221,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    outputs:
-      image_ref: ${{ steps.resolve.outputs.image_ref }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -270,7 +264,7 @@ jobs:
           context: .
           file: ./docker/Dockerfile.runtime-tools
           build-args: |
-            BASE_IMAGE=${{ needs.build-optimized.outputs.image_ref }}
+            BASE_IMAGE=${{ needs.prepare.outputs.optimized_build_image }}
             S6_OVERLAY_VERSION=${{ env.S6_OVERLAY_VERSION }}
             CADDY_VERSION=${{ env.CADDY_VERSION }}
             FILEBROWSER_VERSION=${{ env.FILEBROWSER_VERSION }}
@@ -308,8 +302,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    outputs:
-      image_ref: ${{ steps.resolve.outputs.image_ref }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -363,7 +355,7 @@ jobs:
           context: .
           file: ./docker/Dockerfile.custom-basic
           build-args: |
-            BASE_IMAGE=${{ needs.build-runtime-tools.outputs.image_ref }}
+            BASE_IMAGE=${{ needs.prepare.outputs.tools_build_image }}
             COMFYUI_MANAGER_REF=${{ env.COMFYUI_MANAGER_REF }}
             KJNODES_REF=${{ env.KJNODES_REF }}
             RGTHREE_REF=${{ env.RGTHREE_REF }}
@@ -398,8 +390,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    outputs:
-      image_ref: ${{ steps.resolve.outputs.image_ref }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -452,7 +442,7 @@ jobs:
           context: .
           file: ./docker/Dockerfile.custom-image
           build-args: |
-            BASE_IMAGE=${{ needs.build-custom-basic.outputs.image_ref }}
+            BASE_IMAGE=${{ needs.prepare.outputs.basic_build_image }}
             CONTROLNET_AUX_REF=${{ env.CONTROLNET_AUX_REF }}
             IMPACT_PACK_REF=${{ env.IMPACT_PACK_REF }}
             SAPIENS2_EASY_REF=${{ env.SAPIENS2_EASY_REF }}
@@ -486,8 +476,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    outputs:
-      image_ref: ${{ steps.resolve.outputs.image_ref }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -540,7 +528,7 @@ jobs:
           context: .
           file: ./docker/Dockerfile.custom-video
           build-args: |
-            BASE_IMAGE=${{ needs.build-custom-basic.outputs.image_ref }}
+            BASE_IMAGE=${{ needs.prepare.outputs.basic_build_image }}
             VIDEO_HELPER_SUITE_REF=${{ env.VIDEO_HELPER_SUITE_REF }}
             SEEDVR2_VIDEO_UPSCALER_REF=${{ env.SEEDVR2_VIDEO_UPSCALER_REF }}
             WAN_VIDEO_WRAPPER_REF=${{ env.WAN_VIDEO_WRAPPER_REF }}
