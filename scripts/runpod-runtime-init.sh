@@ -137,7 +137,7 @@ ${CADDY_TLS_SERVER_NAME}:${CADDY_HTTPS_PORT}, :${CADDY_HTTPS_PORT} {
 		output file ${WORKSPACE_DIR}/logs/caddy-access.log
 	}
 
-	route ${AUTHCRUNCH_AUTH_PATH}* {
+	handle ${AUTHCRUNCH_AUTH_PATH}* {
 		authenticate * with runpod_portal
 	}
 
