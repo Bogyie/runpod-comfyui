@@ -103,7 +103,7 @@ Model storage follows the ComfyUI default `models/` layout, and common alias fol
 
 Expose only the Caddy HTTPS port from the RunPod template:
 
-- `8443/tcp` for Caddy TLS
+- TCP port `8443` for Caddy TLS
 
 Leave the RunPod container start command empty. The final images start
 `/opt/bootstrap/scripts/runpod-supervisord-entrypoint.sh`, which initializes
@@ -123,7 +123,11 @@ Set these environment variables in the RunPod template:
 
 | Name | Default | Purpose |
 |---|---|---|
-| `CADDY_HTTPS_PORT` | `8443` | Public TLS port inside the container |
+| `CADDY_HTTPS_PORT` | `8443` | Internal Caddy TLS port inside the container |
+| `RUNPOD_TCP_PORT_8443` | set by RunPod | Public TCP port mapped to internal port `8443` |
+| `CADDY_PUBLIC_PORT` | `RUNPOD_TCP_PORT_8443`, then `8443` | Public TCP port used in startup logs; override only for nonstandard templates |
+| `CADDY_PUBLIC_URL` | derived from `RUNPOD_PUBLIC_IP` and public port when available | Public Caddy URL shown in startup logs |
+| `CADDY_TLS_SERVER_NAME` | `RUNPOD_PUBLIC_IP`, then `runpod-comfyui.local` | TLS server name/IP Caddy uses for its internal certificate and SNI fallback |
 | `AUTHCRUNCH_AUTH_PATH` | `/auth` | AuthCrunch login path served by Caddy |
 | `AUTHCRUNCH_ADMIN_USER` | `runpod` | Initial AuthCrunch local admin username |
 | `AUTHCRUNCH_ADMIN_EMAIL` | `runpod@localdomain.local` | Initial AuthCrunch local admin email |
@@ -137,7 +141,7 @@ Set these environment variables in the RunPod template:
 | `FILEBROWSER_COMMANDS` | `all` | Commands exposed to File Browser's command runner; `all` discovers every executable on `PATH` at startup |
 | `FILEBROWSER_SHELL` | `/bin/bash -c` | Shell used by File Browser command execution |
 
-Use RunPod's [TCP access via public IP](https://docs.runpod.io/pods/configuration/expose-ports#tcp-access-via-public-ip) mode and map the external TCP port to container port `8443`. Because this bypasses RunPod's HTTP proxy, TLS and auth are handled by Caddy in the container.
+Use RunPod's [TCP access via public IP](https://docs.runpod.io/pods/configuration/expose-ports#tcp-access-via-public-ip) mode and expose internal container port `8443`. RunPod usually maps that internal port to a different external port; use `RUNPOD_TCP_PORT_8443` or the Direct TCP Ports entry in the Connect menu when building the public URL. Because this bypasses RunPod's HTTP proxy, TLS and auth are handled by Caddy in the container. When connecting by public IP, leave `CADDY_TLS_SERVER_NAME` unset so startup uses `RUNPOD_PUBLIC_IP`, or set it explicitly to the public IP if your template does not provide that variable.
 
 Images built before the supervisord migration used s6-overlay through
 `ENTRYPOINT ["/init"]`. If startup fails with

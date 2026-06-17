@@ -17,6 +17,14 @@ export FILEBROWSER_HOST="${FILEBROWSER_HOST:-127.0.0.1}"
 export FILEBROWSER_BASEURL="${FILEBROWSER_BASEURL:-/files}"
 export FILEBROWSER_PROXY_HEADER="${FILEBROWSER_PROXY_HEADER:-X-AuthCrunch-User}"
 export CADDY_HTTPS_PORT="${CADDY_HTTPS_PORT:-8443}"
+runpod_tcp_port_var="RUNPOD_TCP_PORT_${CADDY_HTTPS_PORT}"
+export CADDY_PUBLIC_PORT="${CADDY_PUBLIC_PORT:-${!runpod_tcp_port_var:-${CADDY_HTTPS_PORT}}}"
+if [[ -n "${RUNPOD_PUBLIC_IP:-}" ]]; then
+  export CADDY_PUBLIC_URL="${CADDY_PUBLIC_URL:-https://${RUNPOD_PUBLIC_IP}:${CADDY_PUBLIC_PORT}}"
+else
+  export CADDY_PUBLIC_URL="${CADDY_PUBLIC_URL:-}"
+fi
+export CADDY_TLS_SERVER_NAME="${CADDY_TLS_SERVER_NAME:-${RUNPOD_PUBLIC_IP:-runpod-comfyui.local}}"
 export CADDY_CONFIG_DIR="${CADDY_CONFIG_DIR:-/etc/caddy}"
 export CADDY_DATA_DIR="${CADDY_DATA_DIR:-${STORAGE_DIR}/caddy}"
 export AUTHCRUNCH_AUTH_PATH="${AUTHCRUNCH_AUTH_PATH:-/auth}"
@@ -77,6 +85,8 @@ cat > "${CADDY_CONFIG_DIR}/Caddyfile" <<EOF
 	admin off
 	auto_https disable_redirects
 	storage file_system ${CADDY_DATA_DIR}
+	default_sni ${CADDY_TLS_SERVER_NAME}
+	fallback_sni ${CADDY_TLS_SERVER_NAME}
 	order authenticate before respond
 	order authorize before reverse_proxy
 	servers {
@@ -119,7 +129,7 @@ cat > "${CADDY_CONFIG_DIR}/Caddyfile" <<EOF
 	}
 }
 
-:${CADDY_HTTPS_PORT} {
+${CADDY_TLS_SERVER_NAME}:${CADDY_HTTPS_PORT}, :${CADDY_HTTPS_PORT} {
 	tls internal
 	encode zstd gzip
 
@@ -147,4 +157,12 @@ cat > "${CADDY_CONFIG_DIR}/Caddyfile" <<EOF
 }
 EOF
 
-log "Caddy will listen on ${CADDY_HTTPS_PORT}; AuthCrunch is mounted at ${AUTHCRUNCH_AUTH_PATH}; ComfyUI and File Browser stay on localhost"
+if [[ -n "${CADDY_PUBLIC_URL}" ]]; then
+  log "Caddy will listen on internal port ${CADDY_HTTPS_PORT}; RunPod public URL is ${CADDY_PUBLIC_URL}"
+elif [[ "${CADDY_PUBLIC_PORT}" != "${CADDY_HTTPS_PORT}" ]]; then
+  log "Caddy will listen on internal port ${CADDY_HTTPS_PORT}; RunPod mapped public TCP port is ${CADDY_PUBLIC_PORT}"
+else
+  log "Caddy will listen on internal port ${CADDY_HTTPS_PORT}"
+fi
+log "Caddy TLS server name is ${CADDY_TLS_SERVER_NAME}"
+log "AuthCrunch is mounted at ${AUTHCRUNCH_AUTH_PATH}; ComfyUI and File Browser stay on localhost"

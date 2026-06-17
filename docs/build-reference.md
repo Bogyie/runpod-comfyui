@@ -144,7 +144,11 @@ xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `
 | `FILEBROWSER_BASEURL` | `/files` | File Browser URL prefix |
 | `FILEBROWSER_ROOT` | `/` | File Browser root; `/` exposes both container storage and the `/workspace` volume |
 | `FILEBROWSER_DATABASE` | `/workspace/storage/filebrowser/filebrowser.db` | File Browser persistent database |
-| `CADDY_HTTPS_PORT` | `8443` | Public TLS port inside the container |
+| `CADDY_HTTPS_PORT` | `8443` | Internal Caddy TLS port inside the container |
+| `RUNPOD_TCP_PORT_8443` | set by RunPod | Public TCP port mapped to internal port `8443` |
+| `CADDY_PUBLIC_PORT` | `RUNPOD_TCP_PORT_8443`, then `8443` | Public TCP port used in startup logs; override only for nonstandard templates |
+| `CADDY_PUBLIC_URL` | derived from `RUNPOD_PUBLIC_IP` and public port when available | Public Caddy URL shown in startup logs |
+| `CADDY_TLS_SERVER_NAME` | `RUNPOD_PUBLIC_IP`, then `runpod-comfyui.local` | TLS server name/IP Caddy uses for its internal certificate and SNI fallback |
 | `AUTHCRUNCH_AUTH_PATH` | `/auth` | AuthCrunch login path served by Caddy |
 | `AUTHCRUNCH_ADMIN_USER` | `runpod` | Initial AuthCrunch local admin username |
 | `AUTHCRUNCH_ADMIN_EMAIL` | `runpod@localdomain.local` | Initial AuthCrunch local admin email |
