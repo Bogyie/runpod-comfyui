@@ -41,3 +41,5 @@ RUN chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
       --node ComfyUI-Sapiens2-Easy \
       --node ComfyUI-DepthAnythingV3 \
       --path /opt/bootstrap/baked-custom-nodes
+
+EXPOSE 8443/tcp

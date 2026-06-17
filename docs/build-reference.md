@@ -149,6 +149,12 @@ xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `
 | `S6_BEHAVIOUR_IF_STAGE2_FAILS` | `2` | Stop the container when init/config generation fails |
 | `CLI_ARGS` | empty | Extra ComfyUI CLI flags |
 
+Leave the RunPod container start command empty. Runtime and final custom images
+set Docker `ENTRYPOINT ["/init"]`; s6-overlay must be started by Docker as PID
+1. If RunPod is configured to start `/init`, `s6-overlay-suexec`, or
+`/opt/bootstrap/start.sh` as the command, startup can fail with
+`s6-overlay-suexec: fatal: can only run as pid 1`.
+
 ## Cache strategy
 
 Each stage has two cache layers:

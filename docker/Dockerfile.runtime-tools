@@ -113,7 +113,7 @@ RUN chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
       --import huggingface_hub \
       --path /opt/bootstrap/base-requirements.lock
 
-EXPOSE 8443
+EXPOSE 8443/tcp
 
 ENTRYPOINT ["/init"]
 CMD []

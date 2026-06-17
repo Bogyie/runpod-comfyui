@@ -73,5 +73,7 @@ RUN /opt/bootstrap/scripts/cleanup-image.sh && \
       --path "${COMFYUI_DIR}/server.py" \
       --path /opt/bootstrap/start.sh
 
+EXPOSE 8188/tcp
+
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["/opt/bootstrap/start.sh"]

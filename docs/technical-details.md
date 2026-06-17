@@ -64,7 +64,15 @@ The runtime tools image adds:
 - runpodctl
 - GitHub CLI
 
-Final images use s6-overlay as PID 1. s6 starts ComfyUI, File Browser, and Caddy as foreground services, with no inherited Docker `CMD` so ComfyUI is not started twice. Caddy is the public entry point on `8443/tcp`, terminates self-signed TLS generated at container startup, applies basic auth, serves HTTP/1.1 and HTTP/2 over TCP, and proxies `/` to ComfyUI and `/files` to File Browser.
+Final images use s6-overlay as PID 1 through Docker `ENTRYPOINT ["/init"]`.
+s6 starts ComfyUI, File Browser, and Caddy as foreground services, with no
+inherited Docker `CMD` so ComfyUI is not started twice. The RunPod container
+start command must stay empty; overriding it with `/init`,
+`s6-overlay-suexec`, or `/opt/bootstrap/start.sh` prevents s6-overlay from
+owning PID 1 and can fail with `s6-overlay-suexec: fatal: can only run as pid
+1`. Caddy is the public entry point on `8443/tcp`, terminates self-signed TLS
+generated at container startup, applies basic auth, serves HTTP/1.1 and HTTP/2
+over TCP, and proxies `/` to ComfyUI and `/files` to File Browser.
 
 File Browser stores its database under `/workspace/storage/filebrowser` by default. Its default root is `/`, so it can browse both the container filesystem and the mounted RunPod `/workspace` volume. Set `FILEBROWSER_ROOT=/workspace` if you want to restrict it to persistent volume data only.
 

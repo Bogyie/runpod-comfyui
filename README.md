@@ -103,6 +103,10 @@ Expose only the Caddy HTTPS port from the RunPod template:
 
 - `8443/tcp` for Caddy TLS
 
+Leave the RunPod container start command empty. The final images already set
+`/init` as the Docker entrypoint so s6-overlay can run as PID 1. Do not set the
+start command to `/init`, `s6-overlay-suexec`, or `/opt/bootstrap/start.sh`.
+
 Caddy reverse proxies to private localhost services:
 
 - `/` to ComfyUI on `127.0.0.1:8188`
@@ -122,6 +126,11 @@ Set these environment variables in the RunPod template:
 | `FILEBROWSER_DATABASE` | `/workspace/storage/filebrowser/filebrowser.db` | File Browser database path |
 
 Use RunPod's [TCP access via public IP](https://docs.runpod.io/pods/configuration/expose-ports#tcp-access-via-public-ip) mode and map the external TCP port to container port `8443`. Because this bypasses RunPod's HTTP proxy, TLS and auth are handled by Caddy in the container.
+
+If startup fails with `s6-overlay-suexec: fatal: can only run as pid 1`, the
+container command has been overridden incorrectly. Clear the RunPod start
+command and redeploy the pod so Docker starts the image with its built-in
+`ENTRYPOINT ["/init"]`.
 
 ## Recovery helpers
 
