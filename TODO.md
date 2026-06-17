@@ -3,7 +3,7 @@
 ## P0 - 갈아엎는 수준으로 먼저 볼 것
 
 - [ ] 컨테이너 생존 모델 재설계
-  - s6-overlay가 ComfyUI, File Browser, Caddy를 관리하지만 healthcheck/recovery 정책은 아직 명시적이지 않다.
+  - supervisord가 ComfyUI, File Browser, Caddy를 관리하지만 healthcheck/recovery 정책은 아직 명시적이지 않다.
   - RunPod에서는 Pod는 살아 있는데 주 서비스는 죽은 상태가 될 수 있다.
   - 주 서비스 종료 시 컨테이너도 종료하거나, supervisor/healthcheck/recovery mode를 명시적으로 분리한다.
 
@@ -26,7 +26,7 @@
 
 - [ ] supply-chain 재현성 강화
   - `runpodctl`을 `latest`로 다운로드하지 말고 버전과 checksum 또는 digest를 고정한다.
-  - s6-overlay, Caddy, File Browser 다운로드에 checksum 검증을 추가한다.
+  - Caddy, File Browser 다운로드에 checksum 검증을 추가한다.
   - FlashAttention wheel resolver가 선택한 asset URL/digest를 build key 또는 lock artifact에 포함한다.
 
 - [ ] custom node 설치 sandbox/allowlist 검토

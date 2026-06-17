@@ -33,7 +33,7 @@ The purpose images are built in parallel after `custom-basic`.
 |---|---|
 | `comfyui` | ComfyUI and baseline runtime files |
 | `optimized` | xformers and FlashAttention from prebuilt wheels |
-| `runtime-tools` | s6-overlay, Caddy, File Browser, Hugging Face CLI, git, curl, wget, runpodctl, and GitHub CLI |
+| `runtime-tools` | supervisord, Caddy, File Browser, Hugging Face CLI, git, curl, wget, runpodctl, and GitHub CLI |
 | `custom-basic` | ComfyUI-Manager, KJNodes, rgthree-comfy, and Crystools |
 | `custom-image` | controlnet aux, Impact Pack, Sapiens2 Easy, and Depth Anything V3 |
 | `custom-video` | VideoHelperSuite, SeedVR2 Video Upscaler, WanVideoWrapper, and LTXVideo |
@@ -68,7 +68,7 @@ Use a pinned release, SHA, or version-slug tag for production templates rather t
 - Transformers: `5.12.0`
 - xformers: `0.0.35`
 - FlashAttention: `2.8.3`
-- s6-overlay: `3.2.3.0`
+- Supervisor: distro package
 - Caddy: `2.11.4`
 - File Browser: `2.63.15`
 - runpodctl: `2.4.0`
@@ -105,9 +105,10 @@ Expose only the Caddy HTTPS port from the RunPod template:
 
 - `8443/tcp` for Caddy TLS
 
-Leave the RunPod container start command empty. The final images already set
-`/init` as the Docker entrypoint so s6-overlay can run as PID 1. Do not set the
-start command to `/init`, `s6-overlay-suexec`, or `/opt/bootstrap/start.sh`.
+Leave the RunPod container start command empty. The final images start
+`/opt/bootstrap/scripts/runpod-supervisord-entrypoint.sh`, which initializes
+the workspace and then runs supervisord as PID 1. Do not set the start command
+to `/init`, `s6-overlay-suexec`, or `/opt/bootstrap/start.sh`.
 
 Caddy reverse proxies to private localhost services:
 
@@ -129,10 +130,10 @@ Set these environment variables in the RunPod template:
 
 Use RunPod's [TCP access via public IP](https://docs.runpod.io/pods/configuration/expose-ports#tcp-access-via-public-ip) mode and map the external TCP port to container port `8443`. Because this bypasses RunPod's HTTP proxy, TLS and auth are handled by Caddy in the container.
 
-If startup fails with `s6-overlay-suexec: fatal: can only run as pid 1`, the
-container command has been overridden incorrectly. Clear the RunPod start
-command and redeploy the pod so Docker starts the image with its built-in
-`ENTRYPOINT ["/init"]`.
+Images built before the supervisord migration used s6-overlay through
+`ENTRYPOINT ["/init"]`. If startup fails with
+`s6-overlay-suexec: fatal: can only run as pid 1`, redeploy with a newer image
+that includes `/opt/bootstrap/scripts/runpod-supervisord-entrypoint.sh`.
 
 ## Recovery helpers
 

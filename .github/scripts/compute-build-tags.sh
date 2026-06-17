@@ -97,13 +97,10 @@ TOOLS_KEY="$(
   {
     printf 'stage=runtime-tools\n'
     printf 'parent_key=%s\n' "${OPTIMIZED_KEY}"
-    printf 's6_overlay_version=%s\n' "${S6_OVERLAY_VERSION}"
     printf 'caddy_version=%s\n' "${CADDY_VERSION}"
     printf 'filebrowser_version=%s\n' "${FILEBROWSER_VERSION}"
     printf 'runpodctl_version=%s\n' "${RUNPODCTL_VERSION}"
     printf 'huggingface_hub_version=%s\n' "${HUGGINGFACE_HUB_VERSION}"
-    printf 's6_overlay_noarch_sha256=%s\n' "${S6_OVERLAY_NOARCH_SHA256}"
-    printf 's6_overlay_x86_64_sha256=%s\n' "${S6_OVERLAY_X86_64_SHA256}"
     printf 'caddy_linux_amd64_sha256=%s\n' "${CADDY_LINUX_AMD64_SHA256}"
     printf 'filebrowser_linux_amd64_sha256=%s\n' "${FILEBROWSER_LINUX_AMD64_SHA256}"
     printf 'runpodctl_linux_amd64_sha256=%s\n' "${RUNPODCTL_LINUX_AMD64_SHA256}"

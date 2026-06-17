@@ -9,6 +9,8 @@ COMFYUI_PORT="${COMFYUI_PORT:-8188}"
 COMFYUI_HOST="${COMFYUI_HOST:-127.0.0.1}"
 COMFYUI_CORS_ORIGIN="${COMFYUI_CORS_ORIGIN:-*}"
 CLI_ARGS="${CLI_ARGS:-}"
+SUPERVISOR_CONFIG="${SUPERVISOR_CONFIG:-/etc/supervisor/supervisord.conf}"
+SUPERVISOR_SOCKET="${SUPERVISOR_SOCKET:-/tmp/supervisor.sock}"
 
 RECOVER=false
 while [[ $# -gt 0 ]]; do
@@ -31,9 +33,14 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+use_supervisor=false
+if command -v supervisorctl >/dev/null 2>&1 && [[ -S "${SUPERVISOR_SOCKET}" ]]; then
+  use_supervisor=true
+fi
+
 echo "Stopping existing ComfyUI process..."
-if command -v s6-svc >/dev/null 2>&1 && [[ -d /run/service/comfyui ]]; then
-  s6-svc -d /run/service/comfyui
+if ${use_supervisor}; then
+  supervisorctl -c "${SUPERVISOR_CONFIG}" stop comfyui || true
 else
   pkill -f "python.*main.py" 2>/dev/null || true
 fi
@@ -56,8 +63,8 @@ source "${COMFY_VENV}/bin/activate"
 read -ra cli_args <<< "${CLI_ARGS}"
 
 echo "Starting ComfyUI on port ${COMFYUI_PORT}..."
-if command -v s6-svc >/dev/null 2>&1 && [[ -d /run/service/comfyui ]]; then
-  s6-svc -u /run/service/comfyui
+if ${use_supervisor}; then
+  supervisorctl -c "${SUPERVISOR_CONFIG}" start comfyui
   echo "ComfyUI service restarted"
 else
   command=(

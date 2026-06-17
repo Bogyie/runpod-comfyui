@@ -18,7 +18,7 @@ Each stage produces a pushed image. The next dependent job consumes the previous
 |---|---|---|
 | `comfyui` | `docker/Dockerfile.comfyui` | ComfyUI, Transformers, startup scripts, storage helpers |
 | `optimized` | `docker/Dockerfile.optimized` | xformers and FlashAttention wheels |
-| `runtime-tools` | `docker/Dockerfile.runtime-tools` | s6-overlay, Caddy, File Browser, Hugging Face CLI, git, curl, wget, runpodctl, GitHub CLI |
+| `runtime-tools` | `docker/Dockerfile.runtime-tools` | supervisord, Caddy, File Browser, Hugging Face CLI, git, curl, wget, runpodctl, GitHub CLI |
 | `custom-basic` | `docker/Dockerfile.custom-basic` | ComfyUI-Manager, KJNodes, rgthree-comfy, Crystools |
 | `custom-image` | `docker/Dockerfile.custom-image` | controlnet aux, Impact Pack, Sapiens2 Easy, Depth Anything V3 |
 | `custom-video` | `docker/Dockerfile.custom-video` | VideoHelperSuite, SeedVR2 Video Upscaler, WanVideoWrapper, LTXVideo |
@@ -101,13 +101,10 @@ xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `
 | Name | Default | Purpose |
 |---|---|---|
 | `BASE_IMAGE` | required | Previous stage image |
-| `S6_OVERLAY_VERSION` | `3.2.3.0` | s6-overlay version |
 | `CADDY_VERSION` | `2.11.4` | Caddy version |
 | `FILEBROWSER_VERSION` | `2.63.15` | File Browser version |
 | `RUNPODCTL_VERSION` | `2.4.0` | runpodctl version |
 | `HUGGINGFACE_HUB_VERSION` | `1.19.0` | Hugging Face Hub CLI package version |
-| `S6_OVERLAY_NOARCH_SHA256` | pinned | SHA256 for `s6-overlay-noarch.tar.xz` |
-| `S6_OVERLAY_X86_64_SHA256` | pinned | SHA256 for `s6-overlay-x86_64.tar.xz` |
 | `CADDY_LINUX_AMD64_SHA256` | pinned | SHA256 for the Linux amd64 Caddy archive |
 | `FILEBROWSER_LINUX_AMD64_SHA256` | pinned | SHA256 for the Linux amd64 File Browser archive |
 | `RUNPODCTL_LINUX_AMD64_SHA256` | pinned | SHA256 for the Linux amd64 runpodctl binary |
@@ -153,14 +150,15 @@ xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `
 | `CADDY_BASIC_AUTH_HASH` | empty | Optional precomputed Caddy password hash; overrides password hashing at startup |
 | `CADDY_TLS_REGENERATE` | `false` | Regenerate the Caddy TLS key/cert on startup |
 | `CADDY_TLS_COMMON_NAME` | `runpod-comfyui.local` | Self-signed certificate common name |
-| `S6_BEHAVIOUR_IF_STAGE2_FAILS` | `2` | Stop the container when init/config generation fails |
 | `CLI_ARGS` | empty | Extra ComfyUI CLI flags |
 
 Leave the RunPod container start command empty. Runtime and final custom images
-set Docker `ENTRYPOINT ["/init"]`; s6-overlay must be started by Docker as PID
-1. If RunPod is configured to start `/init`, `s6-overlay-suexec`, or
-`/opt/bootstrap/start.sh` as the command, startup can fail with
-`s6-overlay-suexec: fatal: can only run as pid 1`.
+set Docker
+`ENTRYPOINT ["/opt/bootstrap/scripts/runpod-supervisord-entrypoint.sh"]`. The
+entrypoint initializes the workspace and generated Caddy config, then runs
+supervisord as PID 1 to manage ComfyUI, File Browser, and Caddy. If RunPod is
+configured to start `/init`, `s6-overlay-suexec`, or `/opt/bootstrap/start.sh`
+as the command, that override bypasses the expected startup path.
 
 ## Cache strategy
 
