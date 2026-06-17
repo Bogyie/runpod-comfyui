@@ -2,7 +2,7 @@
 
 ## Current baseline
 
-- Base image: `pytorch/pytorch:2.10.0-cuda12.8-cudnn9-devel`
+- Base image: `pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime`
 - ComfyUI: `v0.24.0`
 - Transformers: `5.12.0`
 - xformers: `0.0.35`

@@ -19,8 +19,11 @@ def verify_paths(paths: list[str]) -> None:
 
 
 def verify_nodes(names: list[str]) -> None:
-    base = Path(os.environ.get("COMFYUI_DIR", "/opt/comfy/ComfyUI")) / "custom_nodes"
-    missing = [name for name in names if not (base / name).is_dir()]
+    bases = [
+        Path(os.environ.get("COMFYUI_DIR", "/opt/comfy/ComfyUI")) / "custom_nodes",
+        Path(os.environ.get("BAKED_CUSTOM_NODES_DIR", "/opt/bootstrap/baked-custom-nodes")),
+    ]
+    missing = [name for name in names if not any((base / name).is_dir() for base in bases)]
     if missing:
         raise FileNotFoundError("Missing custom node(s): " + ", ".join(missing))
 

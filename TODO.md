@@ -52,9 +52,9 @@
   - 현재 `pkill -f "python.*main.py"`는 같은 컨테이너 안의 다른 Python 프로세스를 잡을 수 있다.
   - pidfile 또는 supervisor 제어로 ComfyUI 프로세스만 종료한다.
 
-- [ ] baked custom nodes cleanup 확인
-  - `cleanup-image.sh`는 `${COMFY_HOME}` 아래 `.git`만 지우므로 `/opt/bootstrap/baked-custom-nodes`에 `.git`이 남을 수 있다.
-  - 의도한 동작이면 문서화하고, 아니면 baked path도 cleanup 대상에 넣는다.
+- [x] baked custom nodes cleanup 확인
+  - `install_custom_nodes.sh`가 baked custom nodes에서 `.git`, docs/tests, bytecode를 제거한다.
+  - custom-node stage는 `/opt/bootstrap/baked-custom-nodes`만 남기고 `${COMFYUI_DIR}/custom_nodes` 원본은 제거한다.
 
 ## P3 - 작은 정리
 

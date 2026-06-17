@@ -1,12 +1,15 @@
 # syntax=docker/dockerfile:1.7
 
-ARG BASE_IMAGE=pytorch/pytorch:2.10.0-cuda12.8-cudnn9-devel
+ARG BASE_IMAGE=pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime
 FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_COMPILE=1 \
     PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
     COMFY_HOME=/opt/comfy \
     COMFYUI_DIR=/opt/comfy/ComfyUI \
     COMFY_VENV=/opt/comfy/venv \
@@ -41,13 +44,16 @@ RUN --mount=type=cache,id=apt-comfyui,target=/var/cache/apt,sharing=locked \
 RUN mkdir -p "${COMFY_HOME}" "${WORKSPACE_DIR}" /opt/bootstrap
 
 RUN git clone --depth 1 --branch "${COMFYUI_REF}" \
-      https://github.com/Comfy-Org/ComfyUI.git "${COMFYUI_DIR}"
+      https://github.com/Comfy-Org/ComfyUI.git "${COMFYUI_DIR}" && \
+    find "${COMFYUI_DIR}" -type d -name ".git" -prune -exec rm -rf {} +
 
 RUN --mount=type=cache,id=pip-comfyui,target=/root/.cache/pip \
     python -m venv --system-site-packages "${COMFY_VENV}" && \
     "${COMFY_VENV}/bin/python" -m pip install --upgrade pip wheel setuptools && \
-    "${COMFY_VENV}/bin/python" -m pip install -r "${COMFYUI_DIR}/requirements.txt" && \
-    "${COMFY_VENV}/bin/python" -m pip install "transformers==${TRANSFORMERS_VERSION}"
+    "${COMFY_VENV}/bin/python" -m pip install --no-compile -r "${COMFYUI_DIR}/requirements.txt" && \
+    "${COMFY_VENV}/bin/python" -m pip install --no-compile "transformers==${TRANSFORMERS_VERSION}" && \
+    find "${COMFY_HOME}" -type d -name "__pycache__" -prune -exec rm -rf {} + && \
+    find "${COMFY_HOME}" -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete
 
 COPY scripts/ /opt/bootstrap/scripts/
 COPY start.sh /opt/bootstrap/start.sh

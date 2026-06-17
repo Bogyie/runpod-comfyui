@@ -16,7 +16,7 @@ Runpod Pod template for ComfyUI with staged Docker images, persistent volume sto
 The build starts from the upstream PyTorch image:
 
 ```text
-pytorch/pytorch:2.10.0-cuda12.8-cudnn9-devel
+pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime
 ```
 
 Each repo-owned step builds and pushes its own image. The SHA-scoped tag from one step becomes the next step's `BASE_IMAGE`.
@@ -46,7 +46,7 @@ Image tags include stage tags, release tags, SHA tags, and a slug derived from t
 
 ```text
 ghcr.io/bogyie/runpod-comfyui:custom-image
-ghcr.io/bogyie/runpod-comfyui:2-10-0-cuda12-8-cudnn9-devel-cf0240-custom-image
+ghcr.io/bogyie/runpod-comfyui:2-10-0-cuda12-8-cudnn9-runtime-cf0240-custom-image
 ghcr.io/bogyie/runpod-comfyui:v1.0.2-custom-image
 ghcr.io/bogyie/runpod-comfyui:sha-abc1234-custom-image
 ```
@@ -55,7 +55,7 @@ On release, `custom-image` is also published as the bare release tag and `latest
 
 ## Current baseline
 
-- Base image: `pytorch/pytorch:2.10.0-cuda12.8-cudnn9-devel`
+- Base image: `pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime`
 - ComfyUI: `v0.24.0`
 - Transformers: `5.12.0`
 - xformers: `0.0.35`

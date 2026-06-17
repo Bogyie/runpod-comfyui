@@ -4,6 +4,8 @@ set -euo pipefail
 COMFYUI_DIR="${COMFYUI_DIR:-/opt/comfy/ComfyUI}"
 COMFY_VENV="${COMFY_VENV:-/opt/comfy/venv}"
 PROTECTED_MANIFEST="${PROTECTED_MANIFEST:-/opt/bootstrap/protected-package-manifest.json}"
+BAKED_CUSTOM_NODES_DIR="${BAKED_CUSTOM_NODES_DIR:-/opt/bootstrap/baked-custom-nodes}"
+BASE_REQUIREMENTS_LOCK="${BASE_REQUIREMENTS_LOCK:-/opt/bootstrap/base-requirements.lock}"
 
 if (( $# % 3 != 0 )); then
   echo "Usage: install_custom_nodes.sh <name> <repo-url> <ref> [<name> <repo-url> <ref> ...]" >&2
@@ -31,6 +33,9 @@ checkout_repo_ref() {
 }
 
 mkdir -p "${COMFYUI_DIR}/custom_nodes"
+if [[ -d "${BAKED_CUSTOM_NODES_DIR}" ]]; then
+  rsync -a --delete "${BAKED_CUSTOM_NODES_DIR}/" "${COMFYUI_DIR}/custom_nodes/"
+fi
 
 while (( $# > 0 )); do
   name="$1"
@@ -44,7 +49,7 @@ while (( $# > 0 )); do
   checkout_repo_ref "${node_dir}" "${ref}"
 
   if [[ -f "${node_dir}/requirements.txt" ]]; then
-    "${COMFY_VENV}/bin/python" -m pip install -r "${node_dir}/requirements.txt"
+    "${COMFY_VENV}/bin/python" -m pip install --no-compile -r "${node_dir}/requirements.txt"
   fi
   if [[ -f "${node_dir}/install.py" ]]; then
     (cd "${node_dir}" && COMFYUI_FOLDERS_BASE_PATH="${COMFYUI_DIR}" "${COMFY_VENV}/bin/python" install.py)
@@ -57,7 +62,14 @@ while (( $# > 0 )); do
   fi
 done
 
-rm -rf /opt/bootstrap/baked-custom-nodes
-mkdir -p /opt/bootstrap/baked-custom-nodes
-cp -a "${COMFYUI_DIR}/custom_nodes/." /opt/bootstrap/baked-custom-nodes/
-"${COMFY_VENV}/bin/python" -m pip freeze > /opt/bootstrap/base-requirements.lock
+rm -rf "${BAKED_CUSTOM_NODES_DIR}"
+mkdir -p "${BAKED_CUSTOM_NODES_DIR}"
+cp -a "${COMFYUI_DIR}/custom_nodes/." "${BAKED_CUSTOM_NODES_DIR}/"
+find "${BAKED_CUSTOM_NODES_DIR}" -type d -name ".git" -prune -exec rm -rf {} +
+find "${BAKED_CUSTOM_NODES_DIR}" -type d \
+  \( -name ".github" -o -name "docs" -o -name "tests" -o -name "test" -o -name "__pycache__" \) \
+  -prune -exec rm -rf {} +
+find "${BAKED_CUSTOM_NODES_DIR}" -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete
+rm -rf "${COMFYUI_DIR}/custom_nodes"
+mkdir -p "$(dirname "${BASE_REQUIREMENTS_LOCK}")"
+"${COMFY_VENV}/bin/python" -m pip freeze > "${BASE_REQUIREMENTS_LOCK}"

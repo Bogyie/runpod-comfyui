@@ -12,7 +12,7 @@ concurrency:
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/runpod-comfyui
   DOCKERHUB_IMAGE: docker.io/bogyie/runpod-comfyui
-  PYTORCH_BASE_IMAGE: pytorch/pytorch:2.10.0-cuda12.8-cudnn9-devel
+  PYTORCH_BASE_IMAGE: pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime
   COMFYUI_VERSION: "0.24.0"
   TRANSFORMERS_VERSION: "5.12.0"
   XFORMERS_VERSION: "0.0.35"

@@ -7,7 +7,7 @@
 The build uses the PyTorch Docker Hub image directly as its external base:
 
 ```text
-pytorch/pytorch:2.10.0-cuda12.8-cudnn9-devel
+pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime
 ```
 
 Python, CUDA, PyTorch, torchvision, and torchaudio are intentionally inherited from that tag. The workflow does not carry separate Python/CUDA/PyTorch build arguments.
@@ -58,7 +58,7 @@ Each stage receives these tags:
 |---|---|---|
 | `<stage>` | `custom-image` | all stages |
 | `<release-tag>-<stage>` | `v1.0.2-custom-image` | release builds |
-| `<base-slug>-cf<comfy>-<stage>` | `2-10-0-cuda12-8-cudnn9-devel-cf0240-custom-image` | all stages |
+| `<base-slug>-cf<comfy>-<stage>` | `2-10-0-cuda12-8-cudnn9-runtime-cf0240-custom-image` | all stages |
 | `sha-<hash>-<stage>` | `sha-abc1234-custom-image` | all stages |
 | `buildkey-<stage>-<hash>` | `buildkey-custom-image-abc123...` | all stages |
 | `<release-tag>` | `v1.0.2` | `custom-image` only |
@@ -72,7 +72,7 @@ The base slug is derived from `PYTORCH_BASE_IMAGE`; it is not reconstructed from
 
 | Name | Default | Purpose |
 |---|---|---|
-| `BASE_IMAGE` | `pytorch/pytorch:2.10.0-cuda12.8-cudnn9-devel` | Upstream PyTorch image tag |
+| `BASE_IMAGE` | `pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime` | Upstream PyTorch image tag |
 | `COMFYUI_REF` | `v0.24.0` | ComfyUI git ref |
 | `TRANSFORMERS_VERSION` | `5.12.0` | Transformers version |
 
@@ -157,7 +157,7 @@ Custom-node refs are pinned to commit SHAs by default. Updating a ref intentiona
 
 ## Build-time guardrails
 
-- Each Dockerfile ends with `/opt/bootstrap/scripts/cleanup-image.sh`.
+- Dockerfiles clean transient files during expensive install layers where possible, then run `/opt/bootstrap/scripts/cleanup-image.sh` before smoke verification.
 - Each Dockerfile then runs `/opt/bootstrap/scripts/verify_image.py` for a low-cost smoke check.
 - Resolved stage images are verified with `docker buildx imagetools inspect`.
 - A protected package manifest tracks `torch`, `torchvision`, `torchaudio`, `transformers`, `xformers`, `flash-attn`, `triton`, and `sageattention`.
