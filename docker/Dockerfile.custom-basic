@@ -30,10 +30,7 @@ RUN --mount=type=cache,id=pip-custom-basic,target=/var/cache/buildkit-pip \
       ComfyUI-Crystools https://github.com/crystian/ComfyUI-Crystools.git "${CRYSTOOLS_REF}" && \
     /opt/bootstrap/scripts/cleanup-image.sh
 
-COPY scripts/ /opt/bootstrap/scripts/
-
-RUN chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
-    /opt/bootstrap/scripts/cleanup-image.sh && \
+RUN /opt/bootstrap/scripts/cleanup-image.sh && \
     "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_image.py \
       --stage custom-basic \
       --node ComfyUI-Manager \

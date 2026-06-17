@@ -30,6 +30,13 @@ ENV DEBIAN_FRONTEND=noninteractive \
 ARG S6_OVERLAY_VERSION=3.2.3.0
 ARG CADDY_VERSION=2.11.4
 ARG FILEBROWSER_VERSION=2.63.15
+ARG RUNPODCTL_VERSION=2.4.0
+ARG HUGGINGFACE_HUB_VERSION=1.19.0
+ARG S6_OVERLAY_NOARCH_SHA256=b720f9d9340efc8bb07528b9743813c836e4b02f8693d90241f047998b4c53cf
+ARG S6_OVERLAY_X86_64_SHA256=a93f02882c6ed46b21e7adb5c0add86154f01236c93cd82c7d682722e8840563
+ARG CADDY_LINUX_AMD64_SHA256=527fbf917c39189a1e3b31d34fa955601680b2d5c8055d2a87b8b9588dec7bb9
+ARG FILEBROWSER_LINUX_AMD64_SHA256=2e781227d626d8b8ba533b77bdd6cb3a8cf70e014af1a8a3966a13a901a0a951
+ARG RUNPODCTL_LINUX_AMD64_SHA256=3efb8bbebdfec8b63f8a3a0c99c806f4d348da2a3d96fd879c350eb14b5299ad
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -58,28 +65,33 @@ RUN curl -fsSL -o /tmp/s6-overlay-noarch.tar.xz \
       "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz" && \
     curl -fsSL -o /tmp/s6-overlay-x86_64.tar.xz \
       "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-x86_64.tar.xz" && \
+    echo "${S6_OVERLAY_NOARCH_SHA256}  /tmp/s6-overlay-noarch.tar.xz" | sha256sum -c - && \
+    echo "${S6_OVERLAY_X86_64_SHA256}  /tmp/s6-overlay-x86_64.tar.xz" | sha256sum -c - && \
     tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz && \
     tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz && \
     rm /tmp/s6-overlay-noarch.tar.xz /tmp/s6-overlay-x86_64.tar.xz
 
 RUN curl -fsSL -o /tmp/caddy.tar.gz \
       "https://github.com/caddyserver/caddy/releases/download/v${CADDY_VERSION}/caddy_${CADDY_VERSION}_linux_amd64.tar.gz" && \
+    echo "${CADDY_LINUX_AMD64_SHA256}  /tmp/caddy.tar.gz" | sha256sum -c - && \
     tar -C /usr/local/bin -xzf /tmp/caddy.tar.gz caddy && \
     chmod +x /usr/local/bin/caddy && \
     rm /tmp/caddy.tar.gz
 
 RUN curl -fsSL -o /tmp/filebrowser.tar.gz \
       "https://github.com/filebrowser/filebrowser/releases/download/v${FILEBROWSER_VERSION}/linux-amd64-filebrowser.tar.gz" && \
+    echo "${FILEBROWSER_LINUX_AMD64_SHA256}  /tmp/filebrowser.tar.gz" | sha256sum -c - && \
     tar -C /usr/local/bin -xzf /tmp/filebrowser.tar.gz filebrowser && \
     chmod +x /usr/local/bin/filebrowser && \
     rm /tmp/filebrowser.tar.gz
 
-RUN wget -q -O /usr/local/bin/runpodctl \
-      "https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64" && \
+RUN curl -fsSL -o /usr/local/bin/runpodctl \
+      "https://github.com/runpod/runpodctl/releases/download/v${RUNPODCTL_VERSION}/runpodctl-linux-amd64" && \
+    echo "${RUNPODCTL_LINUX_AMD64_SHA256}  /usr/local/bin/runpodctl" | sha256sum -c - && \
     chmod +x /usr/local/bin/runpodctl
 
 RUN --mount=type=cache,id=pip-runtime-tools,target=/root/.cache/pip \
-    "${COMFY_VENV}/bin/python" -m pip install "huggingface_hub[cli]"
+    "${COMFY_VENV}/bin/python" -m pip install "huggingface_hub[cli]==${HUGGINGFACE_HUB_VERSION}"
 
 COPY scripts/verify_protected_packages.py /opt/bootstrap/scripts/
 

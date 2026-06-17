@@ -71,6 +71,8 @@ Use a pinned release, SHA, or version-slug tag for production templates rather t
 - s6-overlay: `3.2.3.0`
 - Caddy: `2.11.4`
 - File Browser: `2.63.15`
+- runpodctl: `2.4.0`
+- Hugging Face Hub CLI: `1.19.0`
 
 Python, CUDA, PyTorch, torchvision, and torchaudio come from the PyTorch base image tag, not from separate build arguments.
 

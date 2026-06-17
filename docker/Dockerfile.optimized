@@ -43,9 +43,9 @@ RUN chmod +x /opt/bootstrap/scripts/verify_protected_packages.py && \
       /opt/bootstrap/protected-package-manifest.json && \
     "${COMFY_VENV}/bin/python" -m pip freeze > /opt/bootstrap/base-requirements.lock
 
-COPY scripts/ /opt/bootstrap/scripts/
+COPY scripts/cleanup-image.sh scripts/verify_image.py /opt/bootstrap/scripts/
 
-RUN chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
+RUN chmod +x /opt/bootstrap/scripts/cleanup-image.sh /opt/bootstrap/scripts/verify_image.py && \
     /opt/bootstrap/scripts/cleanup-image.sh && \
     "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_image.py \
       --stage optimized \

@@ -104,6 +104,13 @@ xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `
 | `S6_OVERLAY_VERSION` | `3.2.3.0` | s6-overlay version |
 | `CADDY_VERSION` | `2.11.4` | Caddy version |
 | `FILEBROWSER_VERSION` | `2.63.15` | File Browser version |
+| `RUNPODCTL_VERSION` | `2.4.0` | runpodctl version |
+| `HUGGINGFACE_HUB_VERSION` | `1.19.0` | Hugging Face Hub CLI package version |
+| `S6_OVERLAY_NOARCH_SHA256` | pinned | SHA256 for `s6-overlay-noarch.tar.xz` |
+| `S6_OVERLAY_X86_64_SHA256` | pinned | SHA256 for `s6-overlay-x86_64.tar.xz` |
+| `CADDY_LINUX_AMD64_SHA256` | pinned | SHA256 for the Linux amd64 Caddy archive |
+| `FILEBROWSER_LINUX_AMD64_SHA256` | pinned | SHA256 for the Linux amd64 File Browser archive |
+| `RUNPODCTL_LINUX_AMD64_SHA256` | pinned | SHA256 for the Linux amd64 runpodctl binary |
 
 ### Basic custom nodes
 
@@ -167,7 +174,14 @@ Every stage job imports cache from the dedicated registry cache, the versioned s
 
 Dockerfiles keep expensive install layers before volatile verification and cleanup scripts where possible, so script-only changes avoid reinstalling apt, pip, or custom-node dependencies.
 
-Before building, each job checks whether its `buildkey-<stage>-<hash>` image already exists in GHCR. The hash includes that stage's Dockerfile, relevant build arguments, scripts copied into the image, and the parent stage build key. On a hit, the job skips Docker build and retags the existing image for the current SHA, stable stage tag, version tag, and release tags.
+Before building, each job checks whether its `buildkey-<stage>-<hash>` image already exists in GHCR. The hash includes that stage's Dockerfile, relevant build arguments, stage-specific script inputs, and the parent stage build key. On a hit, the job skips Docker build and retags the existing image for the current SHA, stable stage tag, version tag, and release tags.
+
+Script inputs are intentionally scoped by stage:
+
+- `comfyui` hashes only startup and verification scripts used by that image.
+- `optimized` hashes only the wheel resolver, CUDA tag helper, cleanup, and verification scripts.
+- `runtime-tools` hashes the full `scripts/` tree because it publishes the runtime bootstrap scripts.
+- Custom-node stages hash only the install/protected-package scripts they copy directly; inherited runtime scripts are covered by the parent runtime-tools key.
 
 Custom-node refs are pinned to commit SHAs by default. Updating a ref intentionally changes that stage's build key and rebuilds only the affected downstream images.
 

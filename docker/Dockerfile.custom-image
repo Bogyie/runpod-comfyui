@@ -30,10 +30,7 @@ RUN --mount=type=cache,id=pip-custom-image,target=/var/cache/buildkit-pip \
       ComfyUI-DepthAnythingV3 https://github.com/PozzettiAndrea/ComfyUI-DepthAnythingV3.git "${DEPTH_ANYTHING_V3_REF}" && \
     /opt/bootstrap/scripts/cleanup-image.sh
 
-COPY scripts/ /opt/bootstrap/scripts/
-
-RUN chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
-    /opt/bootstrap/scripts/cleanup-image.sh && \
+RUN /opt/bootstrap/scripts/cleanup-image.sh && \
     "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_image.py \
       --stage custom-image \
       --node comfyui_controlnet_aux \

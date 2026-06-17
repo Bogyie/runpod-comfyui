@@ -14,32 +14,62 @@ hash_payload() {
 
 hash_files() {
   for path in "$@"; do
+    if [[ ! -f "${path}" ]]; then
+      echo "Missing hash input file: ${path}" >&2
+      exit 1
+    fi
     printf 'file:%s\n' "${path}"
     sha256sum "${path}"
   done
 }
 
-SCRIPT_HASH="$(
-  find scripts -maxdepth 1 -type f -print \
+hash_tree() {
+  local path="$1"
+  if [[ ! -d "${path}" ]]; then
+    echo "Missing hash input directory: ${path}" >&2
+    exit 1
+  fi
+  find "${path}" -type f -print \
     | sort \
-    | while read -r path; do
+      | while read -r path; do
         printf 'file:%s\n' "${path}"
         sha256sum "${path}"
-      done \
-    | sha256sum \
-    | cut -d' ' -f1
-)"
+      done
+}
 
-ROOTFS_HASH="$(
-  find rootfs -type f -print \
-    | sort \
-    | while read -r path; do
-        printf 'file:%s\n' "${path}"
-        sha256sum "${path}"
-      done \
+hash_inputs() {
+  hash_files "$@" \
     | sha256sum \
     | cut -d' ' -f1
-)"
+}
+
+hash_tree_inputs() {
+  hash_tree "$1" \
+    | sha256sum \
+    | cut -d' ' -f1
+}
+
+COMFYUI_SCRIPT_HASH="$(hash_inputs \
+  scripts/cleanup-image.sh \
+  scripts/init-storage.sh \
+  scripts/verify_image.py \
+  scripts/verify_protected_packages.py)"
+
+OPTIMIZED_SCRIPT_HASH="$(hash_inputs \
+  scripts/cleanup-image.sh \
+  scripts/resolve_flash_attn_wheel.py \
+  scripts/torch_cuda_wheel_tag.py \
+  scripts/verify_image.py \
+  scripts/verify_protected_packages.py)"
+
+RUNTIME_SCRIPT_HASH="$(hash_tree_inputs scripts)"
+
+CUSTOM_INSTALL_SCRIPT_HASH="$(hash_inputs \
+  scripts/cleanup-image.sh \
+  scripts/install_custom_nodes.sh \
+  scripts/verify_protected_packages.py)"
+
+ROOTFS_HASH="$(hash_tree_inputs rootfs)"
 
 COMFYUI_KEY="$(
   {
@@ -47,7 +77,7 @@ COMFYUI_KEY="$(
     printf 'base_image=%s\n' "${PYTORCH_BASE_IMAGE}"
     printf 'comfyui_ref=v%s\n' "${COMFYUI_VERSION}"
     printf 'transformers_version=%s\n' "${TRANSFORMERS_VERSION}"
-    printf 'scripts_hash=%s\n' "${SCRIPT_HASH}"
+    printf 'comfyui_script_hash=%s\n' "${COMFYUI_SCRIPT_HASH}"
     hash_files .dockerignore docker/Dockerfile.comfyui start.sh
   } | hash_payload
 )"
@@ -58,7 +88,7 @@ OPTIMIZED_KEY="$(
     printf 'parent_key=%s\n' "${COMFYUI_KEY}"
     printf 'xformers_version=%s\n' "${XFORMERS_VERSION}"
     printf 'flash_attn_version=%s\n' "${FLASH_ATTN_VERSION}"
-    printf 'scripts_hash=%s\n' "${SCRIPT_HASH}"
+    printf 'optimized_script_hash=%s\n' "${OPTIMIZED_SCRIPT_HASH}"
     hash_files .dockerignore docker/Dockerfile.optimized
   } | hash_payload
 )"
@@ -70,7 +100,14 @@ TOOLS_KEY="$(
     printf 's6_overlay_version=%s\n' "${S6_OVERLAY_VERSION}"
     printf 'caddy_version=%s\n' "${CADDY_VERSION}"
     printf 'filebrowser_version=%s\n' "${FILEBROWSER_VERSION}"
-    printf 'scripts_hash=%s\n' "${SCRIPT_HASH}"
+    printf 'runpodctl_version=%s\n' "${RUNPODCTL_VERSION}"
+    printf 'huggingface_hub_version=%s\n' "${HUGGINGFACE_HUB_VERSION}"
+    printf 's6_overlay_noarch_sha256=%s\n' "${S6_OVERLAY_NOARCH_SHA256}"
+    printf 's6_overlay_x86_64_sha256=%s\n' "${S6_OVERLAY_X86_64_SHA256}"
+    printf 'caddy_linux_amd64_sha256=%s\n' "${CADDY_LINUX_AMD64_SHA256}"
+    printf 'filebrowser_linux_amd64_sha256=%s\n' "${FILEBROWSER_LINUX_AMD64_SHA256}"
+    printf 'runpodctl_linux_amd64_sha256=%s\n' "${RUNPODCTL_LINUX_AMD64_SHA256}"
+    printf 'runtime_script_hash=%s\n' "${RUNTIME_SCRIPT_HASH}"
     printf 'rootfs_hash=%s\n' "${ROOTFS_HASH}"
     hash_files .dockerignore docker/Dockerfile.runtime-tools
   } | hash_payload
@@ -84,7 +121,7 @@ BASIC_KEY="$(
     printf 'kjnodes_ref=%s\n' "${KJNODES_REF}"
     printf 'rgthree_ref=%s\n' "${RGTHREE_REF}"
     printf 'crystools_ref=%s\n' "${CRYSTOOLS_REF}"
-    printf 'scripts_hash=%s\n' "${SCRIPT_HASH}"
+    printf 'custom_install_script_hash=%s\n' "${CUSTOM_INSTALL_SCRIPT_HASH}"
     hash_files .dockerignore docker/Dockerfile.custom-basic
   } | hash_payload
 )"
@@ -97,7 +134,7 @@ IMAGE_KEY="$(
     printf 'impact_pack_ref=%s\n' "${IMPACT_PACK_REF}"
     printf 'sapiens2_easy_ref=%s\n' "${SAPIENS2_EASY_REF}"
     printf 'depth_anything_v3_ref=%s\n' "${DEPTH_ANYTHING_V3_REF}"
-    printf 'scripts_hash=%s\n' "${SCRIPT_HASH}"
+    printf 'custom_install_script_hash=%s\n' "${CUSTOM_INSTALL_SCRIPT_HASH}"
     hash_files .dockerignore docker/Dockerfile.custom-image
   } | hash_payload
 )"
@@ -110,7 +147,7 @@ VIDEO_KEY="$(
     printf 'seedvr2_video_upscaler_ref=%s\n' "${SEEDVR2_VIDEO_UPSCALER_REF}"
     printf 'wan_video_wrapper_ref=%s\n' "${WAN_VIDEO_WRAPPER_REF}"
     printf 'ltx_video_ref=%s\n' "${LTX_VIDEO_REF}"
-    printf 'scripts_hash=%s\n' "${SCRIPT_HASH}"
+    printf 'custom_install_script_hash=%s\n' "${CUSTOM_INSTALL_SCRIPT_HASH}"
     hash_files .dockerignore docker/Dockerfile.custom-video
   } | hash_payload
 )"

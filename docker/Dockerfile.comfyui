@@ -55,7 +55,7 @@ RUN --mount=type=cache,id=pip-comfyui,target=/root/.cache/pip \
     find "${COMFY_HOME}" -type d -name "__pycache__" -prune -exec rm -rf {} + && \
     find "${COMFY_HOME}" -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete
 
-COPY scripts/ /opt/bootstrap/scripts/
+COPY scripts/cleanup-image.sh scripts/init-storage.sh scripts/verify_image.py scripts/verify_protected_packages.py /opt/bootstrap/scripts/
 COPY start.sh /opt/bootstrap/start.sh
 
 RUN chmod +x /opt/bootstrap/start.sh /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
