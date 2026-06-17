@@ -5,7 +5,7 @@ Runpod Pod template for ComfyUI with staged Docker images, persistent volume sto
 ## What this image is for
 
 - Start ComfyUI quickly on RunPod
-- Expose one TLS-protected TCP port for both ComfyUI and File Browser
+- Expose one TLS- and AuthCrunch-protected TCP port for both ComfyUI and File Browser
 - Keep the PyTorch/CUDA/Python stack tied to one upstream PyTorch image tag
 - Avoid rebuilding the full stack when only later layers change
 - Keep models, outputs, workflows, and most mutable custom nodes on a persistent volume
@@ -88,7 +88,7 @@ Mutable data stays on the volume:
 - temp files
 - user workflows
 - user-installed custom nodes
-- File Browser database and Caddy TLS material
+- File Browser database and Caddy/AuthCrunch state
 - logs
 
 Main custom node path:
@@ -115,18 +115,27 @@ Caddy reverse proxies to private localhost services:
 - `/` to ComfyUI on `127.0.0.1:8188`
 - `/files` to File Browser on `127.0.0.1:8080`
 
-Caddy generates a self-signed TLS certificate at container startup if one does not already exist under `/workspace/storage/caddy/tls`.
+Caddy uses its internal CA for TLS and stores Caddy/AuthCrunch state under `/workspace/storage/caddy`.
+Unauthenticated requests to ComfyUI and File Browser are redirected to the AuthCrunch login page at `/auth`.
+File Browser uses proxy-header authentication behind Caddy; Caddy writes the authenticated AuthCrunch username to `X-AuthCrunch-User`, and the startup script ensures the matching File Browser admin account exists with command-execution permissions.
 
 Set these environment variables in the RunPod template:
 
 | Name | Default | Purpose |
 |---|---|---|
 | `CADDY_HTTPS_PORT` | `8443` | Public TLS port inside the container |
-| `CADDY_BASIC_AUTH_USER` | `runpod` | Caddy basic-auth username |
-| `CADDY_BASIC_AUTH_PASSWORD` | `runpod-comfyui` | Caddy basic-auth password |
-| `CADDY_TLS_REGENERATE` | `false` | Regenerate the TLS key/cert on startup |
+| `AUTHCRUNCH_AUTH_PATH` | `/auth` | AuthCrunch login path served by Caddy |
+| `AUTHCRUNCH_ADMIN_USER` | `runpod` | Initial AuthCrunch local admin username |
+| `AUTHCRUNCH_ADMIN_EMAIL` | `runpod@localdomain.local` | Initial AuthCrunch local admin email |
+| `AUTHCRUNCH_ADMIN_PASSWORD` | `runpod-comfyui` | Initial AuthCrunch local admin password |
+| `AUTHCRUNCH_JWT_SHARED_KEY` | empty | Optional JWT signing key; generated persistently when unset |
 | `FILEBROWSER_ROOT` | `/` | File Browser root; `/` exposes both container filesystem and the `/workspace` volume |
 | `FILEBROWSER_DATABASE` | `/workspace/storage/filebrowser/filebrowser.db` | File Browser database path |
+| `FILEBROWSER_PROXY_HEADER` | `X-AuthCrunch-User` | Header File Browser trusts for proxy authentication |
+| `FILEBROWSER_ADMIN_USER` | `runpod` | File Browser admin user created when missing; should match the AuthCrunch admin username |
+| `FILEBROWSER_ADMIN_PASSWORD` | `runpod-comfyui` | Password used only when creating the File Browser admin user |
+| `FILEBROWSER_COMMANDS` | `all` | Commands exposed to File Browser's command runner; `all` discovers every executable on `PATH` at startup |
+| `FILEBROWSER_SHELL` | `/bin/bash -c` | Shell used by File Browser command execution |
 
 Use RunPod's [TCP access via public IP](https://docs.runpod.io/pods/configuration/expose-ports#tcp-access-via-public-ip) mode and map the external TCP port to container port `8443`. Because this bypasses RunPod's HTTP proxy, TLS and auth are handled by Caddy in the container.
 

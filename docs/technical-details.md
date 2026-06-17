@@ -70,11 +70,12 @@ execs supervisord as PID 1. supervisord starts ComfyUI, File Browser, and
 Caddy as foreground services, with no inherited Docker `CMD` so ComfyUI is not
 started twice. The RunPod container start command must stay empty; overriding
 it bypasses the expected startup path. Caddy is the public entry point on
-`8443/tcp`, terminates self-signed TLS generated at container startup, applies
-basic auth, serves HTTP/1.1 and HTTP/2 over TCP, and proxies `/` to ComfyUI and
-`/files` to File Browser.
+`8443/tcp`, terminates TLS with Caddy's internal CA, serves the AuthCrunch
+login portal at `/auth`, authorizes ComfyUI and File Browser requests with
+AuthCrunch tokens, serves HTTP/1.1 and HTTP/2 over TCP, and proxies `/` to
+ComfyUI and `/files` to File Browser.
 
-File Browser stores its database under `/workspace/storage/filebrowser` by default. Its default root is `/`, so it can browse both the container filesystem and the mounted RunPod `/workspace` volume. Set `FILEBROWSER_ROOT=/workspace` if you want to restrict it to persistent volume data only.
+File Browser stores its database under `/workspace/storage/filebrowser` by default. Its default root is `/`, so it can browse both the container filesystem and the mounted RunPod `/workspace` volume. It uses proxy-header authentication behind Caddy: Caddy authorizes the request with AuthCrunch, writes the authenticated username to `X-AuthCrunch-User`, and File Browser trusts that header. Startup creates or updates the matching File Browser admin account with command-execution permissions. Set `FILEBROWSER_ROOT=/workspace` if you want to restrict it to persistent volume data only.
 
 ### Basic custom nodes
 

@@ -4,5 +4,10 @@ set -euo pipefail
 WORKSPACE_DIR="${WORKSPACE_DIR:-/workspace}"
 mkdir -p "${WORKSPACE_DIR}/logs"
 
+if [[ -f /etc/caddy/authcrunch.env ]]; then
+  # shellcheck source=/dev/null
+  source /etc/caddy/authcrunch.env
+fi
+
 exec >> "${WORKSPACE_DIR}/logs/caddy.log" 2>&1
 exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile

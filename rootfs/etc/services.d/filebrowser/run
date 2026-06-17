@@ -8,10 +8,46 @@ FILEBROWSER_PORT="${FILEBROWSER_PORT:-8080}"
 FILEBROWSER_ROOT="${FILEBROWSER_ROOT:-/}"
 FILEBROWSER_BASEURL="${FILEBROWSER_BASEURL:-/files}"
 FILEBROWSER_DATABASE="${FILEBROWSER_DATABASE:-${STORAGE_DIR}/filebrowser/filebrowser.db}"
+FILEBROWSER_PROXY_HEADER="${FILEBROWSER_PROXY_HEADER:-X-AuthCrunch-User}"
+FILEBROWSER_ADMIN_USER="${FILEBROWSER_ADMIN_USER:-${AUTHCRUNCH_ADMIN_USER:-${AUTHP_ADMIN_USER:-runpod}}}"
+FILEBROWSER_ADMIN_PASSWORD="${FILEBROWSER_ADMIN_PASSWORD:-${AUTHCRUNCH_ADMIN_PASSWORD:-${AUTHP_ADMIN_SECRET:-runpod-comfyui}}}"
+FILEBROWSER_COMMANDS="${FILEBROWSER_COMMANDS:-all}"
+FILEBROWSER_SHELL="${FILEBROWSER_SHELL:-/bin/bash -c}"
 
 mkdir -p "${WORKSPACE_DIR}/logs" "$(dirname "${FILEBROWSER_DATABASE}")" "${FILEBROWSER_ROOT}"
 
 exec >> "${WORKSPACE_DIR}/logs/filebrowser.log" 2>&1
+
+discover_filebrowser_commands() {
+  local -A seen=()
+  local -a commands=()
+  local -a path_dirs=()
+  local dir candidate name
+
+  IFS=':' read -r -a path_dirs <<< "${PATH}"
+  shopt -s nullglob
+  for dir in "${path_dirs[@]}"; do
+    [[ -d "${dir}" ]] || continue
+    for candidate in "${dir}"/*; do
+      [[ -f "${candidate}" && -x "${candidate}" ]] || continue
+      name="${candidate##*/}"
+      [[ -n "${seen[${name}]:-}" ]] && continue
+      seen["${name}"]=1
+      commands+=("${name}")
+    done
+  done
+  shopt -u nullglob
+
+  if (( ${#commands[@]} == 0 )); then
+    commands=(bash sh)
+  fi
+
+  (IFS=','; printf '%s\n' "${commands[*]}")
+}
+
+if [[ "${FILEBROWSER_COMMANDS}" == "all" ]]; then
+  FILEBROWSER_COMMANDS="$(discover_filebrowser_commands)"
+fi
 
 if [[ ! -s "${FILEBROWSER_DATABASE}" ]]; then
   filebrowser config init --database "${FILEBROWSER_DATABASE}"
@@ -22,8 +58,25 @@ filebrowser --database "${FILEBROWSER_DATABASE}" config set \
   --port "${FILEBROWSER_PORT}" \
   --root "${FILEBROWSER_ROOT}" \
   --baseURL "${FILEBROWSER_BASEURL}" \
-  --auth.method=noauth \
-  --disableExec
+  --auth.method=proxy \
+  --auth.header="${FILEBROWSER_PROXY_HEADER}" \
+  --disableExec=false \
+  --commands "${FILEBROWSER_COMMANDS}" \
+  --shell "${FILEBROWSER_SHELL}"
+
+if filebrowser --database "${FILEBROWSER_DATABASE}" users find "${FILEBROWSER_ADMIN_USER}" >/dev/null 2>&1; then
+  filebrowser --database "${FILEBROWSER_DATABASE}" users update "${FILEBROWSER_ADMIN_USER}" \
+    --perm.admin \
+    --perm.execute \
+    --commands "${FILEBROWSER_COMMANDS}" \
+    --scope "${FILEBROWSER_ROOT}"
+else
+  filebrowser --database "${FILEBROWSER_DATABASE}" users add "${FILEBROWSER_ADMIN_USER}" "${FILEBROWSER_ADMIN_PASSWORD}" \
+    --perm.admin \
+    --perm.execute \
+    --commands "${FILEBROWSER_COMMANDS}" \
+    --scope "${FILEBROWSER_ROOT}"
+fi
 
 exec filebrowser \
   --database "${FILEBROWSER_DATABASE}"

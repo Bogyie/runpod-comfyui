@@ -102,10 +102,10 @@ xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `
 |---|---|---|
 | `BASE_IMAGE` | required | Previous stage image |
 | `CADDY_VERSION` | `2.11.4` | Caddy version |
+| `CADDY_SECURITY_MODULE` | `github.com/greenpau/caddy-security` | AuthCrunch/Caddy security plugin module built into Caddy |
 | `FILEBROWSER_VERSION` | `2.63.15` | File Browser version |
 | `RUNPODCTL_VERSION` | `2.4.0` | runpodctl version |
 | `HUGGINGFACE_HUB_VERSION` | `1.19.0` | Hugging Face Hub CLI package version |
-| `CADDY_LINUX_AMD64_SHA256` | pinned | SHA256 for the Linux amd64 Caddy archive |
 | `FILEBROWSER_LINUX_AMD64_SHA256` | pinned | SHA256 for the Linux amd64 File Browser archive |
 | `RUNPODCTL_LINUX_AMD64_SHA256` | pinned | SHA256 for the Linux amd64 runpodctl binary |
 
@@ -145,11 +145,16 @@ xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `
 | `FILEBROWSER_ROOT` | `/` | File Browser root; `/` exposes both container storage and the `/workspace` volume |
 | `FILEBROWSER_DATABASE` | `/workspace/storage/filebrowser/filebrowser.db` | File Browser persistent database |
 | `CADDY_HTTPS_PORT` | `8443` | Public TLS port inside the container |
-| `CADDY_BASIC_AUTH_USER` | `runpod` | Caddy basic-auth username |
-| `CADDY_BASIC_AUTH_PASSWORD` | `runpod-comfyui` | Caddy basic-auth password |
-| `CADDY_BASIC_AUTH_HASH` | empty | Optional precomputed Caddy password hash; overrides password hashing at startup |
-| `CADDY_TLS_REGENERATE` | `false` | Regenerate the Caddy TLS key/cert on startup |
-| `CADDY_TLS_COMMON_NAME` | `runpod-comfyui.local` | Self-signed certificate common name |
+| `AUTHCRUNCH_AUTH_PATH` | `/auth` | AuthCrunch login path served by Caddy |
+| `AUTHCRUNCH_ADMIN_USER` | `runpod` | Initial AuthCrunch local admin username |
+| `AUTHCRUNCH_ADMIN_EMAIL` | `runpod@localdomain.local` | Initial AuthCrunch local admin email |
+| `AUTHCRUNCH_ADMIN_PASSWORD` | `runpod-comfyui` | Initial AuthCrunch local admin password |
+| `AUTHCRUNCH_JWT_SHARED_KEY` | empty | Optional JWT signing key; generated persistently when unset |
+| `FILEBROWSER_PROXY_HEADER` | `X-AuthCrunch-User` | Header File Browser trusts for proxy authentication |
+| `FILEBROWSER_ADMIN_USER` | `runpod` | File Browser admin user created when missing; should match the AuthCrunch admin username |
+| `FILEBROWSER_ADMIN_PASSWORD` | `runpod-comfyui` | Password used only when creating the File Browser admin user |
+| `FILEBROWSER_COMMANDS` | `all` | Commands exposed to File Browser's command runner; `all` discovers every executable on `PATH` at startup |
+| `FILEBROWSER_SHELL` | `/bin/bash -c` | Shell used by File Browser command execution |
 | `CLI_ARGS` | empty | Extra ComfyUI CLI flags |
 
 Leave the RunPod container start command empty. Runtime and final custom images
