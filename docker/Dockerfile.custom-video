@@ -19,15 +19,16 @@ ARG LTX_VIDEO_REF=229437c6b65796d6a7a63ae34be2bd5ba31fa543
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-COPY scripts/install_custom_nodes.sh scripts/verify_protected_packages.py /opt/bootstrap/scripts/
+COPY scripts/install_custom_nodes.sh scripts/verify_protected_packages.py scripts/cleanup-image.sh /opt/bootstrap/scripts/
 
-RUN --mount=type=cache,id=pip-custom-video,target=/root/.cache/pip \
-    chmod +x /opt/bootstrap/scripts/install_custom_nodes.sh /opt/bootstrap/scripts/verify_protected_packages.py && \
-    /opt/bootstrap/scripts/install_custom_nodes.sh \
+RUN --mount=type=cache,id=pip-custom-video,target=/var/cache/buildkit-pip \
+    chmod +x /opt/bootstrap/scripts/install_custom_nodes.sh /opt/bootstrap/scripts/verify_protected_packages.py /opt/bootstrap/scripts/cleanup-image.sh && \
+    PIP_CACHE_DIR=/var/cache/buildkit-pip /opt/bootstrap/scripts/install_custom_nodes.sh \
       ComfyUI-VideoHelperSuite https://github.com/kosinkadink/ComfyUI-VideoHelperSuite.git "${VIDEO_HELPER_SUITE_REF}" \
       ComfyUI-SeedVR2_VideoUpscaler https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git "${SEEDVR2_VIDEO_UPSCALER_REF}" \
       ComfyUI-WanVideoWrapper https://github.com/kijai/ComfyUI-WanVideoWrapper.git "${WAN_VIDEO_WRAPPER_REF}" \
-      ComfyUI-LTXVideo https://github.com/Lightricks/ComfyUI-LTXVideo.git "${LTX_VIDEO_REF}"
+      ComfyUI-LTXVideo https://github.com/Lightricks/ComfyUI-LTXVideo.git "${LTX_VIDEO_REF}" && \
+    /opt/bootstrap/scripts/cleanup-image.sh
 
 COPY scripts/ /opt/bootstrap/scripts/
 

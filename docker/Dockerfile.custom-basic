@@ -19,15 +19,16 @@ ARG CRYSTOOLS_REF=2f18256c5b5063937106f29a8e0a7db3ae3869b7
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-COPY scripts/install_custom_nodes.sh scripts/verify_protected_packages.py /opt/bootstrap/scripts/
+COPY scripts/install_custom_nodes.sh scripts/verify_protected_packages.py scripts/cleanup-image.sh /opt/bootstrap/scripts/
 
-RUN --mount=type=cache,id=pip-custom-basic,target=/root/.cache/pip \
-    chmod +x /opt/bootstrap/scripts/install_custom_nodes.sh /opt/bootstrap/scripts/verify_protected_packages.py && \
-    /opt/bootstrap/scripts/install_custom_nodes.sh \
+RUN --mount=type=cache,id=pip-custom-basic,target=/var/cache/buildkit-pip \
+    chmod +x /opt/bootstrap/scripts/install_custom_nodes.sh /opt/bootstrap/scripts/verify_protected_packages.py /opt/bootstrap/scripts/cleanup-image.sh && \
+    PIP_CACHE_DIR=/var/cache/buildkit-pip /opt/bootstrap/scripts/install_custom_nodes.sh \
       ComfyUI-Manager https://github.com/Comfy-Org/ComfyUI-Manager.git "${COMFYUI_MANAGER_REF}" \
       ComfyUI-KJNodes https://github.com/kijai/ComfyUI-KJNodes.git "${KJNODES_REF}" \
       rgthree-comfy https://github.com/rgthree/rgthree-comfy.git "${RGTHREE_REF}" \
-      ComfyUI-Crystools https://github.com/crystian/ComfyUI-Crystools.git "${CRYSTOOLS_REF}"
+      ComfyUI-Crystools https://github.com/crystian/ComfyUI-Crystools.git "${CRYSTOOLS_REF}" && \
+    /opt/bootstrap/scripts/cleanup-image.sh
 
 COPY scripts/ /opt/bootstrap/scripts/
 

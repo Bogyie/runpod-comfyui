@@ -19,15 +19,16 @@ ARG DEPTH_ANYTHING_V3_REF=6b08cf418dff47430a72e07d0eec8fdb07d464b1
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-COPY scripts/install_custom_nodes.sh scripts/verify_protected_packages.py /opt/bootstrap/scripts/
+COPY scripts/install_custom_nodes.sh scripts/verify_protected_packages.py scripts/cleanup-image.sh /opt/bootstrap/scripts/
 
-RUN --mount=type=cache,id=pip-custom-image,target=/root/.cache/pip \
-    chmod +x /opt/bootstrap/scripts/install_custom_nodes.sh /opt/bootstrap/scripts/verify_protected_packages.py && \
-    /opt/bootstrap/scripts/install_custom_nodes.sh \
+RUN --mount=type=cache,id=pip-custom-image,target=/var/cache/buildkit-pip \
+    chmod +x /opt/bootstrap/scripts/install_custom_nodes.sh /opt/bootstrap/scripts/verify_protected_packages.py /opt/bootstrap/scripts/cleanup-image.sh && \
+    PIP_CACHE_DIR=/var/cache/buildkit-pip /opt/bootstrap/scripts/install_custom_nodes.sh \
       comfyui_controlnet_aux https://github.com/Fannovel16/comfyui_controlnet_aux.git "${CONTROLNET_AUX_REF}" \
       ComfyUI-Impact-Pack https://github.com/ltdrdata/ComfyUI-Impact-Pack.git "${IMPACT_PACK_REF}" \
       ComfyUI-Sapiens2-Easy https://github.com/Bogyie/ComfyUI-Sapiens2-Easy.git "${SAPIENS2_EASY_REF}" \
-      ComfyUI-DepthAnythingV3 https://github.com/PozzettiAndrea/ComfyUI-DepthAnythingV3.git "${DEPTH_ANYTHING_V3_REF}"
+      ComfyUI-DepthAnythingV3 https://github.com/PozzettiAndrea/ComfyUI-DepthAnythingV3.git "${DEPTH_ANYTHING_V3_REF}" && \
+    /opt/bootstrap/scripts/cleanup-image.sh
 
 COPY scripts/ /opt/bootstrap/scripts/
 
