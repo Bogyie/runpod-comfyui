@@ -14,10 +14,22 @@ ENV DEBIAN_FRONTEND=noninteractive \
     WORKSPACE_DIR=/workspace \
     STORAGE_DIR=/workspace/storage \
     COMFYUI_PORT=8188 \
-    CODE_SERVER_PORT=8080 \
+    COMFYUI_HOST=127.0.0.1 \
+    FILEBROWSER_PORT=8080 \
+    FILEBROWSER_HOST=127.0.0.1 \
+    FILEBROWSER_BASEURL=/files \
+    FILEBROWSER_ROOT=/ \
+    CADDY_HTTPS_PORT=8443 \
+    CADDY_BASIC_AUTH_USER=runpod \
+    CADDY_BASIC_AUTH_PASSWORD=runpod-comfyui \
+    S6_KEEP_ENV=1 \
+    S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
+    S6_VERBOSITY=1 \
     CLI_ARGS=
 
-ARG CODE_SERVER_VERSION=4.103.2
+ARG S6_OVERLAY_VERSION=3.2.3.0
+ARG CADDY_VERSION=2.11.4
+ARG FILEBROWSER_VERSION=2.63.15
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -29,8 +41,11 @@ RUN --mount=type=cache,id=apt-runtime-tools,target=/var/cache/apt,sharing=locked
       gpg \
       git \
       jq \
+      openssl \
       openssh-client \
-      wget && \
+      tar \
+      wget \
+      xz-utils && \
     mkdir -p /etc/apt/keyrings && \
     curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
       -o /etc/apt/keyrings/githubcli-archive-keyring.gpg && \
@@ -39,10 +54,25 @@ RUN --mount=type=cache,id=apt-runtime-tools,target=/var/cache/apt,sharing=locked
       > /etc/apt/sources.list.d/github-cli.list && \
     apt-get update && apt-get install -y --no-install-recommends gh
 
-RUN curl -fsSL -o /tmp/code-server.deb \
-      "https://github.com/coder/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_amd64.deb" && \
-    dpkg -i /tmp/code-server.deb && \
-    rm /tmp/code-server.deb
+RUN curl -fsSL -o /tmp/s6-overlay-noarch.tar.xz \
+      "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz" && \
+    curl -fsSL -o /tmp/s6-overlay-x86_64.tar.xz \
+      "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-x86_64.tar.xz" && \
+    tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz && \
+    tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz && \
+    rm /tmp/s6-overlay-noarch.tar.xz /tmp/s6-overlay-x86_64.tar.xz
+
+RUN curl -fsSL -o /tmp/caddy.tar.gz \
+      "https://github.com/caddyserver/caddy/releases/download/v${CADDY_VERSION}/caddy_${CADDY_VERSION}_linux_amd64.tar.gz" && \
+    tar -C /usr/local/bin -xzf /tmp/caddy.tar.gz caddy && \
+    chmod +x /usr/local/bin/caddy && \
+    rm /tmp/caddy.tar.gz
+
+RUN curl -fsSL -o /tmp/filebrowser.tar.gz \
+      "https://github.com/filebrowser/filebrowser/releases/download/v${FILEBROWSER_VERSION}/linux-amd64-filebrowser.tar.gz" && \
+    tar -C /usr/local/bin -xzf /tmp/filebrowser.tar.gz filebrowser && \
+    chmod +x /usr/local/bin/filebrowser && \
+    rm /tmp/filebrowser.tar.gz
 
 RUN wget -q -O /usr/local/bin/runpodctl \
       "https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64" && \
@@ -60,19 +90,30 @@ RUN chmod +x /opt/bootstrap/scripts/verify_protected_packages.py && \
     "${COMFY_VENV}/bin/python" -m pip freeze > /opt/bootstrap/base-requirements.lock
 
 COPY scripts/ /opt/bootstrap/scripts/
+COPY rootfs/ /
 
 RUN chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
+    chmod +x /etc/cont-init.d/* /etc/services.d/*/run && \
     /opt/bootstrap/scripts/cleanup-image.sh && \
     command -v git && \
     command -v curl && \
     command -v wget && \
     command -v runpodctl && \
     command -v gh && \
-    command -v code-server && \
+    command -v caddy && \
+    command -v filebrowser && \
+    test -x /init && \
+    test -x /etc/cont-init.d/10-runpod-comfyui-init && \
+    test -x /etc/services.d/comfyui/run && \
+    test -x /etc/services.d/filebrowser/run && \
+    test -x /etc/services.d/caddy/run && \
     (command -v hf || command -v huggingface-cli || test -x "${COMFY_VENV}/bin/hf" || test -x "${COMFY_VENV}/bin/huggingface-cli") && \
     "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_image.py \
       --stage runtime-tools \
       --import huggingface_hub \
       --path /opt/bootstrap/base-requirements.lock
 
-EXPOSE 8080
+EXPOSE 8443
+
+ENTRYPOINT ["/init"]
+CMD []

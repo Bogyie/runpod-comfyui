@@ -17,7 +17,9 @@ env:
   TRANSFORMERS_VERSION: "5.12.0"
   XFORMERS_VERSION: "0.0.35"
   FLASH_ATTN_VERSION: "2.8.3"
-  CODE_SERVER_VERSION: "4.103.2"
+  S6_OVERLAY_VERSION: "3.2.3.0"
+  CADDY_VERSION: "2.11.4"
+  FILEBROWSER_VERSION: "2.63.15"
   COMFYUI_MANAGER_REF: e4c5401dd5da96e901f8b8cb8a7eca63e13e8ee5
   KJNODES_REF: 8a225698ae7cb87632817419f83a64ecf571fe76
   RGTHREE_REF: 738105af5fb14e96fbecaf406dc356e284797e8c
@@ -261,7 +263,9 @@ jobs:
           file: ./docker/Dockerfile.runtime-tools
           build-args: |
             BASE_IMAGE=${{ needs.build-optimized.outputs.image_ref }}
-            CODE_SERVER_VERSION=${{ env.CODE_SERVER_VERSION }}
+            S6_OVERLAY_VERSION=${{ env.S6_OVERLAY_VERSION }}
+            CADDY_VERSION=${{ env.CADDY_VERSION }}
+            FILEBROWSER_VERSION=${{ env.FILEBROWSER_VERSION }}
           push: true
           tags: |
             ${{ needs.prepare.outputs.tools_build_image }}

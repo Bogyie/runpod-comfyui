@@ -3,7 +3,7 @@
 ## P0 - 갈아엎는 수준으로 먼저 볼 것
 
 - [ ] 컨테이너 생존 모델 재설계
-  - 현재 `start.sh`는 ComfyUI가 죽어도 `code-server`가 살아 있으면 컨테이너를 계속 유지한다.
+  - s6-overlay가 ComfyUI, File Browser, Caddy를 관리하지만 healthcheck/recovery 정책은 아직 명시적이지 않다.
   - RunPod에서는 Pod는 살아 있는데 주 서비스는 죽은 상태가 될 수 있다.
   - 주 서비스 종료 시 컨테이너도 종료하거나, supervisor/healthcheck/recovery mode를 명시적으로 분리한다.
 
@@ -26,7 +26,7 @@
 
 - [ ] supply-chain 재현성 강화
   - `runpodctl`을 `latest`로 다운로드하지 말고 버전과 checksum 또는 digest를 고정한다.
-  - `code-server.deb` 다운로드에 checksum 검증을 추가한다.
+  - s6-overlay, Caddy, File Browser 다운로드에 checksum 검증을 추가한다.
   - FlashAttention wheel resolver가 선택한 asset URL/digest를 build key 또는 lock artifact에 포함한다.
 
 - [ ] custom node 설치 sandbox/allowlist 검토
@@ -45,8 +45,8 @@
   - JSON array, newline args file, 또는 명시적 env var allowlist로 바꾼다.
 
 - [ ] `COMFY_ORIGIN` override 지원
-  - 현재 `start.sh`와 `restart-comfyui.sh`는 RunPod pod id 또는 localhost로만 origin을 계산한다.
-  - 사용자가 `COMFY_ORIGIN`을 명시하면 그 값을 우선 사용하게 한다.
+  - 현재 ComfyUI는 기본적으로 `COMFYUI_CORS_ORIGIN=*`로 실행된다.
+  - 더 좁은 CORS 정책이 필요하면 Caddy 공개 origin을 명시적으로 주입하는 방식을 정한다.
 
 - [ ] `restart-comfyui.sh`의 프로세스 종료 범위 축소
   - 현재 `pkill -f "python.*main.py"`는 같은 컨테이너 안의 다른 Python 프로세스를 잡을 수 있다.

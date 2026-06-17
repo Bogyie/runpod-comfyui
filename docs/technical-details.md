@@ -7,6 +7,9 @@
 - Transformers: `5.12.0`
 - xformers: `0.0.35`
 - FlashAttention: `2.8.3`
+- s6-overlay: `3.2.3.0`
+- Caddy: `2.11.4`
+- File Browser: `2.63.15`
 
 Python, CUDA, PyTorch, torchvision, and torchaudio come from the PyTorch base image tag. Changing that tag is the intended way to move the low-level ML stack.
 
@@ -51,13 +54,19 @@ Both installs require binary wheels. FlashAttention wheel selection is dynamic a
 
 The runtime tools image adds:
 
+- s6-overlay
+- Caddy
+- File Browser
 - `huggingface_hub[cli]`
 - git
 - curl
 - wget
 - runpodctl
 - GitHub CLI
-- code-server
+
+Final images use s6-overlay as PID 1. s6 starts ComfyUI, File Browser, and Caddy as foreground services, with no inherited Docker `CMD` so ComfyUI is not started twice. Caddy is the public entry point on `8443/tcp`, terminates self-signed TLS generated at container startup, applies basic auth, serves HTTP/1.1 and HTTP/2 over TCP, and proxies `/` to ComfyUI and `/files` to File Browser.
+
+File Browser stores its database under `/workspace/storage/filebrowser` by default. Its default root is `/`, so it can browse both the container filesystem and the mounted RunPod `/workspace` volume. Set `FILEBROWSER_ROOT=/workspace` if you want to restrict it to persistent volume data only.
 
 ### Basic custom nodes
 

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+COMFYUI_DIR="${COMFYUI_DIR:-/opt/comfy/ComfyUI}"
+COMFY_VENV="${COMFY_VENV:-/opt/comfy/venv}"
+WORKSPACE_DIR="${WORKSPACE_DIR:-/workspace}"
+COMFYUI_PORT="${COMFYUI_PORT:-8188}"
+COMFYUI_HOST="${COMFYUI_HOST:-127.0.0.1}"
+COMFYUI_CORS_ORIGIN="${COMFYUI_CORS_ORIGIN:-*}"
+CLI_ARGS="${CLI_ARGS:-}"
+
+mkdir -p "${WORKSPACE_DIR}/logs"
+# shellcheck source=/dev/null
+source "${COMFY_VENV}/bin/activate"
+read -ra cli_args <<< "${CLI_ARGS}"
+
+command=(
+  python "${COMFYUI_DIR}/main.py"
+  --listen "${COMFYUI_HOST}"
+  --port "${COMFYUI_PORT}"
+)
+
+if [[ -n "${COMFYUI_CORS_ORIGIN}" ]]; then
+  command+=(--enable-cors-header "${COMFYUI_CORS_ORIGIN}")
+fi
+
+command+=("${cli_args[@]+"${cli_args[@]}"}")
+
+exec >> "${WORKSPACE_DIR}/logs/comfyui.log" 2>&1
+exec "${command[@]}"

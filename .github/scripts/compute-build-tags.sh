@@ -30,6 +30,17 @@ SCRIPT_HASH="$(
     | cut -d' ' -f1
 )"
 
+ROOTFS_HASH="$(
+  find rootfs -type f -print \
+    | sort \
+    | while read -r path; do
+        printf 'file:%s\n' "${path}"
+        sha256sum "${path}"
+      done \
+    | sha256sum \
+    | cut -d' ' -f1
+)"
+
 COMFYUI_KEY="$(
   {
     printf 'stage=comfyui\n'
@@ -56,8 +67,11 @@ TOOLS_KEY="$(
   {
     printf 'stage=runtime-tools\n'
     printf 'parent_key=%s\n' "${OPTIMIZED_KEY}"
-    printf 'code_server_version=%s\n' "${CODE_SERVER_VERSION}"
+    printf 's6_overlay_version=%s\n' "${S6_OVERLAY_VERSION}"
+    printf 'caddy_version=%s\n' "${CADDY_VERSION}"
+    printf 'filebrowser_version=%s\n' "${FILEBROWSER_VERSION}"
     printf 'scripts_hash=%s\n' "${SCRIPT_HASH}"
+    printf 'rootfs_hash=%s\n' "${ROOTFS_HASH}"
     hash_files .dockerignore docker/Dockerfile.runtime-tools
   } | hash_payload
 )"

@@ -18,7 +18,7 @@ Each stage produces a pushed image. The next dependent job consumes the previous
 |---|---|---|
 | `comfyui` | `docker/Dockerfile.comfyui` | ComfyUI, Transformers, startup scripts, storage helpers |
 | `optimized` | `docker/Dockerfile.optimized` | xformers and FlashAttention wheels |
-| `runtime-tools` | `docker/Dockerfile.runtime-tools` | Hugging Face CLI, git, curl, wget, runpodctl, GitHub CLI, code-server |
+| `runtime-tools` | `docker/Dockerfile.runtime-tools` | s6-overlay, Caddy, File Browser, Hugging Face CLI, git, curl, wget, runpodctl, GitHub CLI |
 | `custom-basic` | `docker/Dockerfile.custom-basic` | ComfyUI-Manager, KJNodes, rgthree-comfy, Crystools |
 | `custom-image` | `docker/Dockerfile.custom-image` | controlnet aux, Impact Pack, Sapiens2 Easy, Depth Anything V3 |
 | `custom-video` | `docker/Dockerfile.custom-video` | VideoHelperSuite, SeedVR2 Video Upscaler, WanVideoWrapper, LTXVideo |
@@ -91,7 +91,9 @@ xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `
 | Name | Default | Purpose |
 |---|---|---|
 | `BASE_IMAGE` | required | Previous stage image |
-| `CODE_SERVER_VERSION` | `4.103.2` | code-server version |
+| `S6_OVERLAY_VERSION` | `3.2.3.0` | s6-overlay version |
+| `CADDY_VERSION` | `2.11.4` | Caddy version |
+| `FILEBROWSER_VERSION` | `2.63.15` | File Browser version |
 
 ### Basic custom nodes
 
@@ -121,10 +123,20 @@ xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `
 | Name | Default | Purpose |
 |---|---|---|
 | `COMFYUI_PORT` | `8188` | ComfyUI port |
-| `CODE_SERVER_PORT` | `8080` | code-server port |
-| `COMFYUI_HOST` | `0.0.0.0` | ComfyUI bind address |
-| `CODE_SERVER_HOST` | `0.0.0.0` | code-server bind address |
-| `CODE_SERVER_AUTH` | `none` | code-server auth mode |
+| `COMFYUI_HOST` | `127.0.0.1` | ComfyUI bind address behind Caddy |
+| `COMFYUI_CORS_ORIGIN` | `*` | ComfyUI CORS origin passed to `--enable-cors-header`; set empty to omit the flag |
+| `FILEBROWSER_PORT` | `8080` | File Browser port behind Caddy |
+| `FILEBROWSER_HOST` | `127.0.0.1` | File Browser bind address behind Caddy |
+| `FILEBROWSER_BASEURL` | `/files` | File Browser URL prefix |
+| `FILEBROWSER_ROOT` | `/` | File Browser root; `/` exposes both container storage and the `/workspace` volume |
+| `FILEBROWSER_DATABASE` | `/workspace/storage/filebrowser/filebrowser.db` | File Browser persistent database |
+| `CADDY_HTTPS_PORT` | `8443` | Public TLS port inside the container |
+| `CADDY_BASIC_AUTH_USER` | `runpod` | Caddy basic-auth username |
+| `CADDY_BASIC_AUTH_PASSWORD` | `runpod-comfyui` | Caddy basic-auth password |
+| `CADDY_BASIC_AUTH_HASH` | empty | Optional precomputed Caddy password hash; overrides password hashing at startup |
+| `CADDY_TLS_REGENERATE` | `false` | Regenerate the Caddy TLS key/cert on startup |
+| `CADDY_TLS_COMMON_NAME` | `runpod-comfyui.local` | Self-signed certificate common name |
+| `S6_BEHAVIOUR_IF_STAGE2_FAILS` | `2` | Stop the container when init/config generation fails |
 | `CLI_ARGS` | empty | Extra ComfyUI CLI flags |
 
 ## Cache strategy
