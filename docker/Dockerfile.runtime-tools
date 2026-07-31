@@ -44,7 +44,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 ARG FILEBROWSER_VERSION=2.63.15
 ARG RUNPODCTL_VERSION=2.4.0
-ARG HUGGINGFACE_HUB_VERSION=1.19.0
+ARG HUGGINGFACE_HUB_VERSION=1.26.0
 ARG FILEBROWSER_LINUX_AMD64_SHA256=2e781227d626d8b8ba533b77bdd6cb3a8cf70e014af1a8a3966a13a901a0a951
 ARG RUNPODCTL_LINUX_AMD64_SHA256=3efb8bbebdfec8b63f8a3a0c99c806f4d348da2a3d96fd879c350eb14b5299ad
 
@@ -90,7 +90,7 @@ RUN curl -fsSL -o /usr/local/bin/runpodctl \
     chmod +x /usr/local/bin/runpodctl
 
 RUN --mount=type=cache,id=pip-runtime-tools,target=/root/.cache/pip \
-    "${COMFY_VENV}/bin/python" -m pip install "huggingface_hub[cli]==${HUGGINGFACE_HUB_VERSION}"
+    "${COMFY_VENV}/bin/python" -m pip install "huggingface_hub==${HUGGINGFACE_HUB_VERSION}"
 
 COPY scripts/verify_protected_packages.py /opt/bootstrap/scripts/
 

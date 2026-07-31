@@ -64,15 +64,15 @@ Use a pinned release, SHA, or version-slug tag for production templates rather t
 ## Current baseline
 
 - Base image: `pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime`
-- ComfyUI: `v0.24.0`
-- Transformers: `5.12.0`
+- ComfyUI: `v0.29.2`
+- Transformers: `5.14.1`
 - xformers: `0.0.35`
 - FlashAttention: `2.8.3`
 - Supervisor: distro package
 - Caddy: `2.11.4`
 - File Browser: `2.63.15`
 - runpodctl: `2.4.0`
-- Hugging Face Hub CLI: `1.19.0`
+- Hugging Face Hub CLI: `1.26.0`
 
 Python, CUDA, PyTorch, torchvision, and torchaudio come from the PyTorch base image tag, not from separate build arguments.
 

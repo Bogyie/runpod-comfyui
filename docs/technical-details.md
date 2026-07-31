@@ -3,8 +3,8 @@
 ## Current baseline
 
 - Base image: `pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime`
-- ComfyUI: `v0.24.0`
-- Transformers: `5.12.0`
+- ComfyUI: `v0.29.2`
+- Transformers: `5.14.1`
 - xformers: `0.0.35`
 - FlashAttention: `2.8.3`
 - Supervisor: distro package
@@ -17,8 +17,9 @@ Before using the image, confirm the host driver is new enough for the CUDA runti
 
 ## Compatibility checks
 
-- ComfyUI `v0.24.0` declares Python `>=3.10`.
-- Transformers `5.12.0` declares Python `3.10+` and PyTorch `2.4+`.
+- ComfyUI `v0.29.2` declares Python `>=3.10`.
+- Transformers `5.14.1` declares Python `3.10+` and PyTorch `2.4+`.
+- xformers `0.0.35` stable wheels require PyTorch `2.10.0`, so the base image remains on that PyTorch release.
 - xformers is installed from the PyTorch CUDA wheel index derived from the selected PyTorch base image.
 - FlashAttention is installed from the mjunya prebuilt wheel releases; the build fails before compiling if no matching wheel exists.
 
@@ -34,8 +35,8 @@ The helper scripts keep the historical `COMFY_VENV` name, and its default value 
 
 The ComfyUI image installs:
 
-- ComfyUI `v0.24.0`
-- Transformers `5.12.0`
+- ComfyUI `v0.29.2`
+- Transformers `5.14.1`
 - startup and recovery scripts
 - storage initialization helpers
 
@@ -57,7 +58,7 @@ The runtime tools image adds:
 - supervisord
 - Caddy
 - File Browser
-- `huggingface_hub[cli]`
+- `huggingface_hub` (including the `hf` CLI)
 - git
 - curl
 - wget

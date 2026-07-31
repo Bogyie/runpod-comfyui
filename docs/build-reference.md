@@ -83,8 +83,8 @@ The base slug is derived from `PYTORCH_BASE_IMAGE`; it is not reconstructed from
 | Name | Default | Purpose |
 |---|---|---|
 | `BASE_IMAGE` | `pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime` | Upstream PyTorch image tag |
-| `COMFYUI_REF` | `v0.24.0` | ComfyUI git ref |
-| `TRANSFORMERS_VERSION` | `5.12.0` | Transformers version |
+| `COMFYUI_REF` | `v0.29.2` | ComfyUI git ref |
+| `TRANSFORMERS_VERSION` | `5.14.1` | Transformers version |
 
 ### Optimized
 
@@ -96,6 +96,8 @@ The base slug is derived from `PYTORCH_BASE_IMAGE`; it is not reconstructed from
 
 xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `--only-binary`. The CUDA index suffix, such as `cu128`, is derived from the `torch.version.cuda` value inside the selected PyTorch base image. FlashAttention is resolved from the mjunya prebuilt wheel releases by detecting the Python ABI, torch version, CUDA version, and CPU architecture inside the current image.
 
+xformers `0.0.35` stable wheels require PyTorch `2.10.0`; keep the base image on that PyTorch release unless xformers is upgraded to a build that supports a newer one.
+
 ### Runtime tools
 
 | Name | Default | Purpose |
@@ -105,7 +107,7 @@ xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `
 | `CADDY_SECURITY_MODULE` | `github.com/greenpau/caddy-security` | AuthCrunch/Caddy security plugin module built into Caddy |
 | `FILEBROWSER_VERSION` | `2.63.15` | File Browser version |
 | `RUNPODCTL_VERSION` | `2.4.0` | runpodctl version |
-| `HUGGINGFACE_HUB_VERSION` | `1.19.0` | Hugging Face Hub CLI package version |
+| `HUGGINGFACE_HUB_VERSION` | `1.26.0` | Hugging Face Hub CLI package version |
 | `FILEBROWSER_LINUX_AMD64_SHA256` | pinned | SHA256 for the Linux amd64 File Browser archive |
 | `RUNPODCTL_LINUX_AMD64_SHA256` | pinned | SHA256 for the Linux amd64 runpodctl binary |
 
@@ -114,9 +116,9 @@ xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `
 | Name | Default | Purpose |
 |---|---|---|
 | `BASE_IMAGE` | required | Previous stage image |
-| `COMFYUI_MANAGER_REF` | `e4c5401dd5da96e901f8b8cb8a7eca63e13e8ee5` | ComfyUI-Manager git ref |
-| `KJNODES_REF` | `8a225698ae7cb87632817419f83a64ecf571fe76` | ComfyUI-KJNodes git ref |
-| `RGTHREE_REF` | `738105af5fb14e96fbecaf406dc356e284797e8c` | rgthree-comfy git ref |
+| `COMFYUI_MANAGER_REF` | `2b40deba7d04afeee29ee70c88f6c336e43dc9ca` | ComfyUI-Manager git ref |
+| `KJNODES_REF` | `4d46ac107c33ed8a3d181b8776ede66498583380` | ComfyUI-KJNodes git ref |
+| `RGTHREE_REF` | `6b76ee6f2c5a007710b5a16f97c94330d6ecc871` | rgthree-comfy git ref |
 | `CRYSTOOLS_REF` | `2f18256c5b5063937106f29a8e0a7db3ae3869b7` | ComfyUI-Crystools git ref |
 
 ### Purpose custom nodes
@@ -130,7 +132,7 @@ xformers is installed from the PyTorch CUDA wheel index with `--index-url` and `
 | `VIDEO_HELPER_SUITE_REF` | `4ee72c065db22c9d96c2427954dc69e7b908444b` | ComfyUI-VideoHelperSuite git ref |
 | `SEEDVR2_VIDEO_UPSCALER_REF` | `4490bd1f482e026674543386bb2a4d176da245b9` | ComfyUI-SeedVR2_VideoUpscaler git ref |
 | `WAN_VIDEO_WRAPPER_REF` | `088128b224242e110d3906c6750e9a3a348a659b` | ComfyUI-WanVideoWrapper git ref |
-| `LTX_VIDEO_REF` | `229437c6b65796d6a7a63ae34be2bd5ba31fa543` | ComfyUI-LTXVideo git ref |
+| `LTX_VIDEO_REF` | `3b9c5cde4700917074823d45e25401d81049f8fc` | ComfyUI-LTXVideo git ref |
 
 ## Runtime environment variables
 
