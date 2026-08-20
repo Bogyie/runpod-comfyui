@@ -3,7 +3,7 @@
 ## Current baseline
 
 - Base image: `pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime`
-- ComfyUI: `v0.29.2`
+- ComfyUI: `v0.33.1`
 - Transformers: `5.14.1`
 - xformers: `0.0.35`
 - FlashAttention: `2.8.3`
@@ -17,7 +17,7 @@ Before using the image, confirm the host driver is new enough for the CUDA runti
 
 ## Compatibility checks
 
-- ComfyUI `v0.29.2` declares Python `>=3.10`.
+- ComfyUI `v0.33.1` is installed from its stable release tag and its published requirements file.
 - Transformers `5.14.1` declares Python `3.10+` and PyTorch `2.4+`.
 - xformers `0.0.35` stable wheels require PyTorch `2.10.0`, so the base image remains on that PyTorch release.
 - xformers is installed from the PyTorch CUDA wheel index derived from the selected PyTorch base image.
@@ -29,13 +29,13 @@ The image creates `/opt/comfy/venv` from the Python interpreter shipped by the P
 
 The helper scripts keep the historical `COMFY_VENV` name, and its default value remains `/opt/comfy/venv`.
 
-## Stage details
+## Build details
 
 ### ComfyUI
 
-The ComfyUI image installs:
+The shared ComfyUI stage installs:
 
-- ComfyUI `v0.29.2`
+- ComfyUI `v0.33.1`
 - Transformers `5.14.1`
 - startup and recovery scripts
 - storage initialization helpers
@@ -44,7 +44,7 @@ It captures the first protected package manifest after ComfyUI dependencies are 
 
 ### Optimized
 
-The optimized image adds:
+The optional optimized stage adds:
 
 - xformers `0.0.35`
 - FlashAttention `2.8.3`
@@ -53,7 +53,7 @@ Both installs require binary wheels. FlashAttention wheel selection is dynamic a
 
 ### Runtime tools
 
-The runtime tools image adds:
+The shared runtime-tools stage adds:
 
 - supervisord
 - Caddy
@@ -85,19 +85,14 @@ File Browser stores its database under `/workspace/storage/filebrowser` by defau
 
 ### Basic custom nodes
 
-The basic custom-node image adds:
+Both final images add:
 
 - `Comfy-Org/ComfyUI-Manager`
 - `kijai/ComfyUI-KJNodes`
 - `rgthree/rgthree-comfy`
 - `crystian/ComfyUI-Crystools`
 
-### Purpose custom nodes
-
-The final purpose images split advanced nodes by workflow:
-
-- `custom-image`: `Fannovel16/comfyui_controlnet_aux`, `ltdrdata/ComfyUI-Impact-Pack`, `Bogyie/ComfyUI-Sapiens2-Easy`, `PozzettiAndrea/ComfyUI-DepthAnythingV3`
-- `custom-video`: `kosinkadink/ComfyUI-VideoHelperSuite`, `numz/ComfyUI-SeedVR2_VideoUpscaler`, `kijai/ComfyUI-WanVideoWrapper`, `Lightricks/ComfyUI-LTXVideo`
+The `basic` variant reaches the runtime stage through the xformers/FlashAttention branch, preserving the previous default image behavior. The `basic-unoptimized` variant reaches the same runtime and custom-node stages through the unoptimized branch. Only the two final variants are pushed.
 
 ## Model path normalization
 
@@ -109,5 +104,5 @@ The final purpose images split advanced nodes by workflow:
 
 - Protected package drift is checked during build.
 - The guarded package set includes torch, torchvision, torchaudio, transformers, xformers, flash-attn, triton, and sageattention.
-- Custom-node stages verify that node requirements did not replace those packages unexpectedly.
-- Each image removes apt lists, pip caches, `.git` directories, and Python bytecode before running a final smoke verification.
+- Custom-node installation verifies that node requirements did not replace those packages unexpectedly.
+- Each final image removes apt lists, pip caches, `.git` directories, and Python bytecode before running a smoke verification.

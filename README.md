@@ -1,70 +1,51 @@
 # runpod-comfyui
 
-Runpod Pod template for ComfyUI with staged Docker images, persistent volume storage, File Browser access, Caddy TLS reverse proxying, purpose-built custom-node variants, and built-in recovery helpers.
+Runpod Pod template for ComfyUI with two Basic image variants, persistent volume storage, File Browser access, Caddy TLS reverse proxying, and built-in recovery helpers.
 
 ## What this image is for
 
 - Start ComfyUI quickly on RunPod
 - Expose one TLS- and AuthCrunch-protected TCP port for both ComfyUI and File Browser
 - Keep the PyTorch/CUDA/Python stack tied to one upstream PyTorch image tag
-- Avoid rebuilding the full stack when only later layers change
+- Choose between a lean Basic image and a Basic image with GPU optimization packages
 - Keep models, outputs, workflows, and most mutable custom nodes on a persistent volume
-- Publish separate final images for basic, image, and video workflows
+- Publish exactly two final image variants
 
-## Staged image chain
+## Image variants
 
-The build starts from the upstream PyTorch image:
+Both variants start from the PyTorch image configured in `docker.env` and contain the same ComfyUI runtime, access tools, and Basic custom nodes.
 
-```text
-pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime
-```
-
-Each repo-owned step builds and pushes its own image. The SHA-scoped tag from one step becomes the next step's `BASE_IMAGE`.
-
-```text
-comfyui -> optimized -> runtime-tools -> custom-basic
-                                      -> custom-image
-                                      -> custom-video
-```
-
-The purpose images are built in parallel after `custom-basic`.
-
-| Stage | Adds |
+| Variant | Adds |
 |---|---|
-| `comfyui` | ComfyUI and baseline runtime files |
-| `optimized` | xformers and FlashAttention from prebuilt wheels |
-| `runtime-tools` | supervisord, Caddy, File Browser, Hugging Face CLI, git, curl, wget, runpodctl, and GitHub CLI |
-| `custom-basic` | ComfyUI-Manager, KJNodes, rgthree-comfy, and Crystools |
-| `custom-image` | controlnet aux, Impact Pack, Sapiens2 Easy, and Depth Anything V3 |
-| `custom-video` | VideoHelperSuite, SeedVR2 Video Upscaler, WanVideoWrapper, and LTXVideo |
+| `basic` | ComfyUI, runtime tools, four Basic custom nodes, xformers, and FlashAttention |
+| `basic-unoptimized` | The same ComfyUI, runtime tools, and custom nodes without xformers or FlashAttention |
 
-Each Dockerfile ends with image cleanup and a low-cost smoke verification.
+One multi-stage Dockerfile shares the common layers. GitHub Actions builds and pushes only the two final variants.
 
 ## Image tags
 
-Image tags include stage tags, release tags, SHA tags, and a slug derived from the PyTorch base image tag plus ComfyUI version.
+Image tags include variant tags, release tags, SHA tags, and a slug derived from the PyTorch base image tag plus ComfyUI version.
 
 ```text
-ghcr.io/bogyie/runpod-comfyui:custom-image
-ghcr.io/bogyie/runpod-comfyui:2-10-0-cuda12-8-cudnn9-runtime-cf0240-custom-image
-ghcr.io/bogyie/runpod-comfyui:v1.0.2-custom-image
-ghcr.io/bogyie/runpod-comfyui:sha-abc1234-custom-image
+ghcr.io/bogyie/runpod-comfyui:basic
+ghcr.io/bogyie/runpod-comfyui:basic-unoptimized
+ghcr.io/bogyie/runpod-comfyui:2-10-0-cuda12-8-cudnn9-runtime-cf0331-basic
+ghcr.io/bogyie/runpod-comfyui:sha-abc1234-basic-unoptimized
 ```
 
-On release, the three final purpose images are also published to Docker Hub:
+On release, both variants are also published to Docker Hub:
 
 | Docker Hub tag | Image |
 |---|---|
-| `latest`, `latest-basic`, `v1.0.2-basic` | `custom-basic` |
-| `latest-image`, `v1.0.2-image` | `custom-image` |
-| `latest-video`, `v1.0.2-video` | `custom-video` |
+| `latest`, `latest-basic`, `v1.0.2-basic` | `basic` |
+| `latest-basic-unoptimized`, `v1.0.2-basic-unoptimized` | `basic-unoptimized` |
 
 Use a pinned release, SHA, or version-slug tag for production templates rather than `latest`.
 
 ## Current baseline
 
 - Base image: `pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime`
-- ComfyUI: `v0.29.2`
+- ComfyUI: `v0.33.1`
 - Transformers: `5.14.1`
 - xformers: `0.0.35`
 - FlashAttention: `2.8.3`
@@ -75,6 +56,7 @@ Use a pinned release, SHA, or version-slug tag for production templates rather t
 - Hugging Face Hub CLI: `1.26.0`
 
 Python, CUDA, PyTorch, torchvision, and torchaudio come from the PyTorch base image tag, not from separate build arguments.
+All build-time versions and custom-node refs are maintained in [`docker.env`](docker.env); the Dockerfile contains no version defaults.
 
 ## Persistent volume
 

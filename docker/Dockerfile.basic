@@ -1,0 +1,261 @@
+# syntax=docker/dockerfile:1.7
+
+ARG BASE_IMAGE
+ARG OPTIMIZATION_STAGE
+ARG CADDY_VERSION
+ARG CADDY_SECURITY_MODULE
+ARG TARGETPLATFORM=linux/amd64
+
+FROM --platform=${TARGETPLATFORM} caddy:${CADDY_VERSION}-builder AS caddy-builder
+
+ARG CADDY_VERSION
+ARG CADDY_SECURITY_MODULE
+
+RUN : "${CADDY_VERSION:?CADDY_VERSION is required}" \
+      "${CADDY_SECURITY_MODULE:?CADDY_SECURITY_MODULE is required}" && \
+    xcaddy build "v${CADDY_VERSION}" \
+      --with "${CADDY_SECURITY_MODULE}" \
+      --output /tmp/caddy
+
+FROM --platform=${TARGETPLATFORM} ${BASE_IMAGE} AS comfyui
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_COMPILE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    COMFY_HOME=/opt/comfy \
+    COMFYUI_DIR=/opt/comfy/ComfyUI \
+    COMFY_VENV=/opt/comfy/venv \
+    PATH=/opt/comfy/venv/bin:$PATH \
+    WORKSPACE_DIR=/workspace \
+    STORAGE_DIR=/workspace/storage \
+    COMFYUI_PORT=8188 \
+    CLI_ARGS=
+
+ARG COMFYUI_REF
+ARG TRANSFORMERS_VERSION
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN --mount=type=cache,id=apt-comfyui,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=aptlists-comfyui,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates \
+      curl \
+      dumb-init \
+      ffmpeg \
+      git \
+      libgl1 \
+      libglib2.0-0 \
+      python3-venv \
+      libsm6 \
+      libxext6 \
+      libxrender1 \
+      rsync \
+      unzip
+
+RUN mkdir -p "${COMFY_HOME}" "${WORKSPACE_DIR}" /opt/bootstrap
+
+RUN : "${COMFYUI_REF:?COMFYUI_REF is required}" && \
+    git clone --depth 1 --branch "${COMFYUI_REF}" \
+      https://github.com/Comfy-Org/ComfyUI.git "${COMFYUI_DIR}" && \
+    find "${COMFYUI_DIR}" -type d -name ".git" -prune -exec rm -rf {} +
+
+RUN --mount=type=cache,id=pip-comfyui,target=/root/.cache/pip \
+    : "${TRANSFORMERS_VERSION:?TRANSFORMERS_VERSION is required}" && \
+    python -m venv --system-site-packages "${COMFY_VENV}" && \
+    "${COMFY_VENV}/bin/python" -m pip install --upgrade pip wheel setuptools && \
+    "${COMFY_VENV}/bin/python" -m pip install --no-compile -r "${COMFYUI_DIR}/requirements.txt" && \
+    "${COMFY_VENV}/bin/python" -m pip install --no-compile "transformers==${TRANSFORMERS_VERSION}" && \
+    find "${COMFY_HOME}" -type d -name "__pycache__" -prune -exec rm -rf {} + && \
+    find "${COMFY_HOME}" -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete
+
+COPY scripts/cleanup-image.sh scripts/init-storage.sh scripts/verify_image.py scripts/verify_protected_packages.py /opt/bootstrap/scripts/
+COPY start.sh /opt/bootstrap/start.sh
+
+RUN chmod +x /opt/bootstrap/start.sh /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
+    "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
+      capture \
+      /opt/bootstrap/protected-package-manifest.json && \
+    "${COMFY_VENV}/bin/python" -m pip freeze > /opt/bootstrap/base-requirements.lock && \
+    /opt/bootstrap/scripts/cleanup-image.sh && \
+    "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_image.py \
+      --stage comfyui \
+      --import torch \
+      --import transformers \
+      --path "${COMFYUI_DIR}/main.py" \
+      --path "${COMFYUI_DIR}/server.py" \
+      --path /opt/bootstrap/start.sh
+
+FROM comfyui AS unoptimized
+
+FROM comfyui AS optimized
+
+ENV PYTORCH_WHEEL_INDEX_BASE=https://download.pytorch.org/whl
+
+ARG XFORMERS_VERSION
+ARG FLASH_ATTN_VERSION
+
+COPY scripts/resolve_flash_attn_wheel.py scripts/torch_cuda_wheel_tag.py /opt/bootstrap/scripts/
+
+RUN --mount=type=cache,id=pip-optimized,target=/root/.cache/pip \
+    : "${XFORMERS_VERSION:?XFORMERS_VERSION is required}" \
+      "${FLASH_ATTN_VERSION:?FLASH_ATTN_VERSION is required}" && \
+    chmod +x /opt/bootstrap/scripts/resolve_flash_attn_wheel.py /opt/bootstrap/scripts/torch_cuda_wheel_tag.py && \
+    PYTORCH_CUDA_WHEEL_TAG="$("${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/torch_cuda_wheel_tag.py)" && \
+    "${COMFY_VENV}/bin/python" -m pip install \
+      "xformers==${XFORMERS_VERSION}" \
+      --index-url "${PYTORCH_WHEEL_INDEX_BASE}/${PYTORCH_CUDA_WHEEL_TAG}" \
+      --only-binary=:all: \
+      --no-deps && \
+    FLASH_ATTN_WHEEL_URL="$(FLASH_ATTN_VERSION="${FLASH_ATTN_VERSION}" "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/resolve_flash_attn_wheel.py)" && \
+    "${COMFY_VENV}/bin/python" -m pip install \
+      "${FLASH_ATTN_WHEEL_URL}" \
+      --only-binary=:all: \
+      --no-deps && \
+    "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
+      capture \
+      /opt/bootstrap/protected-package-manifest.json && \
+    "${COMFY_VENV}/bin/python" -m pip freeze > /opt/bootstrap/base-requirements.lock && \
+    /opt/bootstrap/scripts/cleanup-image.sh && \
+    "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_image.py \
+      --stage optimized \
+      --import torch \
+      --import xformers \
+      --import flash_attn \
+      --path /opt/bootstrap/protected-package-manifest.json
+
+FROM ${OPTIMIZATION_STAGE} AS runtime-tools
+
+ENV COMFYUI_HOST=127.0.0.1 \
+    FILEBROWSER_PORT=8080 \
+    FILEBROWSER_HOST=127.0.0.1 \
+    FILEBROWSER_BASEURL=/files \
+    FILEBROWSER_ROOT=/ \
+    CADDY_HTTPS_PORT=8443 \
+    AUTHCRUNCH_AUTH_PATH=/auth \
+    AUTHCRUNCH_ADMIN_USER=runpod \
+    AUTHCRUNCH_ADMIN_EMAIL=runpod@localdomain.local \
+    AUTHCRUNCH_ADMIN_PASSWORD=runpod-comfyui \
+    FILEBROWSER_PROXY_HEADER=X-AuthCrunch-User \
+    FILEBROWSER_ADMIN_USER=runpod \
+    FILEBROWSER_ADMIN_PASSWORD=runpod-comfyui \
+    FILEBROWSER_COMMANDS=all
+
+ARG FILEBROWSER_VERSION
+ARG RUNPODCTL_VERSION
+ARG HUGGINGFACE_HUB_VERSION
+ARG FILEBROWSER_LINUX_AMD64_SHA256
+ARG RUNPODCTL_LINUX_AMD64_SHA256
+
+RUN --mount=type=cache,id=apt-runtime-tools,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=aptlists-runtime-tools,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates \
+      curl \
+      gpg \
+      git \
+      jq \
+      openssh-client \
+      supervisor \
+      tar \
+      wget \
+      xz-utils && \
+    mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+      -o /etc/apt/keyrings/githubcli-archive-keyring.gpg && \
+    chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+      > /etc/apt/sources.list.d/github-cli.list && \
+    apt-get update && apt-get install -y --no-install-recommends gh
+
+COPY --from=caddy-builder /tmp/caddy /usr/local/bin/caddy
+
+RUN chmod +x /usr/local/bin/caddy && \
+    caddy list-modules | grep -F http.authentication.providers.authorizer && \
+    caddy list-modules | grep -F http.handlers.authenticator
+
+RUN : "${FILEBROWSER_VERSION:?FILEBROWSER_VERSION is required}" \
+      "${FILEBROWSER_LINUX_AMD64_SHA256:?FILEBROWSER_LINUX_AMD64_SHA256 is required}" && \
+    curl -fsSL -o /tmp/filebrowser.tar.gz \
+      "https://github.com/filebrowser/filebrowser/releases/download/v${FILEBROWSER_VERSION}/linux-amd64-filebrowser.tar.gz" && \
+    echo "${FILEBROWSER_LINUX_AMD64_SHA256}  /tmp/filebrowser.tar.gz" | sha256sum -c - && \
+    tar -C /usr/local/bin -xzf /tmp/filebrowser.tar.gz filebrowser && \
+    chmod +x /usr/local/bin/filebrowser && \
+    rm /tmp/filebrowser.tar.gz
+
+RUN : "${RUNPODCTL_VERSION:?RUNPODCTL_VERSION is required}" \
+      "${RUNPODCTL_LINUX_AMD64_SHA256:?RUNPODCTL_LINUX_AMD64_SHA256 is required}" && \
+    curl -fsSL -o /usr/local/bin/runpodctl \
+      "https://github.com/runpod/runpodctl/releases/download/v${RUNPODCTL_VERSION}/runpodctl-linux-amd64" && \
+    echo "${RUNPODCTL_LINUX_AMD64_SHA256}  /usr/local/bin/runpodctl" | sha256sum -c - && \
+    chmod +x /usr/local/bin/runpodctl
+
+RUN --mount=type=cache,id=pip-runtime-tools,target=/root/.cache/pip \
+    : "${HUGGINGFACE_HUB_VERSION:?HUGGINGFACE_HUB_VERSION is required}" && \
+    "${COMFY_VENV}/bin/python" -m pip install "huggingface_hub==${HUGGINGFACE_HUB_VERSION}"
+
+COPY scripts/ /opt/bootstrap/scripts/
+COPY rootfs/ /
+
+RUN chmod +x /opt/bootstrap/scripts/*.sh /opt/bootstrap/scripts/*.py && \
+    chmod +x /etc/services.d/*/run && \
+    "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_protected_packages.py \
+      verify \
+      /opt/bootstrap/protected-package-manifest.json && \
+    "${COMFY_VENV}/bin/python" -m pip freeze > /opt/bootstrap/base-requirements.lock && \
+    /opt/bootstrap/scripts/cleanup-image.sh && \
+    command -v git && \
+    command -v curl && \
+    command -v wget && \
+    command -v runpodctl && \
+    command -v gh && \
+    command -v caddy && \
+    command -v filebrowser && \
+    command -v supervisord && \
+    test -x /opt/bootstrap/scripts/runpod-supervisord-entrypoint.sh && \
+    test -x /opt/bootstrap/scripts/runpod-runtime-init.sh && \
+    test -f /etc/supervisor/supervisord.conf && \
+    test -x /etc/services.d/comfyui/run && \
+    test -x /etc/services.d/filebrowser/run && \
+    test -x /etc/services.d/caddy/run && \
+    (command -v hf || command -v huggingface-cli || test -x "${COMFY_VENV}/bin/hf" || test -x "${COMFY_VENV}/bin/huggingface-cli") && \
+    "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_image.py \
+      --stage runtime-tools \
+      --import huggingface_hub \
+      --path /opt/bootstrap/base-requirements.lock
+
+FROM runtime-tools AS basic
+
+ARG OPTIMIZATION_STAGE
+ARG COMFYUI_MANAGER_REF
+ARG KJNODES_REF
+ARG RGTHREE_REF
+ARG CRYSTOOLS_REF
+
+RUN --mount=type=cache,id=pip-custom-basic,target=/var/cache/buildkit-pip \
+    : "${COMFYUI_MANAGER_REF:?COMFYUI_MANAGER_REF is required}" \
+      "${KJNODES_REF:?KJNODES_REF is required}" \
+      "${RGTHREE_REF:?RGTHREE_REF is required}" \
+      "${CRYSTOOLS_REF:?CRYSTOOLS_REF is required}" && \
+    PIP_CACHE_DIR=/var/cache/buildkit-pip /opt/bootstrap/scripts/install_custom_nodes.sh \
+      ComfyUI-Manager https://github.com/Comfy-Org/ComfyUI-Manager.git "${COMFYUI_MANAGER_REF}" \
+      ComfyUI-KJNodes https://github.com/kijai/ComfyUI-KJNodes.git "${KJNODES_REF}" \
+      rgthree-comfy https://github.com/rgthree/rgthree-comfy.git "${RGTHREE_REF}" \
+      ComfyUI-Crystools https://github.com/crystian/ComfyUI-Crystools.git "${CRYSTOOLS_REF}" && \
+    /opt/bootstrap/scripts/cleanup-image.sh && \
+    "${COMFY_VENV}/bin/python" /opt/bootstrap/scripts/verify_image.py \
+      --stage "basic-${OPTIMIZATION_STAGE}" \
+      --node ComfyUI-Manager \
+      --node ComfyUI-KJNodes \
+      --node rgthree-comfy \
+      --node ComfyUI-Crystools \
+      --path /opt/bootstrap/baked-custom-nodes
+
+EXPOSE 8443/tcp
+
+ENTRYPOINT ["/opt/bootstrap/scripts/runpod-supervisord-entrypoint.sh"]
+CMD []
