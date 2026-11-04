@@ -3,6 +3,16 @@ name: rebuild-image
 on:
   push:
     branches: ['codex/rebuild-*']
+    paths:
+      - 'build/**'
+      - 'locks/**'
+      - 'docker/Dockerfile.probe'
+      - 'tools/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - '.github/workflows/rebuild-*.yml'
+      - '.github/scripts/free-disk-space.sh'
   workflow_dispatch:
 
 permissions:
