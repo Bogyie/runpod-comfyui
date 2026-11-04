@@ -116,3 +116,14 @@ host는 `opencv-python-headless`와 시스템 ffmpeg를 쓰며, tensor worker는
 VHS의 split 결과를 실제로 전달하면서 comfy-env 0.3.89 CPU FD decoder가 storage 전체에 `.view(shape)`를 적용하는 오류를 재현했다. 양쪽 decoder에서 size/stride/offset으로 복원하고, 자체 storage가 비어 FD 전달을 쓸 수 없는 CPU tensor에는 명시적 empty 전략을 추가했다. parent reader를 포함한 SDK 원본 파일 6개의 hash를 검증한다.
 
 `probe_workers.py`는 실제 native RPC에서 offset이 있는 입력, slice·crop·transpose·broadcast·빈 view·자체 빈 storage를 검사한다. 빈 CPU tensor의 parent→worker→parent 왕복과 shutdown 후 값 유지도 확인한다. [최종 CPU 증거](../tests/evidence/vhs-image-workers.json)를 참고한다. upstream이 non-contiguous tensor를 contiguous로 만드는 동작은 유지했다. 전달 후 임의 stride identity, zero-copy, CUDA empty·sparse·autograd 지원은 이 결과로 판정하지 않는다.
+
+
+## worker 설치 레이어와 앱 업데이트 분리
+
+다섯 worker는 각각 `gpu-base`에서 별도 내부 stage로 구성한다. 설치 입력은 해당 worker의 frozen lock·환경 이름·GPU lock과 공통 설치 도구뿐이다. ComfyUI·host 패키지·comfy-env SDK 패치·노드 소스/어댑터의 파일은 이 설치 stage에 넣지 않는다. 전체 소스/어댑터 identity는 최종 이미지에서 별도 `worker-lock.json`으로 조립한다. 빌드 준비 단계의 원본·lock·adapter hash 검증은 유지한다.
+
+각 prefix는 builder와 최종 이미지에서 같은 `/opt/workers/<environment>` 절대 경로를 사용한다. `COPY --link`로 해당 prefix만 조립하며 GPU payload symlink의 대상 `/opt/runtime/venv`도 동일하다. venv 경로를 바꾸거나 host site-packages를 노출하는 방식은 아니다. 새 worker를 추가할 때 명시적 Docker stage를 갱신하지 않으면 빌드 준비가 실패한다.
+
+[캐시 무효화 실험](../tests/evidence/independent-worker-cache.json)에서는 빌드 컨텍스트의 host SDK 패치·ComfyUI main·KJ adapter 진입점에 주석을 추가해 재빌드했다. 다섯 worker의 설치 RUN이 모두 CACHED였고 로컬 재빌드 전체는 약 9.2초였다. 실제 BuildKit 로그를 함께 보존했다. 이는 Docker Desktop의 warm cache 측정이며 GitHub Actions 성능이나 새 upstream 버전의 호환성 판정이 아니다. 단위 검사에는 source/adapter 변경이 runtime identity만 바꾸는 경우, 한 lock 변경이 해당 worker 입력만 바꾸는 경우와 stage 누락 거부를 포함한다.
+
+최종 조립 결과의 전체 worker identity·lock·prefix는 [별도 파일 검사](../tests/evidence/independent-worker-identities.json)로 대조했고, 이후 `probe_workers.py`도 같은 검사를 수행한다. 동일 이미지에서 기존 코어·guard·SAM3/DA3·VHS·iTools·KJNodes CPU 회귀 검사를 모두 통과했다. 원격 빌드와 두 GPU 회귀 검증은 별도다.

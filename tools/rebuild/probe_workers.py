@@ -35,6 +35,23 @@ print(json.dumps({'prefix':sys.prefix,'sys_path':sys.path,'extra_realpath':str(p
  'torch_version':torch.__version__,'torch_realpath':str(pathlib.Path(torch.__file__).resolve())}))'''
 
 
+WORKER_IDENTITIES = """import hashlib,json
+from pathlib import Path
+root=Path('/opt/locks/workers')
+manifest=json.loads((root/'manifest.json').read_text())
+if manifest['gpu_lock_sha256']!=hashlib.sha256(Path('/opt/locks/gpu.txt').read_bytes()).hexdigest():raise RuntimeError('Final GPU lock identity disagrees')
+verified={}
+for name,definition in manifest['workers'].items():
+    prefix=Path('/opt/workers')/definition['environment']
+    if json.loads((prefix/'worker-lock.json').read_text())!=definition:raise RuntimeError('Full worker identity missing: '+name)
+    if hashlib.sha256((root/definition['lock_file']).read_bytes()).hexdigest()!=definition['lock_sha256']:raise RuntimeError('Final worker lock disagrees: '+name)
+    links=json.loads((prefix/'gpu-links.json').read_text())
+    if links['worker_prefix']!=str(prefix) or links['host_site_packages_on_sys_path']:raise RuntimeError('Final worker prefix changed: '+name)
+    verified[name]={'full_identity':'matched','lock_sha256':definition['lock_sha256'],'prefix':str(prefix)}
+print(json.dumps(verified))
+"""
+
+
 def execute(base: str, graph: dict, timeout: int, success: bool = True) -> dict:
     submitted = request(base,'/prompt',{'prompt':graph})
     if submitted.get('node_errors'):
@@ -137,6 +154,7 @@ def main() -> None:
         for node in ['SAM3PointCollector','SAM3CreatePoint','DA3_CreateCameraParams','DepthAnything_V3']:
             if node not in objects:raise RuntimeError(f'Expected isolation node missing: {node}')
         worker_manifest=json.loads(docker('exec',container,'python','-c',"from pathlib import Path;print(Path('/opt/locks/workers/manifest.json').read_text())"))
+        identities=json.loads(docker('exec',container,'python','-c',WORKER_IDENTITIES))
         before=json.loads(docker('exec',container,'python','-c',FINGERPRINT))
         sam_graph=json.loads((ROOT/'tests/workflows/sam3-points-cpu.json').read_text())
         da_graph=json.loads((ROOT/'tests/workflows/da3-camera-cpu.json').read_text())
@@ -179,7 +197,7 @@ def main() -> None:
         after=json.loads(docker('exec',container,'python','-c',FINGERPRINT))
         if before!=after:raise RuntimeError('Worker execution changed host package metadata or sampled GPU files')
         result={'kind':'comfy-env-native-workers-cpu-gate','image_id':image['Id'],
-                'ready_seconds':round(ready_seconds,3),'worker_manifest':worker_manifest,'sam3_points_and_ui':sam,'da3_camera_matrices':matrices,
+                'ready_seconds':round(ready_seconds,3),'worker_manifest':worker_manifest,'worker_identities':identities,'sam3_points_and_ui':sam,'da3_camera_matrices':matrices,
                 'worker_environments':environments,'processes_before':original,'processes_after_restart':restarted,
                 'cpu_storage_views':views,'ordinary_exception':'propagated-with-worker-alive','error_events':failure['status']['messages'],
                 'sam3_after_crash':sam_after_restart,'host_fingerprint_before':before,'host_fingerprint_after':after,

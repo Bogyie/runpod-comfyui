@@ -198,3 +198,12 @@ VHS 원본 `BatchManager.close_inputs`는 decoder tuple의 마지막 항목인 b
 [최종 로컬 VHS 검사](../tests/evidence/vhs-cpu-probe.json)는 H.264/AAC 6프레임 저장·디코딩, VP9/Opus HTTP 스트리밍, IMAGE/MASK/LATENT 전달, 빈 선택 결과, host queue·preview hook 유지, 3회 재실행하는 메타 배치와 decoder 명시적 종료를 통과했다. 합성 영상·오디오를 사용했으며 실제 VAE checkpoint나 모든 영상 포맷·GPU·브라우저 조작 검증은 아니다.
 
 동일 이미지 `sha256:2e39549024559a99616e583503b9d0d73dd6a685f712f118313ff419989246ac`의 [코어](../tests/evidence/vhs-image-host.json), [guard](../tests/evidence/vhs-image-guards.json), [SAM3/DA3 IPC·CPU view/empty·복구](../tests/evidence/vhs-image-workers.json), [iTools](../tests/evidence/vhs-image-itools.json), [KJNodes](../tests/evidence/vhs-image-kjnodes.json) 회귀 검사도 통과했다. 단위 검사는 43개다. 로컬 Docker Linux amd64 에뮬레이션 결과이며 원격 빌드 시간이나 새 GPU 이미지 성공으로 간주하지 않는다. CI에는 VHS gate를 게시 전후 추가했다. 새 원격 결과와 Manager·운영 환경 통합 검증은 남아 있다.
+
+
+## P1 worker 패키지 캐시 분리
+
+다섯 private prefix를 각각 `gpu-base`에서 만들고 최종 host 이미지에 같은 절대 경로로 조립하도록 바꿨다. 전체 소스/어댑터 identity와 패키지 설치 입력을 분리했으므로 앱·SDK·노드 소스 변경만으로 worker 패키지 설치를 다시 실행하지 않는다. 설치 단계는 frozen lock hash와 실제 GPU 기반 lock을 검사하며, 최종 이미지에는 전체 identity를 유지한다.
+
+[실제 캐시 실험](../tests/evidence/independent-worker-cache.json)에서 host SDK 패치·ComfyUI·KJ 진입점 주석 변경 후 다섯 설치 RUN의 CACHED를 확인했다. 로컬 warm build는 9.175초였으며 GitHub Actions 성능 수치로 사용하지 않는다. [빌드/제약 설명](worker-environments.md#worker-설치-레이어와-앱-업데이트-분리)에 입력 경계와 prefix 보존을 기록했다. 단위 검사는 46개다. 동일 이미지 `sha256:b321d0273400a9a7c767e1b08ce61682be7cbe3834fb841063aee9a368f1db2b`의 [IPC·CPU view/empty·복구](../tests/evidence/independent-workers-ipc.json), [VHS](../tests/evidence/independent-workers-vhs.json), [코어](../tests/evidence/independent-workers-host.json), [guard](../tests/evidence/independent-workers-guards.json), [iTools](../tests/evidence/independent-workers-itools.json), [KJNodes](../tests/evidence/independent-workers-kjnodes.json) 회귀 검사도 통과했다. [전체 worker identity](../tests/evidence/independent-worker-identities.json)도 최종 파일로 대조했다. 이 캐시 분리 변경의 원격 빌드와 GPU 검증은 아직 남아 있다.
+
+Manager의 HTTP queue·즉시 enable·prestartup 예약·CLI·PIPFixer 경로도 고정 소스로 대조했다. [연결 경계](manager-integration.md)와 [정적 경로 증거](evidence/manager-boundary-audit.json)를 추가했다. 단일 subprocess hook으로 모든 변경을 후보 환경에 보낼 수 있다고 가정하지 않는다. Manager runtime 통합과 사용 가능한 관리 CLI·nonroot·영속 세대 전환은 아직 남아 있다.

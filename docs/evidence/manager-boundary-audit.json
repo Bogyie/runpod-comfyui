@@ -1,0 +1,415 @@
+{
+  "kind": "pinned-manager-static-boundary-audit",
+  "commit": "4c50a2bc8b9e684d8a85930567957470b952bebe",
+  "scope": "Static source analysis, not installed Manager runtime certification",
+  "files": {
+    "__init__.py": "401b5fdc61aeec019c74d626ebb4fd137f514933042e891abee1ca4619c29655",
+    "prestartup_script.py": "146fb0a38c9f9460fbedad3dda51e1518baecfe58ea3ec070291d1b3d077dd53",
+    "cm-cli.py": "a2751e5a94b701fcd6748991637060c7d35e657d9fe0f083a6239c113cb74564",
+    "glob/manager_core.py": "c1bec771db713dbeaeed368b8e07db723930db8c5ce1eb0a171bb7ba9e830960",
+    "glob/manager_server.py": "f62ff561b9cfa608ffed554b6e1611ba3e17308300aa83811a1d472530ae32bb",
+    "glob/manager_util.py": "8f0106c4d5e3f1278433472c2014f750d3bf3de9f76d6f4750e8fac9100efc7b",
+    "glob/share_3rdparty.py": "2c4a55286f36caa4bcfd384cd5ca1466663c186e18ced9a597b417d26759b183"
+  },
+  "http_routes": [
+    {
+      "file": "glob/manager_server.py",
+      "line": 786,
+      "handler": "fetch_customnode_mappings",
+      "method": "get",
+      "path": "/customnode/getmappings"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 822,
+      "handler": "fetch_updates",
+      "method": "post",
+      "path": "/customnode/fetch_updates"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 851,
+      "handler": "get_node_types_in_workflows",
+      "method": "get",
+      "path": "/customnode/get_node_types_in_workflows"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 932,
+      "handler": "update_all",
+      "method": "post",
+      "path": "/manager/queue/update_all"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1046,
+      "handler": "installed_list",
+      "method": "get",
+      "path": "/customnode/installed"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1058,
+      "handler": "fetch_customnode_list",
+      "method": "get",
+      "path": "/customnode/getlist"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1100,
+      "handler": "fetch_customnode_alternatives",
+      "method": "get",
+      "path": "/customnode/alternatives"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1171,
+      "handler": "fetch_externalmodel_list",
+      "method": "get",
+      "path": "/externalmodel/getlist"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1184,
+      "handler": "get_snapshot_list",
+      "method": "get",
+      "path": "/snapshot/getlist"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1200,
+      "handler": "remove_snapshot",
+      "method": "post",
+      "path": "/snapshot/remove"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1223,
+      "handler": "restore_snapshot",
+      "method": "post",
+      "path": "/snapshot/restore"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1254,
+      "handler": "get_current_snapshot_api",
+      "method": "get",
+      "path": "/snapshot/get_current"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1262,
+      "handler": "save_snapshot",
+      "method": "post",
+      "path": "/snapshot/save"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1377,
+      "handler": "get_cnr_versions",
+      "method": "get",
+      "path": "/customnode/versions/{node_name}"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1388,
+      "handler": "get_disabled_versions",
+      "method": "get",
+      "path": "/customnode/disabled_versions/{node_name}"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1404,
+      "handler": "import_fail_info",
+      "method": "post",
+      "path": "/customnode/import_fail_info"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1421,
+      "handler": "reinstall_custom_node",
+      "method": "post",
+      "path": "/manager/queue/reinstall"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1426,
+      "handler": "reset_queue",
+      "method": "post",
+      "path": "/manager/queue/reset"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1436,
+      "handler": "queue_count",
+      "method": "get",
+      "path": "/manager/queue/status"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1451,
+      "handler": "install_custom_node",
+      "method": "post",
+      "path": "/manager/queue/install"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1546,
+      "handler": "queue_start",
+      "method": "post",
+      "path": "/manager/queue/start"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1567,
+      "handler": "fix_custom_node",
+      "method": "post",
+      "path": "/manager/queue/fix"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1589,
+      "handler": "install_custom_node_git_url",
+      "method": "post",
+      "path": "/customnode/install/git_url"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1619,
+      "handler": "install_custom_node_pip",
+      "method": "post",
+      "path": "/customnode/install/pip"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1638,
+      "handler": "uninstall_custom_node",
+      "method": "post",
+      "path": "/manager/queue/uninstall"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1661,
+      "handler": "update_custom_node",
+      "method": "post",
+      "path": "/manager/queue/update"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1682,
+      "handler": "update_comfyui",
+      "method": "post",
+      "path": "/manager/queue/update_comfyui"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1692,
+      "handler": "comfyui_versions",
+      "method": "get",
+      "path": "/comfyui_manager/comfyui_versions"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1703,
+      "handler": "comfyui_switch_version",
+      "method": "post",
+      "path": "/comfyui_manager/comfyui_switch_version"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1717,
+      "handler": "disable_node",
+      "method": "post",
+      "path": "/manager/queue/disable"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1752,
+      "handler": "install_model",
+      "method": "post",
+      "path": "/manager/queue/install_model"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1784,
+      "handler": "get_preview_method",
+      "method": "get",
+      "path": "/manager/preview_method"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1791,
+      "handler": "set_preview_method_handler",
+      "method": "post",
+      "path": "/manager/preview_method"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1802,
+      "handler": "get_db_mode",
+      "method": "get",
+      "path": "/manager/db_mode"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1807,
+      "handler": "set_db_mode_handler",
+      "method": "post",
+      "path": "/manager/db_mode"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1815,
+      "handler": "get_component_policy",
+      "method": "get",
+      "path": "/manager/policy/component"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1820,
+      "handler": "set_component_policy_handler",
+      "method": "post",
+      "path": "/manager/policy/component"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1828,
+      "handler": "get_update_policy",
+      "method": "get",
+      "path": "/manager/policy/update"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1833,
+      "handler": "set_update_policy_handler",
+      "method": "post",
+      "path": "/manager/policy/update"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1841,
+      "handler": "get_channel_url_list",
+      "method": "get",
+      "path": "/manager/channel_url_list"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1857,
+      "handler": "set_channel_url_list",
+      "method": "post",
+      "path": "/manager/channel_url_list"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1868,
+      "handler": "get_notice",
+      "method": "get",
+      "path": "/manager/notice"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1924,
+      "handler": "get_startup_alerts",
+      "method": "get",
+      "path": "/manager/startup_alerts"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1948,
+      "handler": "restart",
+      "method": "post",
+      "path": "/manager/reboot"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 1988,
+      "handler": "save_component",
+      "method": "post",
+      "path": "/manager/component/save"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 2018,
+      "handler": "load_components",
+      "method": "post",
+      "path": "/manager/component/loads"
+    },
+    {
+      "file": "glob/manager_server.py",
+      "line": 2043,
+      "handler": "get_version",
+      "method": "get",
+      "path": "/manager/version"
+    },
+    {
+      "file": "glob/share_3rdparty.py",
+      "line": 57,
+      "handler": "share_option",
+      "method": "get",
+      "path": "/manager/share_option"
+    },
+    {
+      "file": "glob/share_3rdparty.py",
+      "line": 126,
+      "handler": "api_get_openart_auth",
+      "method": "get",
+      "path": "/manager/get_openart_auth"
+    },
+    {
+      "file": "glob/share_3rdparty.py",
+      "line": 135,
+      "handler": "api_set_openart_auth",
+      "method": "post",
+      "path": "/manager/set_openart_auth"
+    },
+    {
+      "file": "glob/share_3rdparty.py",
+      "line": 144,
+      "handler": "api_get_matrix_auth",
+      "method": "get",
+      "path": "/manager/get_matrix_auth"
+    },
+    {
+      "file": "glob/share_3rdparty.py",
+      "line": 153,
+      "handler": "api_get_youml_settings",
+      "method": "get",
+      "path": "/manager/youml/settings"
+    },
+    {
+      "file": "glob/share_3rdparty.py",
+      "line": 161,
+      "handler": "api_set_youml_settings",
+      "method": "post",
+      "path": "/manager/youml/settings"
+    },
+    {
+      "file": "glob/share_3rdparty.py",
+      "line": 168,
+      "handler": "api_get_comfyworkflows_auth",
+      "method": "get",
+      "path": "/manager/get_comfyworkflows_auth"
+    },
+    {
+      "file": "glob/share_3rdparty.py",
+      "line": 179,
+      "handler": "set_esheep_workflow_and_images",
+      "method": "post",
+      "path": "/manager/set_esheep_workflow_and_images"
+    },
+    {
+      "file": "glob/share_3rdparty.py",
+      "line": 187,
+      "handler": "get_esheep_workflow_and_images",
+      "method": "get",
+      "path": "/manager/get_esheep_workflow_and_images"
+    },
+    {
+      "file": "glob/share_3rdparty.py",
+      "line": 215,
+      "handler": "share_art",
+      "method": "post",
+      "path": "/manager/share"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "image_id": "sha256:b321d0273400a9a7c767e1b08ce61682be7cbe3834fb841063aee9a368f1db2b",
+  "workers": {
+    "depth-anything-v3": {
+      "full_identity": "matched",
+      "lock_sha256": "a03ad0126187151901eeadf3f16bc89f12bd95f85a13a292b3ead06e7fcfeb8b",
+      "prefix": "/opt/workers/depthanythingv3-nodes"
+    },
+    "itools": {
+      "full_identity": "matched",
+      "lock_sha256": "b3661cf8ffe2a34f49adaa30935255598662da95dbfcfe00fdf4f25e85147aff",
+      "prefix": "/opt/workers/itools-workernodes"
+    },
+    "kjnodes": {
+      "full_identity": "matched",
+      "lock_sha256": "f17f1654c3449f6420042800a591107100f8fb6cae4fd2c2ea489135f201b58b",
+      "prefix": "/opt/workers/kjnodes-workernodes"
+    },
+    "sam3": {
+      "full_identity": "matched",
+      "lock_sha256": "868cecaece0a5c7454224e86f26b9c3ddf014b15445c90a714e121064a649203",
+      "prefix": "/opt/workers/sam3-nodes"
+    },
+    "video-helper-suite": {
+      "full_identity": "matched",
+      "lock_sha256": "5de398faf59e560a3c5b8202575a722cd5f13e43e5cbee7e3b960005afd610c0",
+      "prefix": "/opt/workers/videohelpersuite-workernodes"
+    }
+  }
+}

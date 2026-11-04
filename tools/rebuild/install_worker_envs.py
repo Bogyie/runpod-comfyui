@@ -18,6 +18,8 @@ def main() -> None:
     parser.add_argument('--backend', required=True)
     args = parser.parse_args()
     definitions = json.loads(args.definitions.read_text())
+    if definitions.get('gpu_lock_sha256') != hashlib.sha256(Path('/opt/locks/gpu.txt').read_bytes()).hexdigest():
+        raise ValueError('Worker installation GPU lock does not match the base image')
     if not args.root.is_absolute() or '.pixi' in str(args.root):
         raise ValueError('Worker root must be an absolute non-pixi path')
     for name, worker in definitions['workers'].items():

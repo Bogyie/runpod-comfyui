@@ -1,0 +1,149 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile.probe
+#1 transferring dockerfile: 5.20kB done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1.7
+#2 DONE 0.8s
+
+#3 docker-image://docker.io/docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e
+#3 resolve docker.io/docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e done
+#3 CACHED
+
+#4 [internal] load metadata for docker.io/library/python:3.11-slim-bookworm@sha256:94a8fee35252d06ab75856f15f12c7bae67b10e8a6da93c7fded82b2610926cd
+#4 DONE 0.0s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [gpu-base 1/4] FROM docker.io/library/python:3.11-slim-bookworm@sha256:94a8fee35252d06ab75856f15f12c7bae67b10e8a6da93c7fded82b2610926cd
+#6 resolve docker.io/library/python:3.11-slim-bookworm@sha256:94a8fee35252d06ab75856f15f12c7bae67b10e8a6da93c7fded82b2610926cd 0.0s done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 116.29MB 0.8s done
+#7 DONE 0.8s
+
+#8 [host 1/7] RUN apt-get update && apt-get install -y --no-install-recommends       ffmpeg git libgl1 libglib2.0-0 && rm -rf /var/lib/apt/lists/*
+#8 CACHED
+
+#9 [gpu-base 3/4] COPY gpu.txt /opt/locks/gpu.txt
+#9 CACHED
+
+#10 [gpu-base 4/4] RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv     uv pip install --python /opt/runtime/venv/bin/python       --require-hashes --only-binary=:all: --torch-backend "cu128"       --requirement /opt/locks/gpu.txt &&     python -c 'import torch, torchvision, torchaudio, xformers; assert torch.version.cuda == "12.8"; print(torch.__version__, torch.version.cuda)'
+#10 CACHED
+
+#11 [host 2/7] COPY host.txt /opt/locks/host.txt
+#11 CACHED
+
+#12 [gpu-base 2/4] RUN python -m pip install --no-cache-dir "uv==0.10.8" &&     uv venv --python /usr/local/bin/python /opt/runtime/venv
+#12 CACHED
+
+#13 [worker-sam3 1/2] COPY worker-install/sam3/ /opt/locks/worker-install/
+#13 CACHED
+
+#14 [worker-sam3 2/2] RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv     python /opt/probe/install_worker_envs.py --backend "cu128"       --definitions /opt/locks/worker-install/manifest.json
+#14 CACHED
+
+#15 [worker-builder 1/1] COPY link_gpu_packages.py install_worker_envs.py /opt/probe/
+#15 CACHED
+
+#16 [worker-depth-anything-v3 2/2] RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv     python /opt/probe/install_worker_envs.py --backend "cu128"       --definitions /opt/locks/worker-install/manifest.json
+#16 CACHED
+
+#17 [worker-depth-anything-v3 1/2] COPY worker-install/depth-anything-v3/ /opt/locks/worker-install/
+#17 CACHED
+
+#18 [worker-itools 2/2] RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv     python /opt/probe/install_worker_envs.py --backend "cu128"       --definitions /opt/locks/worker-install/manifest.json
+#18 CACHED
+
+#19 [worker-itools 1/2] COPY worker-install/itools/ /opt/locks/worker-install/
+#19 CACHED
+
+#20 [worker-kjnodes 1/2] COPY worker-install/kjnodes/ /opt/locks/worker-install/
+#20 CACHED
+
+#21 [worker-kjnodes 2/2] RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv     python /opt/probe/install_worker_envs.py --backend "cu128"       --definitions /opt/locks/worker-install/manifest.json
+#21 CACHED
+
+#22 [worker-video-helper-suite 2/2] RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv     python /opt/probe/install_worker_envs.py --backend "cu128"       --definitions /opt/locks/worker-install/manifest.json
+#22 CACHED
+
+#23 [worker-video-helper-suite 1/2] COPY worker-install/video-helper-suite/ /opt/locks/worker-install/
+#23 CACHED
+
+#24 [host 3/7] RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv     uv pip install --python /opt/runtime/venv/bin/python       --require-hashes --only-binary=:all: --torch-backend "cu128"       --requirement /opt/locks/host.txt &&     uv pip check --python /opt/runtime/venv/bin/python
+#24 CACHED
+
+#25 [host 4/7] COPY apply_comfy_env_patch.py /opt/probe/apply_comfy_env_patch.py
+#25 DONE 0.1s
+
+#26 [host 5/7] RUN python -c 'import importlib.util, pathlib, subprocess, sys; root = pathlib.Path(importlib.util.find_spec("comfy_env").origin).parent; subprocess.run([sys.executable, "/opt/probe/apply_comfy_env_patch.py", str(root)], check=True)'
+#26 0.482 {
+#26 0.482   "kind": "experimental-build-and-isolation-guards",
+#26 0.482   "original": {
+#26 0.482     "environment/cache.py": "27919a3efd7f3596187159438c8f2b829ef5736518d9fee815122c408fbd31e4",
+#26 0.482     "install/workspace.py": "2bee69c642922c82514dda3db83fe5553220471ffaabfbf2bc6dda1ebfed19bb",
+#26 0.482     "isolation/metadata.py": "d50d45626b9919cd36412c6163c2b4a0168bf863c79a65730db7d1efef320844",
+#26 0.482     "isolation/workers/_ipc_parent.py": "9a4e5402a8076d1d56627f03eea28d69fe465ead63da2f99173f1fc1779aabc1",
+#26 0.482     "isolation/workers/_persistent_worker.py": "77e86335ff3417bd2442b5db1033d78770c61d76b77c831fb38cdbe0c79460fb",
+#26 0.482     "isolation/wrap.py": "32ab3fd563ee08719e79765be5e21b049db6900349815b3da53e358f0c67cbb5"
+#26 0.482   },
+#26 0.482   "patched": {
+#26 0.482     "environment/cache.py": "19bfdf72c1225d1f81ac630821bebfb86dcf55a0b4880bccc4ea0c5f4a289436",
+#26 0.482     "install/workspace.py": "7cb0cbaf6ff60f4a6a840c90e24edf3d7f5a8e43beba86a029b5c1482100922f",
+#26 0.482     "isolation/metadata.py": "78434b96ecee8a22a28c544e7248a2d4fb9fe235808376746ab0f80d90efcfb1",
+#26 0.482     "isolation/workers/_ipc_parent.py": "97552fc4674eefcfc7b45c20edfa397f2b2de788870a0bb5fd8bbe908d93a2a7",
+#26 0.482     "isolation/workers/_persistent_worker.py": "db648bfb1bb0d17bdbb006cd530476e37c7bb2a43cf9bd22e5d1643fe8ad7d45",
+#26 0.482     "isolation/wrap.py": "680275b0dda3e58e5fc9ddbca6893d5ed6fcad3532c9d9e29f1a2e7838107660"
+#26 0.482   },
+#26 0.482   "upstream_version": "0.3.89"
+#26 0.482 }
+#26 DONE 0.5s
+
+#27 [host 6/7] COPY ComfyUI/ /opt/probe/ComfyUI/
+#27 DONE 0.1s
+
+#28 [host 7/7] WORKDIR /opt/probe/ComfyUI
+#28 DONE 0.0s
+
+#29 [worker-probe 1/8] COPY worker-locks/ /opt/locks/workers/
+#29 DONE 0.0s
+
+#30 [worker-probe 2/8] COPY --link --from=worker-sam3 /opt/workers/sam3-nodes/ /opt/workers/sam3-nodes/
+#30 DONE 0.0s
+
+#31 [worker-probe 3/8] COPY --link --from=worker-depth-anything-v3 /opt/workers/depthanythingv3-nodes/ /opt/workers/depthanythingv3-nodes/
+#31 DONE 0.0s
+
+#32 [worker-probe 4/8] COPY --link --from=worker-itools /opt/workers/itools-workernodes/ /opt/workers/itools-workernodes/
+#32 DONE 0.0s
+
+#33 [worker-probe 5/8] COPY --link --from=worker-kjnodes /opt/workers/kjnodes-workernodes/ /opt/workers/kjnodes-workernodes/
+#33 DONE 0.0s
+
+#34 [worker-probe 6/8] COPY --link --from=worker-video-helper-suite /opt/workers/videohelpersuite-workernodes/ /opt/workers/videohelpersuite-workernodes/
+#34 DONE 0.0s
+
+#35 [worker-probe 7/8] COPY --link worker-identities/ /opt/workers/
+#35 merging
+#35 merging 3.8s done
+#35 DONE 3.8s
+
+#36 [worker-probe 8/8] COPY worker-nodes/ /opt/probe/ComfyUI/custom_nodes/
+#36 DONE 0.7s
+
+#37 exporting to image
+#37 exporting layers
+#37 exporting layers 1.4s done
+#37 exporting manifest sha256:d8a9414088a62ab830f51380e8283e21b268ce760d807dc5131d4ca6577135e8
+#37 exporting manifest sha256:d8a9414088a62ab830f51380e8283e21b268ce760d807dc5131d4ca6577135e8 done
+#37 exporting config sha256:fd508304b360275eeb65778b22a3b596931bb5ccb81be21ac616847ddb8ba32a done
+#37 exporting attestation manifest sha256:d2e08bf699b16fe044a30e4166537a07e24189245c9ee6d38b271955eed111fb done
+#37 exporting manifest list sha256:e3201e99507da76b5b852757c7dcca7431c48f339ac977ab8b5753a29534bcdb done
+#37 naming to docker.io/library/runpod-comfyui:probe-worker-cache-change done
+#37 DONE 1.4s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/sz221zqs3mmybz6volipka7tl

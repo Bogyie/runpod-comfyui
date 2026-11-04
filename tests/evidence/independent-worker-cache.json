@@ -1,0 +1,22 @@
+{
+  "kind": "local-worker-layer-invalidation-probe",
+  "base_image_id": "sha256:b321d0273400a9a7c767e1b08ce61682be7cbe3834fb841063aee9a368f1db2b",
+  "scope": "Linux amd64 Docker Desktop emulation; not a GitHub Actions benchmark or GPU validation",
+  "changed_context_files": [
+    "apply_comfy_env_patch.py",
+    "ComfyUI/main.py",
+    "worker-nodes/ComfyUI-KJNodes/__init__.py"
+  ],
+  "worker_install_steps": {
+    "sam3": "CACHED",
+    "depth-anything-v3": "CACHED",
+    "itools": "CACHED",
+    "kjnodes": "CACHED",
+    "video-helper-suite": "CACHED"
+  },
+  "elapsed_seconds": 9.175,
+  "dockerfile_sha256": "9e42a2d5906588ff1435b26c27de0506bd127e4333f70464ee08b928234329ee",
+  "log_sha256": "94c0ba47bf4449eeeedfa2c3a038058235d163657edc73beae80cd9a5087b945",
+  "change_kind": "Comment-only changes in validated build context; cache invalidation simulation, not an upstream version compatibility test",
+  "log_file": "tests/evidence/independent-worker-cache.log"
+}

@@ -42,6 +42,43 @@ def materialize(data: bytes, destination: Path) -> None:
                 shutil.copyfileobj(src, dst)
 
 
+
+WORKER_ENVIRONMENTS = {
+    "sam3": "sam3-nodes",
+    "depth-anything-v3": "depthanythingv3-nodes",
+    "itools": "itools-workernodes",
+    "kjnodes": "kjnodes-workernodes",
+    "video-helper-suite": "videohelpersuite-workernodes",
+}
+
+
+def prepare_worker_install_inputs(context: Path, definitions: dict) -> None:
+    """Keep package installation inputs independent of source/adapter metadata.
+
+    Prefixes remain at their final absolute paths in every build stage. The
+    complete runtime identity is assembled later, without reinstalling packages.
+    """
+    workers = definitions['workers']
+    if {name: worker['environment'] for name, worker in workers.items()} != WORKER_ENVIRONMENTS:
+        raise ValueError('Worker set/prefix changed; update the explicit Docker stages')
+    for directory in ['worker-install', 'worker-identities']:
+        root = context / directory
+        if root.exists():
+            shutil.rmtree(root)
+        root.mkdir()
+    for name, worker in workers.items():
+        destination = context / 'worker-install' / name
+        destination.mkdir()
+        subset = {key: worker[key] for key in ['environment', 'lock_file', 'lock_sha256']}
+        manifest = {'schema_version': 1, 'provider': definitions['provider'],
+                    'gpu_lock_sha256': definitions['gpu_lock_sha256'], 'workers': {name: subset}}
+        (destination / 'manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True) + '\n')
+        shutil.copyfile(context / 'worker-locks' / worker['lock_file'], destination / worker['lock_file'])
+        identity = context / 'worker-identities' / worker['environment']
+        identity.mkdir()
+        (identity / 'worker-lock.json').write_text(json.dumps(worker, indent=2, sort_keys=True) + '\n')
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--target", choices=["gpu-base", "host", "worker-probe"])
@@ -71,7 +108,9 @@ def main() -> None:
             raise ValueError('Worker GPU lock identity changed without re-locking')
         inputs = json.loads((ROOT / "build/inputs/workers/workers.json").read_text())
         worker_locks = context / "worker-locks"
-        worker_locks.mkdir(exist_ok=True)
+        if worker_locks.exists():
+            shutil.rmtree(worker_locks)
+        worker_locks.mkdir()
         for name, definition in definitions['workers'].items():
             recorded = {key:value for key,value in definition.items() if key not in {'lock_file','lock_sha256'}}
             if recorded != inputs['workers'][name]:
@@ -91,6 +130,7 @@ def main() -> None:
                 raise ValueError(f'Worker lock file changed: {name}')
             (worker_locks / definition['lock_file']).write_bytes(raw_lock)
         (worker_locks/'manifest.json').write_text(json.dumps(definitions,indent=2,sort_keys=True)+'\n')
+        prepare_worker_install_inputs(context, definitions)
         for script in ['link_gpu_packages.py','install_worker_envs.py']:
             shutil.copyfile(ROOT/'tools/rebuild'/script,context/script)
         nodes_root = context / 'worker-nodes'

@@ -22,6 +22,46 @@ RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv \
       --requirement /opt/locks/gpu.txt && \
     python -c 'import torch, torchvision, torchaudio, xformers; assert torch.version.cuda == "12.8"; print(torch.__version__, torch.version.cuda)'
 
+# Each worker installs against only the GPU base, its own lock and installer.
+# Host/ComfyUI/SDK/adapter changes do not invalidate these package layers.
+FROM gpu-base AS worker-builder
+COPY link_gpu_packages.py install_worker_envs.py /opt/probe/
+
+FROM worker-builder AS worker-sam3
+ARG TORCH_BACKEND
+COPY worker-install/sam3/ /opt/locks/worker-install/
+RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv \
+    python /opt/probe/install_worker_envs.py --backend "${TORCH_BACKEND}" \
+      --definitions /opt/locks/worker-install/manifest.json
+
+FROM worker-builder AS worker-depth-anything-v3
+ARG TORCH_BACKEND
+COPY worker-install/depth-anything-v3/ /opt/locks/worker-install/
+RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv \
+    python /opt/probe/install_worker_envs.py --backend "${TORCH_BACKEND}" \
+      --definitions /opt/locks/worker-install/manifest.json
+
+FROM worker-builder AS worker-itools
+ARG TORCH_BACKEND
+COPY worker-install/itools/ /opt/locks/worker-install/
+RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv \
+    python /opt/probe/install_worker_envs.py --backend "${TORCH_BACKEND}" \
+      --definitions /opt/locks/worker-install/manifest.json
+
+FROM worker-builder AS worker-kjnodes
+ARG TORCH_BACKEND
+COPY worker-install/kjnodes/ /opt/locks/worker-install/
+RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv \
+    python /opt/probe/install_worker_envs.py --backend "${TORCH_BACKEND}" \
+      --definitions /opt/locks/worker-install/manifest.json
+
+FROM worker-builder AS worker-video-helper-suite
+ARG TORCH_BACKEND
+COPY worker-install/video-helper-suite/ /opt/locks/worker-install/
+RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv \
+    python /opt/probe/install_worker_envs.py --backend "${TORCH_BACKEND}" \
+      --definitions /opt/locks/worker-install/manifest.json
+
 FROM gpu-base AS host
 ARG TORCH_BACKEND
 ENV COMFYCTL_REQUIRE_ISOLATION=1
@@ -43,12 +83,14 @@ CMD ["python", "main.py", "--cpu", "--use-pytorch-cross-attention", "--disable-a
 # Native comfy-env workers in separately locked venvs. Only immutable GPU
 # artifacts are linked from the already verified stack; no host sys.path leaks.
 FROM host AS worker-probe
-ARG TORCH_BACKEND
 ARG WORKER_ATTENTION=pytorch
 COPY worker-locks/ /opt/locks/workers/
-COPY link_gpu_packages.py install_worker_envs.py /opt/probe/
-RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv \
-    python /opt/probe/install_worker_envs.py --backend "${TORCH_BACKEND}"
+COPY --link --from=worker-sam3 /opt/workers/sam3-nodes/ /opt/workers/sam3-nodes/
+COPY --link --from=worker-depth-anything-v3 /opt/workers/depthanythingv3-nodes/ /opt/workers/depthanythingv3-nodes/
+COPY --link --from=worker-itools /opt/workers/itools-workernodes/ /opt/workers/itools-workernodes/
+COPY --link --from=worker-kjnodes /opt/workers/kjnodes-workernodes/ /opt/workers/kjnodes-workernodes/
+COPY --link --from=worker-video-helper-suite /opt/workers/videohelpersuite-workernodes/ /opt/workers/videohelpersuite-workernodes/
+COPY --link worker-identities/ /opt/workers/
 COPY worker-nodes/ /opt/probe/ComfyUI/custom_nodes/
 ENV COMFYCTL_WORKER_ROOT=/opt/workers \
     COMFY_ENV_ROOT=/opt/worker-state \
