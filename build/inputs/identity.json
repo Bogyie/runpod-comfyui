@@ -97,6 +97,23 @@
       "runtime_env": {
         "VHS_FORCE_FFMPEG_PATH": "/usr/bin/ffmpeg"
       },
+      "runtime_required_nodes": {
+        "depth-anything-v3": [
+          "DepthAnything_V3"
+        ],
+        "itools": [
+          "iToolsCheckerBoard"
+        ],
+        "kjnodes": [
+          "ColorMatchV2"
+        ],
+        "sam3": [
+          "SAM3PointCollector"
+        ],
+        "video-helper-suite": [
+          "VHS_VideoCombine"
+        ]
+      },
       "schema_version": 1,
       "status": "experimental-p0",
       "transitive_nodes": [
@@ -199,5 +216,5 @@
     }
   },
   "kind": "candidate-input-identity",
-  "sha256": "74e26565e0ced5681aa8d6dba0c29a8c641860d35b5849c2a19b36fa1ace5ee3"
+  "sha256": "3717c7b28c9f21e8f39b08da30ef1a62e31e3d658686b210ce259457b4965183"
 }

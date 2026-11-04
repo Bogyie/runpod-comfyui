@@ -1,0 +1,814 @@
+{
+  "async_script_count": 2,
+  "bbox": {
+    "cx": 24,
+    "cy": 16,
+    "height": 16,
+    "width": 24,
+    "x": 12,
+    "y": 8
+  },
+  "color": {
+    "fallback_rejected": true,
+    "height": 32,
+    "image": {
+      "filename": "kj-color-gate_00001_.png",
+      "metadata": {
+        "height": 32,
+        "kind": "image",
+        "width": 64
+      },
+      "subfolder": "",
+      "type": "output"
+    },
+    "input_pixel": [
+      32,
+      32,
+      32
+    ],
+    "pixel": [
+      192,
+      192,
+      192
+    ],
+    "sha256": "9c8bd3e8560e3ede4a7e1c04b08c0df42cb8aed2aa4ff4558eb7e77b534d1f3f",
+    "width": 64
+  },
+  "container_removed": true,
+  "environment": {
+    "extra_realpath": "/opt/workers/kjnodes-workernodes/lib/python3.11/site-packages/color_matcher/__init__.py",
+    "prefix": "/opt/workers/kjnodes-workernodes",
+    "sys_path": [
+      "",
+      "/usr/local/lib/python311.zip",
+      "/usr/local/lib/python3.11",
+      "/usr/local/lib/python3.11/lib-dynload",
+      "/opt/workers/kjnodes-workernodes/lib/python3.11/site-packages"
+    ],
+    "torch_realpath": "/opt/runtime/venv/lib/python3.11/site-packages/torch/__init__.py",
+    "torch_version": "2.10.0+cu128"
+  },
+  "host": {
+    "class_modules": {
+      "BboxToInt": "comfy_env.isolation.metadata",
+      "ColorMatchV2": "comfy_env.isolation.metadata",
+      "FastPreview": "/opt/probe/ComfyUI/custom_nodes/ComfyUI-KJNodes.nodes.image_nodes",
+      "ModelPassThrough": "/opt/probe/ComfyUI/custom_nodes/ComfyUI-KJNodes.nodes.nodes",
+      "ResizeMask": "comfy_env.isolation.metadata"
+    },
+    "host_has_color_matcher": false,
+    "host_imported_color_matcher": false,
+    "host_pid": 1,
+    "worker_catalog_imported_on_host": false
+  },
+  "host_package_fingerprint": {
+    "gpu_files": {
+      "torch/_C.cpython-311-x86_64-linux-gnu.so": "4349b125953ce9e0f7e0e94f5a78519107f15a234e1fb3703e86c12c405b09cd",
+      "torch/__init__.py": "51c90fe34a7cf869517d1bab4cd114498790e169ec668f1a154c35ec64117a5e",
+      "torch/version.py": "53e3fb24ceaf300de811ae08721e5ca3a0720c7ef900c8365da3fe80c7271ebc"
+    },
+    "packages_sha256": "501ec9239838c5b436a4f1985f47fd320f7af8ed03253aad35e8a3f33c95792f"
+  },
+  "image_id": "sha256:49c85acacb203d9215a888b6e60e7ab6842341a53e2c46c8916666356ae3a94f",
+  "kind": "kjnodes-mixed-isolation-cpu-gate",
+  "mask": {
+    "count": 1,
+    "height": 16,
+    "mean": 0.5,
+    "shape": [
+      1,
+      16,
+      32
+    ],
+    "width": 32
+  },
+  "node_error_recovery": "passed",
+  "node_error_status": {
+    "completed": false,
+    "messages": [
+      [
+        "execution_start",
+        {
+          "prompt_id": "f235bdd9-37f6-4e8b-ac02-b058512c68ab",
+          "timestamp": 1793779423658
+        }
+      ],
+      [
+        "execution_cached",
+        {
+          "nodes": [],
+          "prompt_id": "f235bdd9-37f6-4e8b-ac02-b058512c68ab",
+          "timestamp": 1793779423658
+        }
+      ],
+      [
+        "execution_error",
+        {
+          "current_inputs": {
+            "bboxes": [
+              "[1, 2]"
+            ],
+            "index": [
+              0
+            ]
+          },
+          "current_outputs": [
+            "1",
+            "2",
+            "3"
+          ],
+          "exception_message": "Invalid bbox: 1\n\nWorker traceback:\nTraceback (most recent call last):\n  File \"/tmp/comfyui_pvenv_fj2_gcra/persistent_worker.py\", line 1783, in main\n    result = method(**inputs)\n             ^^^^^^^^^^^^^^^^\n  File \"/opt/probe/ComfyUI/custom_nodes/ComfyUI-KJNodes/nodes/batchcrop_nodes.py\", line 689, in bboxtoint\n    x_min, y_min, width, height = normalize_bboxes(bboxes)[index]\n                                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/probe/ComfyUI/custom_nodes/ComfyUI-KJNodes/utility/utility.py\", line 45, in normalize_bboxes\n    raise ValueError(f\"Invalid bbox: {bbox}\")\nValueError: Invalid bbox: 1\n\n",
+          "exception_type": "comfy_env.isolation.workers.base.WorkerError",
+          "executed": [
+            "1"
+          ],
+          "node_id": "2",
+          "node_type": "BboxToInt",
+          "prompt_id": "f235bdd9-37f6-4e8b-ac02-b058512c68ab",
+          "timestamp": 1793779423666,
+          "traceback": [
+            "  File \"/opt/probe/ComfyUI/execution.py\", line 556, in execute\n    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)\n                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+            "  File \"/opt/probe/ComfyUI/execution.py\", line 353, in get_output_data\n    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+            "  File \"/opt/probe/ComfyUI/execution.py\", line 327, in _async_map_node_over_list\n    await process_inputs(input_dict, i)\n",
+            "  File \"/opt/probe/ComfyUI/execution.py\", line 315, in process_inputs\n    result = f(**inputs)\n             ^^^^^^^^^^^\n",
+            "  File \"/opt/runtime/venv/lib/python3.11/site-packages/comfy_env/isolation/metadata.py\", line 592, in proxy\n    result = worker.call_method(\n             ^^^^^^^^^^^^^^^^^^^\n",
+            "  File \"/opt/runtime/venv/lib/python3.11/site-packages/comfy_env/isolation/workers/subprocess.py\", line 674, in call_method\n    raise WorkerError(\n"
+          ]
+        }
+      ]
+    ],
+    "status_str": "error"
+  },
+  "policy": {
+    "other_host_nodes": "Remaining upstream modules keep their original host implementation; model patch/hook context is not sent through generic MODEL IPC.",
+    "reviewed_host_nodes": {
+      "BatchCLIPSeg": [
+        "object-types:CLIPSEGMODEL"
+      ],
+      "DecodeAndSaveVideo": [
+        "v3-context-review",
+        "object-types:COMBO,COMFY_DYNAMICCOMBO_V3,VAE"
+      ],
+      "DownloadAndLoadCLIPSeg": [
+        "object-types:CLIPSEGMODEL"
+      ],
+      "EncodeVideoComponents": [
+        "v3-context-review",
+        "object-types:COMBO,COMFY_DYNAMICCOMBO_V3,VAE,VIDEO"
+      ],
+      "FastPreview": [
+        "host-server-callback"
+      ],
+      "FastPreviewBatch": [
+        "v3-context-review",
+        "object-types:IMAGE,MASK,VIDEO"
+      ],
+      "GLIGENTextBoxApplyBatchCoords": [
+        "object-types:CLIP,CONDITIONING,GLIGEN"
+      ],
+      "ImageBatchTestPattern": [
+        "v3-context-review",
+        "object-types:COMBO"
+      ],
+      "ImageConcanate": [
+        "v3-context-review",
+        "object-types:COMBO,COMFY_MATCHTYPE_V3,IMAGE,MASK"
+      ],
+      "ImageConcatMulti": [
+        "v3-context-review",
+        "object-types:COMBO,COMFY_MATCHTYPE_V3,IMAGE,MASK"
+      ],
+      "ImageResizeKJv2": [
+        "host-server-callback"
+      ],
+      "ImageUpscaleWithModelBatched": [
+        "object-types:UPSCALE_MODEL"
+      ],
+      "PreviewImageOrMask": [
+        "v3-context-review",
+        "object-types:IMAGE,MASK"
+      ],
+      "RandomImageFromBatch": [
+        "v3-context-review",
+        "object-types:COMFY_MATCHTYPE_V3"
+      ]
+    },
+    "schema_version": 1,
+    "scope": "Candidate image/mask/bbox/curve CPU isolation. Type survey is not representative workflow or GPU proof.",
+    "source_commit": "ab72eda7ffad6280422d71ab7d54d3fb87c0ba18",
+    "worker_nodes": {
+      "AddLabel": {
+        "class": "AddLabel",
+        "display_name": "Add Label",
+        "module": "nodes.image_nodes"
+      },
+      "AppendInstanceDiffusionTracking": {
+        "class": "AppendInstanceDiffusionTracking",
+        "display_name": "AppendInstanceDiffusionTracking",
+        "module": "nodes.curve_nodes"
+      },
+      "BatchCropFromMask": {
+        "class": "BatchCropFromMask",
+        "display_name": "Batch Crop From Mask",
+        "module": "nodes.batchcrop_nodes"
+      },
+      "BatchCropFromMaskAdvanced": {
+        "class": "BatchCropFromMaskAdvanced",
+        "display_name": "Batch Crop From Mask Advanced",
+        "module": "nodes.batchcrop_nodes"
+      },
+      "BatchUncrop": {
+        "class": "BatchUncrop",
+        "display_name": "Batch Uncrop",
+        "module": "nodes.batchcrop_nodes"
+      },
+      "BatchUncropAdvanced": {
+        "class": "BatchUncropAdvanced",
+        "display_name": "Batch Uncrop Advanced",
+        "module": "nodes.batchcrop_nodes"
+      },
+      "BboxToInt": {
+        "class": "BboxToInt",
+        "display_name": "Bbox To Int",
+        "module": "nodes.batchcrop_nodes"
+      },
+      "BboxVisualize": {
+        "class": "BboxVisualize",
+        "display_name": "Bbox Visualize",
+        "module": "nodes.batchcrop_nodes"
+      },
+      "BlockifyMask": {
+        "class": "BlockifyMask",
+        "display_name": "Blockify Mask",
+        "module": "nodes.mask_nodes"
+      },
+      "ColorMatch": {
+        "class": "ColorMatch",
+        "display_name": "Color Match",
+        "module": "nodes.image_nodes"
+      },
+      "ColorMatchV2": {
+        "class": "ColorMatchV2",
+        "display_name": "Color Match V2",
+        "module": "nodes.image_nodes"
+      },
+      "ColorToMask": {
+        "class": "ColorToMask",
+        "display_name": "Color To Mask",
+        "module": "nodes.mask_nodes"
+      },
+      "ConsolidateMasksKJ": {
+        "class": "ConsolidateMasksKJ",
+        "display_name": "Consolidate Masks",
+        "module": "nodes.mask_nodes"
+      },
+      "CreateAudioMask": {
+        "class": "CreateAudioMask",
+        "display_name": "Create Audio Mask",
+        "module": "nodes.mask_nodes"
+      },
+      "CreateFadeMask": {
+        "class": "CreateFadeMask",
+        "display_name": "Create Fade Mask",
+        "module": "nodes.mask_nodes"
+      },
+      "CreateFadeMaskAdvanced": {
+        "class": "CreateFadeMaskAdvanced",
+        "display_name": "Create Fade Mask Advanced",
+        "module": "nodes.mask_nodes"
+      },
+      "CreateFluidMask": {
+        "class": "CreateFluidMask",
+        "display_name": "Create Fluid Mask",
+        "module": "nodes.mask_nodes"
+      },
+      "CreateGradientFromCoords": {
+        "class": "CreateGradientFromCoords",
+        "display_name": "Create Gradient From Coords",
+        "module": "nodes.curve_nodes"
+      },
+      "CreateGradientMask": {
+        "class": "CreateGradientMask",
+        "display_name": "Create Gradient Mask",
+        "module": "nodes.mask_nodes"
+      },
+      "CreateInstanceDiffusionTracking": {
+        "class": "CreateInstanceDiffusionTracking",
+        "display_name": "CreateInstanceDiffusionTracking",
+        "module": "nodes.curve_nodes"
+      },
+      "CreateMagicMask": {
+        "class": "CreateMagicMask",
+        "display_name": "Create Magic Mask",
+        "module": "nodes.mask_nodes"
+      },
+      "CreateShapeImageOnPath": {
+        "class": "CreateShapeImageOnPath",
+        "display_name": "Create Shape Image On Path",
+        "module": "nodes.curve_nodes"
+      },
+      "CreateShapeMask": {
+        "class": "CreateShapeMask",
+        "display_name": "Create Shape Mask",
+        "module": "nodes.mask_nodes"
+      },
+      "CreateShapeMaskOnPath": {
+        "class": "CreateShapeMaskOnPath",
+        "display_name": "Create Shape Mask On Path",
+        "module": "nodes.curve_nodes"
+      },
+      "CreateTextMask": {
+        "class": "CreateTextMask",
+        "display_name": "Create Text Mask",
+        "module": "nodes.mask_nodes"
+      },
+      "CreateTextOnPath": {
+        "class": "CreateTextOnPath",
+        "display_name": "Create Text On Path",
+        "module": "nodes.curve_nodes"
+      },
+      "CreateVoronoiMask": {
+        "class": "CreateVoronoiMask",
+        "display_name": "Create Voronoi Mask",
+        "module": "nodes.mask_nodes"
+      },
+      "CrossFadeImages": {
+        "class": "CrossFadeImages",
+        "display_name": "Cross Fade Images",
+        "module": "nodes.image_nodes"
+      },
+      "CrossFadeImagesMulti": {
+        "class": "CrossFadeImagesMulti",
+        "display_name": "Cross Fade Images Multi",
+        "module": "nodes.image_nodes"
+      },
+      "CutAndDragOnPath": {
+        "class": "CutAndDragOnPath",
+        "display_name": "Cut And Drag On Path",
+        "module": "nodes.curve_nodes"
+      },
+      "DrawInstanceDiffusionTracking": {
+        "class": "DrawInstanceDiffusionTracking",
+        "display_name": "DrawInstanceDiffusionTracking",
+        "module": "nodes.curve_nodes"
+      },
+      "DrawMaskOnImage": {
+        "class": "DrawMaskOnImage",
+        "display_name": "Draw Mask On Image",
+        "module": "nodes.mask_nodes"
+      },
+      "FilterZeroMasksAndCorrespondingImages": {
+        "class": "FilterZeroMasksAndCorrespondingImages",
+        "display_name": "FilterZeroMasksAndCorrespondingImages",
+        "module": "nodes.batchcrop_nodes"
+      },
+      "FloatToMask": {
+        "class": "FloatToMask",
+        "display_name": "Float To Mask",
+        "module": "nodes.curve_nodes"
+      },
+      "FloatToSigmas": {
+        "class": "FloatToSigmas",
+        "display_name": "Float To Sigmas",
+        "module": "nodes.curve_nodes"
+      },
+      "GetImageRangeFromBatch": {
+        "class": "GetImageRangeFromBatch",
+        "display_name": "Get Image or Mask Range From Batch",
+        "module": "nodes.image_nodes"
+      },
+      "GetImageSizeAndCount": {
+        "class": "GetImageSizeAndCount",
+        "display_name": "Get Image Size & Count",
+        "module": "nodes.image_nodes"
+      },
+      "GetImagesFromBatchIndexed": {
+        "class": "GetImagesFromBatchIndexed",
+        "display_name": "Get Images From Batch Indexed",
+        "module": "nodes.image_nodes"
+      },
+      "GetLatentRangeFromBatch": {
+        "class": "GetLatentRangeFromBatch",
+        "display_name": "Get Latent Range From Batch",
+        "module": "nodes.image_nodes"
+      },
+      "GetLatentSizeAndCount": {
+        "class": "GetLatentSizeAndCount",
+        "display_name": "Get Latent Size & Count",
+        "module": "nodes.image_nodes"
+      },
+      "GetMaskSizeAndCount": {
+        "class": "GetMaskSizeAndCount",
+        "display_name": "Get Mask Size & Count",
+        "module": "nodes.mask_nodes"
+      },
+      "GradientToFloat": {
+        "class": "GradientToFloat",
+        "display_name": "Gradient To Float",
+        "module": "nodes.curve_nodes"
+      },
+      "GrowMaskWithBlur": {
+        "class": "GrowMaskWithBlur",
+        "display_name": "Grow Mask With Blur",
+        "module": "nodes.mask_nodes"
+      },
+      "ImageAddMulti": {
+        "class": "ImageAddMulti",
+        "display_name": "Image Add Multi",
+        "module": "nodes.image_nodes"
+      },
+      "ImageAndMaskPreview": {
+        "class": "ImageAndMaskPreview",
+        "display_name": "ImageAndMaskPreview",
+        "module": "nodes.image_nodes"
+      },
+      "ImageBatchExtendWithOverlap": {
+        "class": "ImageBatchExtendWithOverlap",
+        "display_name": "Image Batch Extend With Overlap",
+        "module": "nodes.image_nodes"
+      },
+      "ImageBatchFilter": {
+        "class": "ImageBatchFilter",
+        "display_name": "Image Batch Filter",
+        "module": "nodes.image_nodes"
+      },
+      "ImageBatchJoinWithTransition": {
+        "class": "ImageBatchJoinWithTransition",
+        "display_name": "Image Batch Join With Transition",
+        "module": "nodes.image_nodes"
+      },
+      "ImageBatchMulti": {
+        "class": "ImageBatchMulti",
+        "display_name": "Image Batch Multi",
+        "module": "nodes.image_nodes"
+      },
+      "ImageBatchRepeatInterleaving": {
+        "class": "ImageBatchRepeatInterleaving",
+        "display_name": "ImageBatchRepeatInterleaving",
+        "module": "nodes.image_nodes"
+      },
+      "ImageConcatFromBatch": {
+        "class": "ImageConcatFromBatch",
+        "display_name": "Image Concatenate From Batch",
+        "module": "nodes.image_nodes"
+      },
+      "ImageCropByMask": {
+        "class": "ImageCropByMask",
+        "display_name": "Image Crop By Mask",
+        "module": "nodes.image_nodes"
+      },
+      "ImageCropByMaskAndResize": {
+        "class": "ImageCropByMaskAndResize",
+        "display_name": "Image Crop By Mask And Resize",
+        "module": "nodes.image_nodes"
+      },
+      "ImageCropByMaskBatch": {
+        "class": "ImageCropByMaskBatch",
+        "display_name": "Image Crop By Mask Batch",
+        "module": "nodes.image_nodes"
+      },
+      "ImageGrabPIL": {
+        "class": "ImageGrabPIL",
+        "display_name": "Image Grab PIL",
+        "module": "nodes.image_nodes"
+      },
+      "ImageGridComposite2x2": {
+        "class": "ImageGridComposite2x2",
+        "display_name": "Image Grid Composite 2x2",
+        "module": "nodes.image_nodes"
+      },
+      "ImageGridComposite3x3": {
+        "class": "ImageGridComposite3x3",
+        "display_name": "Image Grid Composite 3x3",
+        "module": "nodes.image_nodes"
+      },
+      "ImageGridtoBatch": {
+        "class": "ImageGridtoBatch",
+        "display_name": "Image Grid To Batch",
+        "module": "nodes.image_nodes"
+      },
+      "ImageNormalize_Neg1_To_1": {
+        "class": "ImageNormalize_Neg1_To_1",
+        "display_name": "Image Normalize -1 to 1",
+        "module": "nodes.image_nodes"
+      },
+      "ImagePadForOutpaintMasked": {
+        "class": "ImagePadForOutpaintMasked",
+        "display_name": "Image Pad For Outpaint Masked",
+        "module": "nodes.image_nodes"
+      },
+      "ImagePadForOutpaintTargetSize": {
+        "class": "ImagePadForOutpaintTargetSize",
+        "display_name": "Image Pad For Outpaint Target Size",
+        "module": "nodes.image_nodes"
+      },
+      "ImagePadKJ": {
+        "class": "ImagePadKJ",
+        "display_name": "ImagePad KJ",
+        "module": "nodes.image_nodes"
+      },
+      "ImagePass": {
+        "class": "ImagePass",
+        "display_name": "ImagePass",
+        "module": "nodes.image_nodes"
+      },
+      "ImagePrepForICLora": {
+        "class": "ImagePrepForICLora",
+        "display_name": "Image Prep For ICLora",
+        "module": "nodes.image_nodes"
+      },
+      "ImageResizeKJ": {
+        "class": "ImageResizeKJ",
+        "display_name": "Resize Image (deprecated)",
+        "module": "nodes.image_nodes"
+      },
+      "ImageTensorList": {
+        "class": "ImageTensorList",
+        "display_name": "Image Tensor List",
+        "module": "nodes.image_nodes"
+      },
+      "ImageTransformByNormalizedAmplitude": {
+        "class": "ImageTransformByNormalizedAmplitude",
+        "display_name": "ImageTransformByNormalizedAmplitude",
+        "module": "nodes.audioscheduler_nodes"
+      },
+      "ImageUncropByMask": {
+        "class": "ImageUncropByMask",
+        "display_name": "Image Uncrop By Mask",
+        "module": "nodes.image_nodes"
+      },
+      "InsertImageBatchByIndexes": {
+        "class": "InsertImageBatchByIndexes",
+        "display_name": "Insert Image Batch By Indexes",
+        "module": "nodes.batchcrop_nodes"
+      },
+      "InsertImagesToBatchIndexed": {
+        "class": "InsertImagesToBatchIndexed",
+        "display_name": "Insert Images To Batch Indexed",
+        "module": "nodes.image_nodes"
+      },
+      "InsertLatentToIndexed": {
+        "class": "InsertLatentToIndex",
+        "display_name": "Insert Latent To Index",
+        "module": "nodes.image_nodes"
+      },
+      "InterpolateCoords": {
+        "class": "InterpolateCoords",
+        "display_name": "Interpolate Coords",
+        "module": "nodes.curve_nodes"
+      },
+      "LoadAndResizeImage": {
+        "class": "LoadAndResizeImage",
+        "display_name": "Load & Resize Image",
+        "module": "nodes.image_nodes"
+      },
+      "LoadImagesFromFolderKJ": {
+        "class": "LoadImagesFromFolderKJ",
+        "display_name": "Load Images From Folder (KJ)",
+        "module": "nodes.image_nodes"
+      },
+      "LoadVideosFromFolder": {
+        "class": "LoadVideosFromFolder",
+        "display_name": "Load Videos From Folder",
+        "module": "nodes.image_nodes"
+      },
+      "MaskBatchMulti": {
+        "class": "MaskBatchMulti",
+        "display_name": "Mask Batch Multi",
+        "module": "nodes.mask_nodes"
+      },
+      "MaskOrImageToWeight": {
+        "class": "MaskOrImageToWeight",
+        "display_name": "Mask Or Image To Weight",
+        "module": "nodes.curve_nodes"
+      },
+      "MergeImageChannels": {
+        "class": "MergeImageChannels",
+        "display_name": "Merge Image Channels",
+        "module": "nodes.image_nodes"
+      },
+      "NormalizedAmplitudeToFloatList": {
+        "class": "NormalizedAmplitudeToFloatList",
+        "display_name": "NormalizedAmplitudeToFloatList",
+        "module": "nodes.audioscheduler_nodes"
+      },
+      "NormalizedAmplitudeToMask": {
+        "class": "NormalizedAmplitudeToMask",
+        "display_name": "NormalizedAmplitudeToMask",
+        "module": "nodes.audioscheduler_nodes"
+      },
+      "OffsetMask": {
+        "class": "OffsetMask",
+        "display_name": "Offset Mask",
+        "module": "nodes.mask_nodes"
+      },
+      "OffsetMaskByNormalizedAmplitude": {
+        "class": "OffsetMaskByNormalizedAmplitude",
+        "display_name": "OffsetMaskByNormalizedAmplitude",
+        "module": "nodes.audioscheduler_nodes"
+      },
+      "PadImageBatchInterleaved": {
+        "class": "PadImageBatchInterleaved",
+        "display_name": "Pad Image Batch Interleaved",
+        "module": "nodes.image_nodes"
+      },
+      "PlotCoordinates": {
+        "class": "PlotCoordinates",
+        "display_name": "Plot Coordinates",
+        "module": "nodes.curve_nodes"
+      },
+      "PointsEditor": {
+        "class": "PointsEditor",
+        "display_name": "Points Editor",
+        "module": "nodes.curve_nodes"
+      },
+      "PreviewAnimation": {
+        "class": "PreviewAnimation",
+        "display_name": "Preview Animation",
+        "module": "nodes.image_nodes"
+      },
+      "RemapImageRange": {
+        "class": "RemapImageRange",
+        "display_name": "Remap Image Range",
+        "module": "nodes.image_nodes"
+      },
+      "RemapMaskRange": {
+        "class": "RemapMaskRange",
+        "display_name": "Remap Mask Range",
+        "module": "nodes.mask_nodes"
+      },
+      "ReplaceImagesInBatch": {
+        "class": "ReplaceImagesInBatch",
+        "display_name": "Replace Images In Batch",
+        "module": "nodes.image_nodes"
+      },
+      "ResizeMask": {
+        "class": "ResizeMask",
+        "display_name": "Resize Mask",
+        "module": "nodes.mask_nodes"
+      },
+      "ReverseImageBatch": {
+        "class": "ReverseImageBatch",
+        "display_name": "Reverse Image Batch",
+        "module": "nodes.image_nodes"
+      },
+      "RoundMask": {
+        "class": "RoundMask",
+        "display_name": "Round Mask",
+        "module": "nodes.mask_nodes"
+      },
+      "SaveImageKJ": {
+        "class": "SaveImageKJ",
+        "display_name": "Save Image KJ",
+        "module": "nodes.image_nodes"
+      },
+      "SaveImageWithAlpha": {
+        "class": "SaveImageWithAlpha",
+        "display_name": "Save Image With Alpha",
+        "module": "nodes.image_nodes"
+      },
+      "SaveStringKJ": {
+        "class": "SaveStringKJ",
+        "display_name": "Save String KJ",
+        "module": "nodes.image_nodes"
+      },
+      "ScreencapStream": {
+        "class": "ScreencapStream",
+        "display_name": "Screencap Stream",
+        "module": "nodes.image_nodes"
+      },
+      "Screencap_mss": {
+        "class": "Screencap_mss",
+        "display_name": "Screencap mss",
+        "module": "nodes.image_nodes"
+      },
+      "SeparateMasks": {
+        "class": "SeparateMasks",
+        "display_name": "Separate Masks",
+        "module": "nodes.mask_nodes"
+      },
+      "ShuffleImageBatch": {
+        "class": "ShuffleImageBatch",
+        "display_name": "Shuffle Image Batch",
+        "module": "nodes.image_nodes"
+      },
+      "SigmasToFloat": {
+        "class": "SigmasToFloat",
+        "display_name": "Sigmas To Float",
+        "module": "nodes.curve_nodes"
+      },
+      "SplineEditor": {
+        "class": "SplineEditor",
+        "display_name": "Spline Editor",
+        "module": "nodes.curve_nodes"
+      },
+      "SplitBboxes": {
+        "class": "SplitBboxes",
+        "display_name": "Split Bboxes",
+        "module": "nodes.batchcrop_nodes"
+      },
+      "SplitImageChannels": {
+        "class": "SplitImageChannels",
+        "display_name": "Split Image Channels",
+        "module": "nodes.image_nodes"
+      },
+      "TransitionImagesInBatch": {
+        "class": "TransitionImagesInBatch",
+        "display_name": "Transition Images In Batch",
+        "module": "nodes.image_nodes"
+      },
+      "TransitionImagesMulti": {
+        "class": "TransitionImagesMulti",
+        "display_name": "Transition Images Multi",
+        "module": "nodes.image_nodes"
+      },
+      "WebcamCaptureCV2": {
+        "class": "WebcamCaptureCV2",
+        "display_name": "Webcam Capture CV2",
+        "module": "nodes.image_nodes"
+      },
+      "WeightScheduleConvert": {
+        "class": "WeightScheduleConvert",
+        "display_name": "Weight Schedule Convert",
+        "module": "nodes.curve_nodes"
+      },
+      "WeightScheduleExtend": {
+        "class": "WeightScheduleExtend",
+        "display_name": "Weight Schedule Extend",
+        "module": "nodes.curve_nodes"
+      }
+    }
+  },
+  "scope": "108 metadata registrations plus representative CPU ColorMatchV2, MASK/BBOX/scalar IPC, real node exception/recovery, worker SIGMAS to host matplotlib, host binary WebSocket and HTTP/assets. Not real model checkpoint inference, GPU, all 108 algorithms or browser interaction.",
+  "status": "passed",
+  "ui_extension_count": 31,
+  "websocket": {
+    "history_status": {
+      "completed": true,
+      "messages": [
+        [
+          "execution_start",
+          {
+            "prompt_id": "bd5313ce-2b45-488c-bbf5-b68ac8962db3",
+            "timestamp": 1793779427776
+          }
+        ],
+        [
+          "execution_cached",
+          {
+            "nodes": [],
+            "prompt_id": "bd5313ce-2b45-488c-bbf5-b68ac8962db3",
+            "timestamp": 1793779427776
+          }
+        ],
+        [
+          "execution_success",
+          {
+            "prompt_id": "bd5313ce-2b45-488c-bbf5-b68ac8962db3",
+            "timestamp": 1793779427782
+          }
+        ]
+      ],
+      "status_str": "success"
+    },
+    "preview": {
+      "event": 1,
+      "format": "PNG",
+      "height": 32,
+      "pixel": [
+        15,
+        32,
+        48
+      ],
+      "sha256": "1728418a778c190828dcea545a63650648431d5bb3748bc58a9b2f5032b1b8ec",
+      "width": 64
+    },
+    "status": "passed"
+  },
+  "worker": {
+    "attention_policy": "pytorch",
+    "cmd": [
+      "/opt/workers/kjnodes-workernodes/bin/python",
+      "/tmp/comfyui_pvenv_fj2_gcra/persistent_worker.py",
+      "abstract://comfy_worker_be79cdd7be0a"
+    ],
+    "cpu_mode": "1",
+    "pid": 70,
+    "ppid": 1
+  },
+  "worker_sigmas_to_host_plot": {
+    "height": 480,
+    "image": {
+      "filename": "kj-sigmas-gate_00001_.png",
+      "metadata": {
+        "height": 480,
+        "kind": "image",
+        "width": 640
+      },
+      "subfolder": "",
+      "type": "output"
+    },
+    "sha256": "cc54fa273157fcbd9ea4e0ab5022b907dd7a49e315173c1c561ddf1abf6532ca",
+    "width": 640
+  }
+}

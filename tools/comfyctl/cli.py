@@ -31,7 +31,28 @@ def main(argv=None) -> int:
     env_actions.add_parser("status", help="Inspect image environment versions, paths and live runtime state")
     doctor = env_actions.add_parser("doctor", help="Check dependencies and runtime API; no package changes")
     doctor.add_argument("--deep", action="store_true", help="Also verify installed RECORD file hashes (may take time)")
+    for name in ['rollback', 'reset']:
+        operation = env_actions.add_parser(name, help="Select a preserved/default generation for the next restart")
+        operation.add_argument('--defer', action='store_true', required=True, help="Apply on the next container restart")
+    node = commands.add_parser('node')
+    node_actions = node.add_subparsers(dest='action', required=True)
+    for name in ['disable', 'enable']:
+        operation = node_actions.add_parser(name, help="Validate a state-only generation for the next restart")
+        operation.add_argument('name')
+        operation.add_argument('--defer', action='store_true', required=True)
     args = parser.parse_args(argv)
+    mutation = args.command == 'node' or (args.command == 'env' and args.action in {'rollback', 'reset'})
+    if mutation:
+        if os.geteuid() != 0 or not Path('/opt/runtime/control/baseline.json').is_file():
+            print('comfyctl: Generation mutation requires the managed container administrator (uid 0)', file=sys.stderr)
+            return 1
+        from .generations import operate, SelectionError
+        try:
+            print(json.dumps(operate(args), indent=2))
+            return 0
+        except (SelectionError, OSError, ValueError, KeyError) as exc:
+            print('comfyctl: ' + str(exc), file=sys.stderr)
+            return 1
     # RunPod terminals often start as root. Downloads and diagnostics should
     # use the same identity as ComfyUI, without leaving root-owned user files.
     if os.environ.get('COMFYCTL_SERVICE_UID') == '1000' and os.getuid() == 0:

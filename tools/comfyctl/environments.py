@@ -102,9 +102,27 @@ def inspect_runtime(state, doctor=False, deep=False):
         record = {}
     if not isinstance(record, dict):
         record = {}
-    result = {'runtime_id': identity['runtime_id'], 'diagnostic_uid': os.getuid(), 'diagnostic_python': sys.prefix, 'generation': {'active': 'image-base', 'last_known_good': None,
-              'candidate_switching_implemented': False}, 'scope': 'locked-versions-and-paths',
+    sys.path.insert(0, str(CONTROL))
+    from selection import Store, SelectionError
+    store = Store()
+    try:
+        selection = store.state()
+        generation = {'active': record.get('generation_id'), 'desired': selection['desired'],
+                      'last_known_good': selection['last_good'], 'previous_good': selection['previous_good'],
+                      'candidate_switching_implemented': 'deferred-state-only',
+                      'restart_required': record.get('generation_id') != selection['desired']}
+    except (SelectionError, OSError, ValueError, KeyError) as exc:
+        generation = {'error': str(exc), 'restart_required': True}
+    result = {'runtime_id': identity['runtime_id'], 'diagnostic_uid': os.getuid(), 'diagnostic_python': sys.prefix,
+              'generation': generation, 'scope': 'locked-versions-and-paths',
               'runtime': live_status(record, identity['runtime_id']), 'environments': {}, 'problems': []}
+    if doctor and generation.get('active'):
+        try:
+            store.profile(generation['active'])
+        except (SelectionError, OSError, ValueError, KeyError):
+            result['problems'].append('active-generation-drift')
+    if 'error' in generation:
+        result['problems'].append('generation-selection-error')
     if not result['runtime']['healthy']:
         result['problems'].append('runtime-not-healthy')
     definitions = {'host': (Path('/opt/runtime/venv'), Path('/opt/locks/host.txt')),

@@ -124,6 +124,11 @@ jobs:
         run: |
           uv run --frozen python tools/rebuild/probe_runtime.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/runtime-preview.json
           printf 'Nonroot runtime preview passed locally on this runner. It is a separate image and is not the published worker candidate digest.\n' >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify deferred generation lifecycle in runtime preview
+        env:
+          RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
+        run: |
+          uv run --frozen python tools/rebuild/probe_generations.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/generations-preview.json
       - name: Publish tested candidate with BuildKit
         id: publish
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7

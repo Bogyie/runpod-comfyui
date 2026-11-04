@@ -1,0 +1,7 @@
+{
+  "method": "cached-buildkit-export",
+  "image_digest": "sha256:9f866b68b5edcc49f5e44fa2db460408b8a713265fd1574cfd43ca565568abdf",
+  "tested_config": "sha256:49c85acacb203d9215a888b6e60e7ab6842341a53e2c46c8916666356ae3a94f",
+  "registry_config": "sha256:49c85acacb203d9215a888b6e60e7ab6842341a53e2c46c8916666356ae3a94f",
+  "same_tested_image_config": true
+}

@@ -1,0 +1,431 @@
+{
+  "run_id": 41799830820,
+  "url": "https://github.com/Bogyie/runpod-comfyui/actions/runs/41799830820",
+  "head_sha": "fa2b520ce9ca4e6c3d1f701b79d1fa43fdc403eb",
+  "status": "completed",
+  "conclusion": "success",
+  "registry": {
+    "anonymous_manifest_read": true,
+    "digest": "sha256:9f866b68b5edcc49f5e44fa2db460408b8a713265fd1574cfd43ca565568abdf",
+    "config_digest": "sha256:49c85acacb203d9215a888b6e60e7ab6842341a53e2c46c8916666356ae3a94f",
+    "compressed_layer_bytes": 6901600274,
+    "manifest": {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "config": {
+        "mediaType": "application/vnd.oci.image.config.v1+json",
+        "digest": "sha256:49c85acacb203d9215a888b6e60e7ab6842341a53e2c46c8916666356ae3a94f",
+        "size": 13072
+      },
+      "layers": [
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:3c5439d0ae62993af4cc4e21b8c777297e81bc40e200d4633c85a3e0f977a3bc",
+          "size": 28247437
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:7d94a600ec4db9376baf5256fe8930655328c1f5e0d170179a0180dcecf69098",
+          "size": 3341499
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:8f7c262eb376d9d177f52c91b6a03c3b4996055a9e84ca2b7e92412ddd29d5ae",
+          "size": 16031646
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:1f235d1b4734e9d629d1705e7caf2db4ffc7775086658cc46a22b6eb2c7a726f",
+          "size": 250
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:7bd3107fdaa9b704c08f3b3fe53b073c825eca6e987f771624dca1f12b545f5a",
+          "size": 23244800
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:d7ee0dd5b6dfe2c5719f887ba3e07317d144136a430ae59b6050f7ec8a901f13",
+          "size": 17832
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:144a29ab9edc9b0939c53772fbe0d2a873c07323132e2b95f81a75de2dc6915f",
+          "size": 4187209003
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:58a594c6fff96ffb51851df2e8665fc786c255d8747ee61c27323eafba2982b8",
+          "size": 200150467
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:78fbd25a1fa1516a507fa3b9f3ad07d0ca44fd7d1de7b89c64de54ac0177cb2b",
+          "size": 116916
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:f780595fdda1535b7daf6276a85a7799175f4001d305a659f4309902bdecfad4",
+          "size": 904397874
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:11ee5b82c5379ffc5aeaf94ba493c47e1e1751e2215f64e7f82dec23d14a5776",
+          "size": 3800
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:477c2f9b843dab94c45714554177ac62010f961204b31701a109b47c5168ed7c",
+          "size": 56108
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:3f4986faa4860883a299210735c496f41a2f4ef446b07115a7329fe60fc82820",
+          "size": 12803405
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1",
+          "size": 32
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:26a58fd5ff7c6761ab6ae0a37733ef1de8fccd48ab3845cb4840d47aede91bb0",
+          "size": 454266
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:eb1e627ca35d980d7250e952b73563f82667e12c685944d0525301ce6f736676",
+          "size": 352631449
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:1c3af95d8b725437dc02b83cb2ec319bf9222443f219897637129597762c0522",
+          "size": 260088524
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:f9885d4fb1aeb3419644b81d85ca764c9c64345440562f3bf0f089eb724166d3",
+          "size": 257136887
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:1ba4e485fe2cf899d03c7e3e433b7417df27ccdf582af024ff2fbb3f28823176",
+          "size": 340134726
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:572f146f2721851c8d4a186f99a14a73d32f4987a3d6602936475670c85ba3c4",
+          "size": 257130563
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:8b47139fea3b95ecfcce972d565d2a28c4bb820a355f612a51df811eaba90a8f",
+          "size": 2548
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:5b79c4a2d2039a89543f992e26a55d8be6e9b30c89831363b73149eb296827a3",
+          "size": 58400242
+        }
+      ]
+    }
+  },
+  "jobs": [
+    {
+      "completedAt": "2026-11-04T08:29:15Z",
+      "conclusion": "success",
+      "databaseId": 126472595598,
+      "name": "checks / static",
+      "startedAt": "2026-11-04T08:29:00Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-04T08:29:01Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-04T08:29:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:29:03Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 2,
+          "startedAt": "2026-11-04T08:29:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:29:03Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 3,
+          "startedAt": "2026-11-04T08:29:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:29:05Z",
+          "conclusion": "success",
+          "name": "Install pinned resolver",
+          "number": 4,
+          "startedAt": "2026-11-04T08:29:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:29:06Z",
+          "conclusion": "success",
+          "name": "Restore development environment from lock",
+          "number": 5,
+          "startedAt": "2026-11-04T08:29:05Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:29:12Z",
+          "conclusion": "success",
+          "name": "Reproduce source audit",
+          "number": 6,
+          "startedAt": "2026-11-04T08:29:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:29:13Z",
+          "conclusion": "success",
+          "name": "Unit tests",
+          "number": 7,
+          "startedAt": "2026-11-04T08:29:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:29:13Z",
+          "conclusion": "success",
+          "name": "Syntax checks",
+          "number": 8,
+          "startedAt": "2026-11-04T08:29:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:29:13Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 15,
+          "startedAt": "2026-11-04T08:29:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:29:13Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 16,
+          "startedAt": "2026-11-04T08:29:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:29:13Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 17,
+          "startedAt": "2026-11-04T08:29:13Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Bogyie/runpod-comfyui/actions/runs/41799830820/job/126472595598"
+    },
+    {
+      "completedAt": "2026-11-04T09:00:10Z",
+      "conclusion": "success",
+      "databaseId": 126472727827,
+      "name": "image",
+      "startedAt": "2026-11-04T08:29:18Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-04T08:29:22Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-04T08:29:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:29:23Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 2,
+          "startedAt": "2026-11-04T08:29:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:30:57Z",
+          "conclusion": "success",
+          "name": "Free disposable runner disk",
+          "number": 3,
+          "startedAt": "2026-11-04T08:29:23Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:31:04Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 4,
+          "startedAt": "2026-11-04T08:30:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:31:12Z",
+          "conclusion": "success",
+          "name": "Prepare locked build context",
+          "number": 5,
+          "startedAt": "2026-11-04T08:31:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:31:12Z",
+          "conclusion": "success",
+          "name": "Build identity",
+          "number": 6,
+          "startedAt": "2026-11-04T08:31:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:31:13Z",
+          "conclusion": "success",
+          "name": "Run docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6",
+          "number": 7,
+          "startedAt": "2026-11-04T08:31:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:31:20Z",
+          "conclusion": "success",
+          "name": "Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
+          "number": 8,
+          "startedAt": "2026-11-04T08:31:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:35:36Z",
+          "conclusion": "success",
+          "name": "Build candidate with registry cache",
+          "number": 9,
+          "startedAt": "2026-11-04T08:31:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:43:42Z",
+          "conclusion": "success",
+          "name": "Test candidate before publication",
+          "number": 10,
+          "startedAt": "2026-11-04T08:35:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:46:13Z",
+          "conclusion": "success",
+          "name": "Build runtime preview from the tested worker layers",
+          "number": 11,
+          "startedAt": "2026-11-04T08:43:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:51:35Z",
+          "conclusion": "success",
+          "name": "Verify nonroot runtime preview",
+          "number": 12,
+          "startedAt": "2026-11-04T08:46:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:51:39Z",
+          "conclusion": "success",
+          "name": "Publish tested candidate with BuildKit",
+          "number": 13,
+          "startedAt": "2026-11-04T08:51:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:59:46Z",
+          "conclusion": "success",
+          "name": "Verify immutable registry image",
+          "number": 14,
+          "startedAt": "2026-11-04T08:51:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:59:47Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f",
+          "number": 15,
+          "startedAt": "2026-11-04T08:59:46Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:59:49Z",
+          "conclusion": "success",
+          "name": "Post Publish tested candidate with BuildKit",
+          "number": 24,
+          "startedAt": "2026-11-04T08:59:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:59:51Z",
+          "conclusion": "success",
+          "name": "Post Build runtime preview from the tested worker layers",
+          "number": 25,
+          "startedAt": "2026-11-04T08:59:49Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T08:59:53Z",
+          "conclusion": "success",
+          "name": "Post Build candidate with registry cache",
+          "number": 26,
+          "startedAt": "2026-11-04T08:59:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:00:06Z",
+          "conclusion": "success",
+          "name": "Post Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
+          "number": 27,
+          "startedAt": "2026-11-04T08:59:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:00:06Z",
+          "conclusion": "success",
+          "name": "Post Run docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6",
+          "number": 28,
+          "startedAt": "2026-11-04T09:00:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:00:06Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 29,
+          "startedAt": "2026-11-04T09:00:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:00:07Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 30,
+          "startedAt": "2026-11-04T09:00:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:00:07Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 31,
+          "startedAt": "2026-11-04T09:00:07Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Bogyie/runpod-comfyui/actions/runs/41799830820/job/126472727827"
+    }
+  ],
+  "scope": "Published worker candidate CPU gates before/after registry pull. runtime-preview.json tests a separate runner image with isolated CLI/deep drift checks; it is not the published digest. No generation lifecycle or GPU certification."
+}

@@ -6,6 +6,7 @@ import sys
 
 source = Path(os.environ['COMFYCTL_COMFY_ROOT'])
 sys.path.insert(0, str(source))
+sys.path.insert(1, str(Path(__file__).parent))
 os.chdir(source)
 sys.argv[0] = str(source / 'main.py')
 import comfy.options

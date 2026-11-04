@@ -1,0 +1,11 @@
+{
+  "workers": {
+    "sam3": "CACHED",
+    "depth-anything-v3": "CACHED",
+    "itools": "CACHED",
+    "kjnodes": "CACHED",
+    "video-helper-suite": "CACHED"
+  },
+  "scope": "First observed GHA BuildKit install step for each worker; its first terminal status must be CACHED",
+  "log_sha256": "784d896592389df68b10f9c34702029099ad5e5b5f39bfe0961df20c63f6816c"
+}

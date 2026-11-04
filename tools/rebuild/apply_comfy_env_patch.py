@@ -102,6 +102,19 @@ def transformed(name: str, data: bytes) -> bytes:
     elif name == "environment/cache.py":
         anchor = '    return get_workspace_dir(comfyui_dir) / ".pixi" / "envs" / env_name\n'
         replacement = '''    # Locked uv venvs use the existing SubprocessWorker protocol directly.
+    worker_map = os.environ.get("COMFYCTL_WORKER_MAP_FILE")
+    if worker_map:
+        import json
+        mapping_file = Path(worker_map)
+        if not mapping_file.is_absolute() or mapping_file.is_symlink():
+            raise RuntimeError("Worker mapping must be an absolute regular file")
+        mapping = json.loads(mapping_file.read_text())
+        if not env_name or Path(env_name).name != env_name or env_name not in mapping:
+            raise RuntimeError("Required worker is absent from the generation mapping")
+        prefix = Path(mapping[env_name])
+        if not prefix.is_absolute() or ".pixi" in str(prefix):
+            raise RuntimeError("Invalid generation worker prefix")
+        return prefix
     worker_root = os.environ.get("COMFYCTL_WORKER_ROOT")
     if worker_root:
         root = Path(worker_root)
@@ -175,7 +188,13 @@ if os.environ.get("COMFY_CPU") == "1":
             raise ValueError("Isolation setting patch anchor changed")
         text = text.replace(anchor, guard + anchor)
         anchor = '    env["COMFYUI_ISOLATION_WORKER"] = "1"\n'
-        guard = '''    try:
+        guard = '''    if os.environ.get("COMFYCTL_REQUIRE_ISOLATION") == "1":
+        # Linux upstream otherwise retains a caller's PYTHONPATH ahead of the
+        # private site-packages. Source roots travel via explicit sys_paths.
+        for variable in ("PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP", "PYTHONUSERBASE"):
+            env.pop(variable, None)
+        env["PYTHONNOUSERSITE"] = "1"
+    try:
         from comfy.cli_args import args as parent_args
         if getattr(parent_args, "cpu", False):
             env["COMFY_CPU"] = "1"

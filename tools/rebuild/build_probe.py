@@ -179,6 +179,18 @@ def main() -> None:
                                         *sorted((ROOT / 'tools/comfyctl').glob('*.py'))]}
         runtime_id = digest(json.dumps(identity_inputs, sort_keys=True).encode())
         (control / 'identity.json').write_text(json.dumps({'runtime_id': runtime_id, 'inputs': identity_inputs}, indent=2, sort_keys=True) + '\n')
+        required = stack['runtime_required_nodes']
+        if set(required) != set(definitions['workers']):
+            raise ValueError('Runtime required-node catalog disagrees with bundled workers')
+        baseline = {'runtime_id': runtime_id, 'comfy_root': '/opt/probe/ComfyUI',
+                    'host_python': '/opt/runtime/venv/bin/python',
+                    'host_lock_sha256': digest((ROOT / 'locks/host/linux-amd64-cu128.txt').read_bytes()),
+                    'gpu_lock_sha256': definitions['gpu_lock_sha256'],
+                    'workers': {item['environment']: '/opt/workers/' + item['environment'] for item in definitions['workers'].values()},
+                    'nodes': {name: {'directory': item['plugin_directory'], 'commit': item['commit'],
+                                     'enabled': True, 'required_nodes': required[name],
+                                     'lock_sha256': item['lock_sha256']} for name, item in definitions['workers'].items()}}
+        (control / 'baseline.json').write_text(json.dumps(baseline, indent=2, sort_keys=True) + '\n')
     if args.prepare_only:
         print(context)
         return

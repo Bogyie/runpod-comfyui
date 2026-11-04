@@ -17,7 +17,7 @@ PORT = 8188
 
 
 def status(phase, **details):
-    value = {'phase': phase, 'updated_at': time.time(), 'uid': os.getuid(), 'runtime_id': os.environ['COMFYCTL_RUNTIME_ID'], 'pid_namespace': os.readlink('/proc/self/ns/pid'), 'port': PORT, **details}
+    value = {'phase': phase, 'updated_at': time.time(), 'uid': os.getuid(), 'runtime_id': os.environ['COMFYCTL_RUNTIME_ID'], 'generation_id': os.environ.get('COMFYCTL_GENERATION_ID'), 'pid_namespace': os.readlink('/proc/self/ns/pid'), 'port': PORT, **details}
     temporary = STATE.with_suffix('.tmp')
     temporary.write_text(json.dumps(value, indent=2) + '\n')
     temporary.replace(STATE)
@@ -28,13 +28,21 @@ def main():
     parser.add_argument('--port', type=int, default=8188)
     global PORT
     port = PORT = parser.parse_known_args()[0].port
+    sys.path.insert(0, str(Path(__file__).parent))
+    from selection import selected_environment
+    try:
+        environment, required = selected_environment()
+    except Exception as exc:
+        status('recovery-required', error=str(exc))
+        raise
+    os.environ.update(environment)
     status('starting')
     log = logging.getLogger('comfyui')
     log.setLevel(logging.INFO)
     handler = RotatingFileHandler('/workspace/state/logs/comfyui.log', maxBytes=16 * 1024 * 1024, backupCount=2)
     handler.setFormatter(logging.Formatter('%(message)s'))
     log.addHandler(handler)
-    child = subprocess.Popen(['/opt/runtime/venv/bin/python', '/opt/runtime/control/run_comfy.py', *sys.argv[1:]],
+    child = subprocess.Popen(['/opt/runtime/venv/bin/python', '-I', '/opt/runtime/control/run_comfy.py', *sys.argv[1:]],
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, start_new_session=True)
     stopping = False
     signal_at = None
@@ -79,7 +87,6 @@ def main():
                     if 'system' not in payload or 'devices' not in payload:
                         raise RuntimeError('Invalid ComfyUI health response')
                 else:
-                    required = {'SaveImage', 'SAM3PointCollector', 'DepthAnything_V3', 'iToolsCheckerBoard', 'ColorMatchV2', 'VHS_VideoCombine'}
                     if not required.issubset(payload):
                         raise RuntimeError('Required nodes unavailable: ' + ','.join(sorted(required - payload.keys())))
                 if not ready or time.monotonic() - last_ready >= 15:

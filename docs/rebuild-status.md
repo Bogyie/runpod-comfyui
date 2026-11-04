@@ -247,3 +247,35 @@ Manager의 HTTP queue·즉시 enable·prestartup 예약·CLI·PIPFixer 경로도
 [최종 Linux CPU 검사](../tests/evidence/tools-runtime-cpu-probe.json)는 private interpreter·host PYTHONPATH 차단·service UID, 일곱 환경의 정상 진단과 파일 hash, 버전 metadata를 유지한 torch 파일 손상 감지, 기존 nonroot 경로·기동·재기동·종료·native worker 검사를 통과했다. [공개 전송 증거](../tests/evidence/tools-public-downloads-linux.json)는 목적지 유형 추가 전 이미지의 실제 HF/Civitai 다운로드·전체 SHA256·서비스 UID 소유권이다. 두 이미지의 검증 범위를 구분한다. SAM3·DA3 모델 목록의 목적지도 허용했으며 단위 검사는 53개다.
 
 현재 노드 후보 설치·disable·세대 전환/rollback/reset, Manager 연결, 전체 동적 schema와 최종 GPU/RunPod 검증은 남아 있다. 새 CLI 이미지의 원격 게시도 아직 수행하지 않았다.
+
+
+## P1/P2 원격 결과
+
+[성공 실행 #41794387656](https://github.com/Bogyie/runpod-comfyui/actions/runs/41794387656), 소스 `f2c4323d553b020a2dcef8f25780cc85116abcc7`에서 worker 후보의 게시 전후 CPU gate와 별도 nonroot runtime preview 검사가 모두 통과했다.
+
+- worker 고정 참조: `ghcr.io/bogyie/runpod-comfyui@sha256:9f866b68b5edcc49f5e44fa2db460408b8a713265fd1574cfd43ca565568abdf`.
+- 압축 레이어 합계 6,901,600,274바이트. 익명 manifest digest·게시 전 config 일치도 검증했다.
+- [원격 증거](evidence/actions-41794387656/run.json)와 [별도 runtime preview](evidence/actions-41794387656/runtime-preview.json)를 보존했다. preview image ID는 게시한 worker digest와 다르며 GPU 인증 결과가 아니다.
+
+CLI 커밋 `fa2b520ce9ca4e6c3d1f701b79d1fa43fdc403eb`도 push했고 [실행 #41799830820](https://github.com/Bogyie/runpod-comfyui/actions/runs/41799830820)이 진행 중이다. 아래 세대 관리 변경은 이 실행에 포함하지 않았다.
+
+## P3 기본 노드의 deferred 세대 관리
+
+코드·노드 상태·변경 없는 host/worker 절대 prefix를 묶는 snapshot과 root 관리 선택을 구현했다. disable/enable은 최종 코드 경로에서 별도 UID 1000 ComfyUI를 기동해 필수 catalog와 core 그래프를 검사한 뒤에만 desired에 기록한다. 실행 중 프로세스는 변경하지 않으며 다음 컨테이너 재기동에 적용한다. venv를 이동하거나 별칭으로 바꾸지 않는다.
+
+[Lifecycle 실검증](../tests/evidence/generations-cpu-probe.json)은 iTools 비활성 상태의 재기동 유지, 새 코드 위치에서 실제 SAM3 좌표/UI·DA3 카메라 실행, enable 후보 검사, pending rollback·reset·이전 정상 세대 재선택, 의도적으로 손상한 코드의 부팅 거부와 offline CLI rollback, 사용자 데이터·기본 패키지 fingerprint 보존 및 서비스 UID의 관리 상태 변경/디렉터리 rename 거부를 통과했다. 이 단계의 검사는 기본 이미지 환경을 그대로 쓰는 CPU 상태 변경이며 새 dependency 설치나 live 전환 검증은 아니다.
+
+첫 후보 검증에서는 ComfyUI temp와 OS TMPDIR를 겹치게 설정하여 metadata scan 파일 생성이 실패했다. 별도 worker temp로 나눈 뒤 통과했다. Linux SDK가 PYTHONPATH를 상속하는 별도 경계도 source에서 확인해 managed subprocess에서 차단했고 bootstrap·host는 isolated Python으로 시작한다. 의도한 코드 손상 에러가 stderr에 나오는 것을 검사 도구에서 함께 수집하도록 수정했다. 단위 검사는 63개다. 상세 명령과 범위는 [세대 문서](generations.md)에 있다.
+
+새 노드 설치·환경 후보 구성, live queue 드레인/전환·재시작, Manager 연결, 전체 동적 schema와 최종 두 GPU·RunPod/network-volume 검증은 계속 남아 있다.
+
+동일 세대 관리 이미지의 [기존 nonroot/CLI·파일 손상·API·재기동 회귀](../tests/evidence/generation-image-runtime-cpu.json)도 통과했다. 변경된 SDK로 만든 별도 worker target에서 [native IPC·view/empty·강제 종료 복구](../tests/evidence/generation-image-worker-ipc.json)와 [VHS 메타 배치·스트리밍](../tests/evidence/generation-image-vhs.json)도 확인했다. runtime target과 worker target의 image ID를 구분해 기록했다.
+
+
+## CLI 후보의 원격 결과와 worker 캐시 증거
+
+[성공 실행 #41799830820](https://github.com/Bogyie/runpod-comfyui/actions/runs/41799830820), 소스 `fa2b520ce9ca4e6c3d1f701b79d1fa43fdc403eb`에서 게시 전후 worker CPU gate와 별도 CLI/nonroot preview 검사를 모두 통과했다. [원격 증거](evidence/actions-41799830820/run.json)와 [CLI preview](evidence/actions-41799830820/runtime-preview.json)를 보존했다.
+
+Root worker 후보는 이전 실행과 같은 `sha256:9f866b68b5edcc49f5e44fa2db460408b8a713265fd1574cfd43ca565568abdf`다. 익명 manifest와 config 일치도 확인했다. CLI/runtime만 바뀌었으므로 worker 이미지가 재사용된 것이며, 새 CLI runtime 이미지를 GHCR에 게시했다고 해석하지 않는다. [첫 설치 단계의 로그](evidence/actions-41799830820/worker-install-cache.log)에서 다섯 worker의 RUN이 모두 CACHED였음을 확인했다. [검사 결과](evidence/actions-41799830820/worker-install-cache.json)에 전체 로그 hash와 범위를 기록했다.
+
+이 원격 실행에는 현재 작업 중인 deferred 세대 관리가 포함되지 않았다. 새 세대 관리와 SDK 환경 경계 변경은 별도 후속 CI로 검증한다.

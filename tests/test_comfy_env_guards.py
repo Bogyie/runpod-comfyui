@@ -99,11 +99,46 @@ class WorkerPrefixTests(unittest.TestCase):
             with self.subTest(root=root,name=name), patch.dict(os.environ,{'COMFYCTL_WORKER_ROOT':root}):
                 with self.assertRaises(RuntimeError):resolve(None,name)
 
+    def test_generation_map_uses_exact_prefix_without_virtualenv_aliases(self):
+        resolve = self.patched_function('get_workspace_env_dir')
+        with tempfile.TemporaryDirectory() as tmp:
+            mapping = Path(tmp) / 'workers.json'
+            mapping.write_text('{"sam3-nodes":"/opt/workers/sam3-nodes"}')
+            with patch.dict(os.environ, {'COMFYCTL_WORKER_MAP_FILE': str(mapping), 'COMFYCTL_WORKER_ROOT': '/wrong/root'}):
+                self.assertEqual(resolve(None, 'sam3-nodes'), Path('/opt/workers/sam3-nodes'))
+                with self.assertRaisesRegex(RuntimeError, 'absent'):
+                    resolve(None, 'unreviewed-worker')
+
     def test_unconfigured_prefix_preserves_upstream_pixi_layout(self):
         resolve = self.patched_function('get_workspace_env_dir')
         with patch.dict(os.environ,{'COMFYCTL_WORKER_ROOT':''}):
             self.assertEqual(resolve(None,'sam3-nodes'),Path('/legacy/workspace/.pixi/envs/sam3-nodes'))
 
+
+
+class ManagedSubprocessTests(unittest.TestCase):
+    def build_environment(self, variables):
+        original = SCRIPT.parents[2] / '.work/comfy-env-0.3.89/comfy_env/isolation/wrap.py'
+        if not original.is_file():
+            self.skipTest('reproduce pinned artifact first')
+        tree = ast.parse(guards.transformed('isolation/wrap.py', original.read_bytes()))
+        function = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == 'build_isolation_env')
+        scope = {'Path': Path, 'os': os, 'sys': types.SimpleNamespace(platform='linux'),
+                 '_build_isolation_env_linux': lambda env, python: env}
+        exec(compile(ast.Module(body=[function], type_ignores=[]), 'managed-worker-env', 'exec'), scope)
+        with patch.dict(os.environ, variables, clear=True):
+            return scope['build_isolation_env'](Path('/private/worker/bin/python'))
+
+    def test_managed_workers_ignore_inherited_python_path_injection(self):
+        result = self.build_environment({'COMFYCTL_REQUIRE_ISOLATION': '1', 'PYTHONPATH': '/host/site-packages',
+                                         'PYTHONHOME': '/other/python', 'PYTHONSTARTUP': '/unexpected.py',
+                                         'PYTHONUSERBASE': '/mutable/user'})
+        self.assertEqual(result['PYTHONNOUSERSITE'], '1')
+        for name in ['PYTHONPATH', 'PYTHONHOME', 'PYTHONSTARTUP', 'PYTHONUSERBASE']:
+            self.assertNotIn(name, result)
+
+    def test_unmanaged_upstream_behavior_is_retained(self):
+        self.assertEqual(self.build_environment({'PYTHONPATH': '/explicit/upstream/path'})['PYTHONPATH'], '/explicit/upstream/path')
 
 
 class AttentionPolicyTests(unittest.TestCase):

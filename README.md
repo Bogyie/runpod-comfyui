@@ -10,6 +10,7 @@ RunPod용 ComfyUI 이미지를 전면 개편하고 있습니다.
 - [Manager 연결 경계](docs/manager-integration.md)
 - [nonroot 런타임 후보](docs/runtime.md)
 - [환경 진단 CLI](docs/environment-diagnostics.md)
+- [기본 노드 세대 관리](docs/generations.md)
 
 현재 `docker/Dockerfile.probe`는 ComfyUI 핵심 환경, SAM3·DepthAnythingV3의 native worker와 iTools·KJNodes·VHS 혼합 격리를 검증하는 P0 후보입니다. 미국 H100·RTX PRO 6000에서 SAM3 이미지·영상 분할과 DA3 단일·배치 깊이 추론을 확인했습니다. iTools·KJNodes의 CPU/API·host 연동과 VHS의 영상·오디오·스트리밍·메타 배치 검사를 로컬에서 통과했습니다. Manager와 RunPod 운영 환경은 통합 중입니다. CPU 기동·worker IPC·복구 검사를 통과한 후보만 GitHub Actions에서 GHCR의 고유 `candidate-p0-workers-*` 태그로 게시합니다. `latest`와 `stable`은 갱신하지 않습니다.
 

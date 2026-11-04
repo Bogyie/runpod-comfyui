@@ -1,0 +1,10 @@
+image	Build candidate with registry cache	2026-11-04T08:31:25.2183539Z #16 [worker-sam3 2/2] RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv     python /opt/probe/install_worker_envs.py --backend "cu128"       --definitions /opt/locks/worker-install/manifest.json
+image	Build candidate with registry cache	2026-11-04T08:31:25.2185025Z #16 CACHED
+image	Build candidate with registry cache	2026-11-04T08:31:25.2187848Z #20 [worker-depth-anything-v3 2/2] RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv     python /opt/probe/install_worker_envs.py --backend "cu128"       --definitions /opt/locks/worker-install/manifest.json
+image	Build candidate with registry cache	2026-11-04T08:31:25.2188730Z #20 CACHED
+image	Build candidate with registry cache	2026-11-04T08:31:25.2197158Z #26 [worker-itools 2/2] RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv     python /opt/probe/install_worker_envs.py --backend "cu128"       --definitions /opt/locks/worker-install/manifest.json
+image	Build candidate with registry cache	2026-11-04T08:31:25.2198528Z #26 CACHED
+image	Build candidate with registry cache	2026-11-04T08:31:25.2175068Z #12 [worker-kjnodes 2/2] RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv     python /opt/probe/install_worker_envs.py --backend "cu128"       --definitions /opt/locks/worker-install/manifest.json
+image	Build candidate with registry cache	2026-11-04T08:31:25.2176601Z #12 CACHED
+image	Build candidate with registry cache	2026-11-04T08:31:25.2191025Z #23 [worker-video-helper-suite 2/2] RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv     python /opt/probe/install_worker_envs.py --backend "cu128"       --definitions /opt/locks/worker-install/manifest.json
+image	Build candidate with registry cache	2026-11-04T08:31:25.2192484Z #23 CACHED

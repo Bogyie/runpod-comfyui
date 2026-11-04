@@ -17,7 +17,7 @@
 | `/workspace/cache/metadata` | comfy-env 메타데이터 캐시 |
 | `/workspace/cache/huggingface`, `torch` | 다운로드·모델 라이브러리 캐시 |
 
-root bootstrap은 위 관리 디렉터리 항목만 준비하며 사용자 파일을 재귀 chown하지 않는다. symlink 경로는 거부한다. 기존 볼륨 파일이 다른 UID 소유라면 별도 권한 이전이 필요하다. `/workspace` 전체 데이터를 덮거나 기본 노드를 볼륨에 재복사하지 않는다. 새 세대 선택/비활성 노드 관리는 아직 구현 중이므로 현재 코드 경로는 이미지의 기본 노드뿐이다.
+root bootstrap은 위 관리 디렉터리 항목만 준비하며 사용자 파일을 재귀 chown하지 않는다. symlink 경로는 거부한다. 기존 볼륨 파일이 다른 UID 소유라면 별도 권한 이전이 필요하다. `/workspace` 전체 데이터를 덮거나 기본 노드를 볼륨에 재복사하지 않는다. 기본 노드의 상태 변경은 세대별 코드 view로 준비해 다음 부팅에 선택한다. 추가 노드/변경된 환경과 live 전환은 아직 남아 있다. [세대 관리](generations.md)를 참고한다.
 
 `runtime_paths.py`는 host·메타데이터 스캔·persistent worker에서 `folder_paths`를 import하기 전에 같은 모델/데이터 설정을 적용한다. 기존 SDK의 input/output/user 재지정만으로 모델 경로까지 바뀌었다고 가정하지 않는다. 서로 다른 경로 플래그와 아직 worker에 전달하지 못하는 extra-model-paths 설정은 명시적으로 거부한다. 세대별 커스텀 모델 설정과 전체 동적 INPUT_TYPES/파일 변경 감지는 후속 작업이다.
 

@@ -132,3 +132,11 @@ workers:
           evidence_files: [videohelpersuite/utils.py]
           requires_env:
             VHS_FORCE_FFMPEG_PATH: /usr/bin/ffmpeg
+
+# Minimal startup catalog for each managed default node (state-only generations).
+runtime_required_nodes:
+  sam3: [SAM3PointCollector]
+  depth-anything-v3: [DepthAnything_V3]
+  itools: [iToolsCheckerBoard]
+  kjnodes: [ColorMatchV2]
+  video-helper-suite: [VHS_VideoCombine]

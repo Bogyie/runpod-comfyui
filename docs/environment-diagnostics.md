@@ -16,6 +16,6 @@ comfyctl env doctor --deep
 
 runtime 상태는 이미지 identity·PID namespace·heartbeat·host process·서비스 UID를 함께 확인한다. 이전 컨테이너의 ready 파일, 다른 이미지의 상태, 오래되거나 잘못된 heartbeat를 정상으로 취급하지 않는다. `doctor`는 loopback API 응답까지 확인한다. 읽기 전용 이미지에서 서비스 계정의 쓰기 거부는 별도 런타임 검사로 확인한다.
 
-현재 선택 가능한 관리 세대는 이미지 기본 환경뿐이다. `last_known_good`를 임의로 만들지 않고 null로 표시하며 `candidate_switching_implemented`도 false다. `node add/disable`, `env rollback/reset`, 세대별 lock/provenance 검사와 Manager 설치 연결은 아직 구현 중이다. 이 진단 명령만으로 설치·복구 흐름을 완료했다고 판정하지 않는다.
+현재 이미지 환경을 그대로 쓰는 기본 노드의 enable/disable과 deferred rollback/reset을 지원한다. active·desired·last/previous good을 구분하고, 아직 확인하지 않은 last-known-good를 임의로 만들지 않는다. `candidate_switching_implemented`는 `deferred-state-only`로 표시한다. [세대 관리](generations.md)를 참고한다. 새 노드 설치·변경된 host/worker 환경·live queue 전환과 Manager 연결은 아직 구현 중이다.
 
 [런타임 통합 검사](../tests/evidence/tools-runtime-cpu-probe.json)는 root 호출의 UID 1000 전환, 의도적으로 host PYTHONPATH를 넘겨도 private CLI를 사용하는 경계, 정상 dependency/파일 검사, 버전 metadata를 유지한 torch 파일 손상 감지와 기존 nonroot runtime 검사를 기록한다. 공개 파일의 실제 전송은 [별도 증거](../tests/evidence/tools-public-downloads-linux.json)로 구분한다.
