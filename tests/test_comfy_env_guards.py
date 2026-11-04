@@ -71,5 +71,59 @@ class GuardTests(unittest.TestCase):
             self.assertEqual(target.read_bytes(), b"original")
 
 
+
+class WorkerPrefixTests(unittest.TestCase):
+    def patched_function(self, name):
+        original = SCRIPT.parents[2] / '.work/comfy-env-0.3.89/comfy_env/environment/cache.py'
+        if not original.is_file():
+            self.skipTest('reproduce pinned artifact first')
+        tree = ast.parse(guards.transformed('environment/cache.py', original.read_bytes()))
+        function = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == name)
+        scope = {'Path':Path,'os':os,'get_workspace_dir':lambda _:Path('/legacy/workspace')}
+        exec(compile(ast.Module(body=[function],type_ignores=[]),'patched-worker-prefix','exec'),scope)
+        return scope[name]
+
+    def test_generations_use_different_final_worker_prefixes(self):
+        resolve = self.patched_function('get_workspace_env_dir')
+        with patch.dict(os.environ,{'COMFYCTL_WORKER_ROOT':'/workspace/generations/a/workers'}):
+            first = resolve(None,'sam3-nodes')
+        with patch.dict(os.environ,{'COMFYCTL_WORKER_ROOT':'/workspace/generations/b/workers'}):
+            second = resolve(None,'sam3-nodes')
+        self.assertNotEqual(first,second)
+        self.assertEqual(first,Path('/workspace/generations/a/workers/sam3-nodes'))
+
+    def test_invalid_worker_paths_fail_before_process_creation(self):
+        resolve = self.patched_function('get_workspace_env_dir')
+        for root,name in [('relative/path','sam3-nodes'),('/workspace/.pixi-cache','sam3-nodes'),
+                          ('/workers','../host'),('/workers','..'),('/workers','bad.pixi')]:
+            with self.subTest(root=root,name=name), patch.dict(os.environ,{'COMFYCTL_WORKER_ROOT':root}):
+                with self.assertRaises(RuntimeError):resolve(None,name)
+
+    def test_unconfigured_prefix_preserves_upstream_pixi_layout(self):
+        resolve = self.patched_function('get_workspace_env_dir')
+        with patch.dict(os.environ,{'COMFYCTL_WORKER_ROOT':''}):
+            self.assertEqual(resolve(None,'sam3-nodes'),Path('/legacy/workspace/.pixi/envs/sam3-nodes'))
+
+
+
+class AttentionPolicyTests(unittest.TestCase):
+    def test_explicit_backend_disables_unrequested_auto_extensions(self):
+        for mode in ['pytorch','xformers']:
+            args=types.SimpleNamespace(use_pytorch_cross_attention=False,disable_xformers=False,
+                                       use_sage_attention=True,use_flash_attention=True)
+            module=types.ModuleType('comfy.cli_args');module.args=args
+            with patch.dict(sys.modules,{'comfy.cli_args':module}), patch.dict(os.environ,{'COMFYCTL_WORKER_ATTENTION':mode}):
+                exec(compile(guards.ATTENTION_POLICY,'attention-policy','exec'),{'os':os})
+            self.assertEqual(args.use_pytorch_cross_attention,mode=='pytorch')
+            self.assertEqual(args.disable_xformers,mode=='pytorch')
+            self.assertFalse(args.use_sage_attention)
+            self.assertFalse(args.use_flash_attention)
+
+    def test_unknown_backend_is_rejected(self):
+        with patch.dict(os.environ,{'COMFYCTL_WORKER_ATTENTION':'unknown'}):
+            with self.assertRaisesRegex(RuntimeError,'Unsupported worker attention'):
+                exec(compile(guards.ATTENTION_POLICY,'attention-policy','exec'),{'os':os})
+
+
 if __name__ == "__main__":
     unittest.main()

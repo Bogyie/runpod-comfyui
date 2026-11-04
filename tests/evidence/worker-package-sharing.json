@@ -1,0 +1,18 @@
+{
+  "shared_gpu_payload_bytes": 7173783919,
+  "workers": [
+    {
+      "prefix": "/opt/workers/depthanythingv3-nodes",
+      "private_file_bytes": 825828753,
+      "gpu_package_count": 22
+    },
+    {
+      "prefix": "/opt/workers/sam3-nodes",
+      "private_file_bytes": 1063743366,
+      "gpu_package_count": 22
+    }
+  ],
+  "scope": "Filesystem logical payload and private files; not registry compressed or Docker physical allocation",
+  "image_id": "sha256:88a7d05c77ad095798c6c0a501a6b185211333d0b39ec527a6a835b8316bdce2",
+  "docker_inspect_size_bytes": 5960703407
+}

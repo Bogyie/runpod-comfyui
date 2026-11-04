@@ -106,3 +106,22 @@ GHCR에 게시한 동일 digest `414962d4…15bf2c23`를 사용했다. 컨테이
 초기 임시 GPU 커널 서버는 일반 `/`에 UI를 제공하지 않았다. H100 AP-IN-1 배치는 이미지 다운로드 중 서비스 미기동 상태였고, 사용자 요청으로 삭제 후 미국 US-GA-2에 재생성했다. 미국 배치에서는 커널 검사 후 실제 ComfyUI를 8188에 기동하도록 명령을 변경했다. Python 기본 User-Agent 요청은 RunPod 프록시에서 403을 받았지만 일반 브라우저 User-Agent로 페이지·API가 정상 응답했다.
 
 Blackwell 검증 Pod와 인도 H100 Pod는 삭제 후 목록에서 부재를 확인했다. 미국 H100도 사용자가 정상 UI 접속을 확인한 뒤 삭제했고, 최종 Pod 목록이 비어 있음을 확인했다. 세션이 만든 GPU 자원은 남지 않았다. 영구 RunPod 템플릿은 아직 생성하지 않았다. 기록된 UI 주소는 검증 당시 주소이며 Pod 삭제 후에는 접속할 수 없다.
+
+## Native comfy-env worker P0 (진행 중)
+
+SAM3·DepthAnythingV3는 upstream의 `register_nodes`와 `SubprocessWorker`를 유지하고, worker별 frozen uv venv로 실행하는 후보를 구현했다. 설정과 SHA를 검증하여 만든 입력은 `build/inputs/workers`, 전체 artifact hash lock은 `locks/workers`에 있다. 픽시 자동 설치나 torch/CUDA 조합의 자동 변경은 사용하지 않는다. [구성·제약 설명](worker-environments.md)을 참고한다.
+
+로컬 Linux amd64 이미지에서 다음을 실제로 통과했다.
+
+- SAM3 15개, DA3 15개 노드의 격리 메타데이터 등록.
+- IMAGE → SAM3 Point Collector → host PreviewAny: 정규화 좌표와 UI JPEG 반환.
+- DA3 Camera Parameters → host PreviewAny: 카메라 텐서 행렬의 수치 보존.
+- worker별 Python prefix·패키지 경로와 서로 다른 지속 프로세스 PID 확인. host site-packages를 worker sys.path에 추가하지 않았다.
+- 노드의 실제 예외 전파 후 worker 생존, SAM3 worker 강제 종료 후 재생성, DA3 worker PID 유지.
+- 실행 전후 host 패키지 metadata와 검사한 GPU 파일 hash 일치.
+- worker에도 명시적 PyTorch attention 정책 전달. 설치된 Flash/Sage를 자동 선택하지 않도록 고정했다.
+- ComfyUI 루트 HTML과 프런트엔드 entry JS의 HTTP 200, 모델 없는 코어 그래프, 누락 worker의 host import 거부.
+
+[CPU IPC·복구 결과](../tests/evidence/workers-cpu-probe.json), [코어·프런트엔드](../tests/evidence/worker-image-host-cpu.json), [설치 guard](../tests/evidence/worker-image-guards.json), [파일 공유 측정](../tests/evidence/worker-package-sharing.json)을 보존했다. 이 결과는 로컬 Docker의 amd64 에뮬레이션에서 얻었으며 이전 GHCR 핵심 이미지의 GPU 검사와 구분한다. **새 worker 이미지의 SAM3 분할/영상·DA3 깊이 모델 추론, GPU IPC/VRAM, 나머지 네 노드와 운영 권한은 아직 미검증이다.**
+
+`candidate.target`을 `worker-probe`로 바꿨다. CI는 worker 입력/lock 일치와 이 IPC·장애 복구 검사를 게시 전후에 수행하고 `candidate-p0-workers-*` 태그를 사용한다. 이 새 후보의 원격 CI 결과는 완료 후 기록한다. 실제 모델 GPU 시험에 쓸 공개 weight revision/hash도 `tests/fixtures/models-worker-smoke.yaml`에 잠갔다. weight는 이미지에 포함하지 않는다.

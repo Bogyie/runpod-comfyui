@@ -44,17 +44,18 @@ def materialize(data: bytes, destination: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--target", choices=["gpu-base", "host"], default="host")
+    parser.add_argument("--target", choices=["gpu-base", "host", "worker-probe"])
     parser.add_argument("--prepare-only", action="store_true")
     args = parser.parse_args()
     stack = yaml.safe_load((ROOT / "build/stack.yaml").read_text())
+    args.target = args.target or stack.get("candidate", {}).get("target", "host")
     lock = json.loads((ROOT / "locks/upstreams.lock.json").read_text())
     context = ROOT / ".work/probe-context"
     context.mkdir(parents=True, exist_ok=True)
     for name in ("gpu", "host"):
         shutil.copyfile(ROOT / f"locks/{name}/linux-amd64-cu128.txt", context / f"{name}.txt")
     shutil.copyfile(ROOT / "tools/rebuild/apply_comfy_env_patch.py", context / "apply_comfy_env_patch.py")
-    if args.target == "host":
+    if args.target in {"host", "worker-probe"}:
         source = lock["sources"]["comfyui"]
         data = fetch(source["archive_url"])
         if digest(data) != source["archive_sha256"]:
@@ -63,6 +64,42 @@ def main() -> None:
         if destination.exists():
             shutil.rmtree(destination)
         materialize(data, destination)
+    if args.target == "worker-probe":
+        import concurrent.futures
+        definitions = json.loads((ROOT / "locks/workers/manifest.json").read_text())
+        if definitions.get('gpu_lock_sha256') != digest((ROOT/'locks/gpu/linux-amd64-cu128.txt').read_bytes()):
+            raise ValueError('Worker GPU lock identity changed without re-locking')
+        inputs = json.loads((ROOT / "build/inputs/workers/workers.json").read_text())
+        worker_locks = context / "worker-locks"
+        worker_locks.mkdir(exist_ok=True)
+        for name, definition in definitions['workers'].items():
+            recorded = {key:value for key,value in definition.items() if key not in {'lock_file','lock_sha256'}}
+            if recorded != inputs['workers'][name]:
+                raise ValueError(f'Worker definition changed without re-locking: {name}')
+            for field in ['lock_file','environment','plugin_directory']:
+                value = definition[field]
+                if not value or Path(value).name != value or value in {'.','..'}:
+                    raise ValueError(f'Unsafe worker {field}: {value}')
+            if definition['commit'] != lock['sources'][definition['source']]['commit']:
+                raise ValueError(f'Worker source changed without re-locking: {name}')
+            raw_lock = (ROOT / 'locks/workers' / definition['lock_file']).read_bytes()
+            if digest(raw_lock) != definition['lock_sha256']:
+                raise ValueError(f'Worker lock file changed: {name}')
+            (worker_locks / definition['lock_file']).write_bytes(raw_lock)
+        (worker_locks/'manifest.json').write_text(json.dumps(definitions,indent=2,sort_keys=True)+'\n')
+        for script in ['link_gpu_packages.py','install_worker_envs.py']:
+            shutil.copyfile(ROOT/'tools/rebuild'/script,context/script)
+        nodes_root = context / 'worker-nodes'
+        if nodes_root.exists():
+            shutil.rmtree(nodes_root)
+        def prepare_node(definition):
+            source = lock['sources'][definition['source']]
+            data = fetch(source['archive_url'])
+            if digest(data) != source['archive_sha256']:
+                raise ValueError(f"Node source archive hash mismatch: {definition['source']}")
+            materialize(data,nodes_root/definition['plugin_directory'])
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+            list(pool.map(prepare_node,definitions['workers'].values()))
     if args.prepare_only:
         print(context)
         return
@@ -71,7 +108,8 @@ def main() -> None:
                "--tag", f"runpod-comfyui:probe-{args.target}", "--progress", "plain",
                "--build-arg", f"BASE_IMAGE={stack['base_image']}",
                "--build-arg", f"UV_VERSION={stack['resolver']['uv']}",
-               "--build-arg", f"TORCH_BACKEND={stack['gpu']['torch_backend']}", str(context)]
+               "--build-arg", f"TORCH_BACKEND={stack['gpu']['torch_backend']}",
+               "--build-arg", f"WORKER_ATTENTION={stack['gpu']['attention_default']}", str(context)]
     started = time.monotonic()
     with (ROOT / ".work/probe-build.log").open("w") as log:
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)

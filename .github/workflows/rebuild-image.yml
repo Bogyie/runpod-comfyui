@@ -53,9 +53,10 @@ jobs:
           from pathlib import Path
           stack = yaml.safe_load(Path('build/stack.yaml').read_text())
           repository = os.environ['GITHUB_REPOSITORY'].lower()
-          tag = f"candidate-p0-host-{os.environ['GITHUB_SHA'][:12]}-{os.environ['GITHUB_RUN_ID']}-{os.environ['GITHUB_RUN_ATTEMPT']}"
+          tag = f"{stack['candidate']['tag_prefix']}-{os.environ['GITHUB_SHA'][:12]}-{os.environ['GITHUB_RUN_ID']}-{os.environ['GITHUB_RUN_ATTEMPT']}"
           values = {'image': f'ghcr.io/{repository}:{tag}', 'cache': f'ghcr.io/{repository}:cache-rebuild-p0',
-                    'base': stack['base_image'], 'uv': stack['resolver']['uv'], 'backend': stack['gpu']['torch_backend']}
+                    'base': stack['base_image'], 'uv': stack['resolver']['uv'], 'backend': stack['gpu']['torch_backend'],
+                    'attention': stack['gpu']['attention_default'], 'target': stack['candidate']['target'], 'local_image': 'runpod-comfyui:probe-'+stack['candidate']['target']}
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               for key, value in values.items():
                   print(f'{key}={value}', file=output)
@@ -76,23 +77,27 @@ jobs:
           context: .work/probe-context
           file: docker/Dockerfile.probe
           platforms: linux/amd64
-          target: host
+          target: ${{ steps.identity.outputs.target }}
           load: true
           push: false
           provenance: false
           tags: |
-            runpod-comfyui:probe-host
+            ${{ steps.identity.outputs.local_image }}
             ${{ steps.identity.outputs.image }}
           build-args: |
             BASE_IMAGE=${{ steps.identity.outputs.base }}
             UV_VERSION=${{ steps.identity.outputs.uv }}
             TORCH_BACKEND=${{ steps.identity.outputs.backend }}
+            WORKER_ATTENTION=${{ steps.identity.outputs.attention }}
           cache-from: type=registry,ref=${{ steps.identity.outputs.cache }}
           cache-to: type=registry,ref=${{ steps.identity.outputs.cache }},mode=max,image-manifest=true,oci-mediatypes=true
       - name: Test candidate before publication
+        env:
+          LOCAL_IMAGE: ${{ steps.identity.outputs.local_image }}
         run: |
-          uv run --frozen python tools/rebuild/probe_host.py --output .work/ci-evidence/host-before-push.json
-          uv run --frozen python tools/rebuild/probe_guards.py --output .work/ci-evidence/guards-before-push.json
+          uv run --frozen python tools/rebuild/probe_host.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/host-before-push.json
+          uv run --frozen python tools/rebuild/probe_guards.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/guards-before-push.json
+          uv run --frozen python tools/rebuild/probe_workers.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/workers-before-push.json
       - name: Push and verify immutable registry image
         env:
           IMAGE: ${{ steps.identity.outputs.image }}
@@ -104,8 +109,9 @@ jobs:
           docker pull "$immutable"
           uv run --frozen python tools/rebuild/probe_host.py --image "$immutable" --output .work/ci-evidence/host-registry.json
           uv run --frozen python tools/rebuild/probe_guards.py --image "$immutable" --output .work/ci-evidence/guards-registry.json
+          uv run --frozen python tools/rebuild/probe_workers.py --image "$immutable" --output .work/ci-evidence/workers-registry.json
           printf '%s\n' "$immutable" > .work/ci-evidence/image.txt
-          printf 'P0 core candidate: `%s`\n\nImmutable image: `%s`\n\nCPU workflow and isolation guards passed after registry pull. GPU and custom nodes remain unverified.\n' "$IMAGE" "$immutable" >> "$GITHUB_STEP_SUMMARY"
+          printf 'P0 native-worker candidate: `%s`\n\nImmutable image: `%s`\n\nCore CPU workflow, native SAM3/DA3 worker IPC and crash recovery passed after registry pull. Model inference, other custom nodes and GPU worker execution remain unverified.\n' "$IMAGE" "$immutable" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: always()
         with:

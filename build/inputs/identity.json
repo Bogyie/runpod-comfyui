@@ -15,6 +15,10 @@
     },
     "stack": {
       "base_image": "python:3.11-slim-bookworm@sha256:94a8fee35252d06ab75856f15f12c7bae67b10e8a6da93c7fded82b2610926cd",
+      "candidate": {
+        "tag_prefix": "candidate-p0-workers",
+        "target": "worker-probe"
+      },
       "gpu": {
         "attention_default": "pytorch",
         "cuda": "12.8",
@@ -66,9 +70,52 @@
       "transitive_nodes": [
         "multiband",
         "geometry-pack"
-      ]
+      ],
+      "workers": {
+        "environments": {
+          "depth-anything-v3": {
+            "config": "nodes/comfy-env.toml",
+            "cuda_policy": "pytorch-sdpa",
+            "environment": "depthanythingv3-nodes",
+            "optional_cuda_extensions": [
+              "flash_attn",
+              "sageattention"
+            ],
+            "optional_pypi_omissions": {},
+            "plugin_directory": "ComfyUI-DepthAnythingV3",
+            "source": "depth-anything-v3",
+            "system_dependencies": {
+              "av": "pypi",
+              "c-compiler": "build-only"
+            }
+          },
+          "sam3": {
+            "config": "nodes/comfy-env.toml",
+            "cuda_policy": "pytorch-sdpa",
+            "environment": "sam3-nodes",
+            "optional_cuda_extensions": [
+              "cc_torch",
+              "torch_generic_nms",
+              "flash-attn"
+            ],
+            "optional_pypi_omissions": {},
+            "plugin_directory": "ComfyUI-SAM3",
+            "source": "sam3",
+            "system_dependencies": {
+              "av": "pypi",
+              "ffmpeg": "system"
+            }
+          }
+        },
+        "provider": "uv-frozen-venv",
+        "skip_host_ui_packages": [
+          "comfyui-frontend-package",
+          "comfyui-workflow-templates",
+          "comfyui-embedded-docs"
+        ]
+      }
     }
   },
   "kind": "candidate-input-identity",
-  "sha256": "ebab477d19b09f1db6b9c6892324004321ee0bf60a72d61690038365c67cef50"
+  "sha256": "f729b25850790c686b09f1f47fd276662ec8ef8c6476c04c1da3d8ddb1cf595f"
 }

@@ -1,5 +1,8 @@
 schema_version: 1
 status: experimental-p0
+candidate:
+  target: worker-probe
+  tag_prefix: candidate-p0-workers
 platform: linux/amd64
 python: "3.11"
 base_image: python:3.11-slim-bookworm@sha256:94a8fee35252d06ab75856f15f12c7bae67b10e8a6da93c7fded82b2610926cd
@@ -40,3 +43,34 @@ required_nodes:
 transitive_nodes:
   - multiband
   - geometry-pack
+# Worker creation is separate from comfy-env's dependency resolver. Native
+# register_nodes/SubprocessWorker still provide node metadata and execution.
+workers:
+  provider: uv-frozen-venv
+  skip_host_ui_packages:
+    - comfyui-frontend-package
+    - comfyui-workflow-templates
+    - comfyui-embedded-docs
+  environments:
+    sam3:
+      source: sam3
+      plugin_directory: ComfyUI-SAM3
+      config: nodes/comfy-env.toml
+      environment: sam3-nodes
+      optional_pypi_omissions: {}
+      cuda_policy: pytorch-sdpa
+      optional_cuda_extensions: [cc_torch, torch_generic_nms, flash-attn]
+      system_dependencies:
+        av: pypi
+        ffmpeg: system
+    depth-anything-v3:
+      source: depth-anything-v3
+      plugin_directory: ComfyUI-DepthAnythingV3
+      config: nodes/comfy-env.toml
+      environment: depthanythingv3-nodes
+      optional_pypi_omissions: {}
+      cuda_policy: pytorch-sdpa
+      optional_cuda_extensions: [flash_attn, sageattention]
+      system_dependencies:
+        av: pypi
+        c-compiler: build-only

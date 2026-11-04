@@ -1,0 +1,5 @@
+{
+  "1": {"class_type": "EmptyImage", "inputs": {"width": 64, "height": 64, "batch_size": 1, "color": 16711680}},
+  "2": {"class_type": "SAM3PointCollector", "inputs": {"image": ["1", 0], "points_store": "{}", "coordinates": "[{\"x\":16,\"y\":32}]", "neg_coordinates": "[]"}},
+  "3": {"class_type": "PreviewAny", "inputs": {"source": ["2", 0]}}
+}

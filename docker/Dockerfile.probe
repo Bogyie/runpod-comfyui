@@ -39,3 +39,18 @@ COPY ComfyUI/ /opt/probe/ComfyUI/
 WORKDIR /opt/probe/ComfyUI
 # P0 core CPU startup only: custom-node and GPU gates are intentionally separate.
 CMD ["python", "main.py", "--cpu", "--use-pytorch-cross-attention", "--disable-all-custom-nodes", "--listen", "0.0.0.0", "--port", "8188"]
+
+# Native comfy-env workers in separately locked venvs. Only immutable GPU
+# artifacts are linked from the already verified stack; no host sys.path leaks.
+FROM host AS worker-probe
+ARG TORCH_BACKEND
+ARG WORKER_ATTENTION=pytorch
+COPY worker-locks/ /opt/locks/workers/
+COPY link_gpu_packages.py install_worker_envs.py /opt/probe/
+RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv \
+    python /opt/probe/install_worker_envs.py --backend "${TORCH_BACKEND}"
+COPY worker-nodes/ /opt/probe/ComfyUI/custom_nodes/
+ENV COMFYCTL_WORKER_ROOT=/opt/workers \
+    COMFY_ENV_ROOT=/opt/worker-state \
+    COMFYCTL_WORKER_ATTENTION=${WORKER_ATTENTION}
+CMD ["python", "main.py", "--cpu", "--use-pytorch-cross-attention", "--listen", "0.0.0.0", "--port", "8188"]

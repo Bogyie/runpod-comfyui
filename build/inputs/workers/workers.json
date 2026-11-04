@@ -1,0 +1,56 @@
+{
+  "provider": "uv-frozen-venv",
+  "schema_version": 1,
+  "workers": {
+    "depth-anything-v3": {
+      "commit": "20ef6c8ccf8d57a0ad6f6fa7031739eb8489f2a4",
+      "config": "nodes/comfy-env.toml",
+      "config_sha256": "555bbcee663449f473315b5083b32a1750b70f775540adf8b89a63280b3f9bc7",
+      "cuda_policy": "pytorch-sdpa",
+      "environment": "depthanythingv3-nodes",
+      "optional_cuda_extensions": [
+        "flash_attn",
+        "sageattention"
+      ],
+      "optional_pypi_omissions": {},
+      "plugin_directory": "ComfyUI-DepthAnythingV3",
+      "requirements_sha256": "ff85770c9e498627a26271f45e263a8b1b612f0e419e4c92f8e675d2a52af6bb",
+      "scope": "Candidate requirements only; no node execution or GPU certification",
+      "source": "depth-anything-v3",
+      "system_dependencies": {
+        "av": "pypi",
+        "c-compiler": "build-only"
+      },
+      "upstream_cuda_extensions_not_selected": [
+        "flash_attn",
+        "sageattention"
+      ]
+    },
+    "sam3": {
+      "commit": "de0ff5d2c2ea435d29f800abfa568cffdfb94773",
+      "config": "nodes/comfy-env.toml",
+      "config_sha256": "1b22db4bc6c7f36f39567c36d59e37fec1f30f34d318e4b3fcd4aec322439d01",
+      "cuda_policy": "pytorch-sdpa",
+      "environment": "sam3-nodes",
+      "optional_cuda_extensions": [
+        "cc_torch",
+        "torch_generic_nms",
+        "flash-attn"
+      ],
+      "optional_pypi_omissions": {},
+      "plugin_directory": "ComfyUI-SAM3",
+      "requirements_sha256": "a67cb57bf513d4d3e46b4dd2afa8183bb58280cdf24459bbfb61badffdf28ca9",
+      "scope": "Candidate requirements only; no node execution or GPU certification",
+      "source": "sam3",
+      "system_dependencies": {
+        "av": "pypi",
+        "ffmpeg": "system"
+      },
+      "upstream_cuda_extensions_not_selected": [
+        "cc_torch",
+        "torch_generic_nms",
+        "flash-attn"
+      ]
+    }
+  }
+}

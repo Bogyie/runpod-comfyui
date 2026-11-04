@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+from html.parser import HTMLParser
 import json
 import struct
 import subprocess
@@ -26,6 +27,34 @@ def request(base: str, path: str, value=None):
     req = urllib.request.Request(base + path, data=data, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=10) as response:
         return json.load(response)
+
+
+
+def verify_frontend(base: str) -> dict:
+    with urllib.request.urlopen(base+'/',timeout=10) as response:
+        html = response.read(2*1024*1024)
+        if response.status != 200 or b'<html' not in html.lower():
+            raise RuntimeError('ComfyUI root did not return its frontend HTML')
+    class Scripts(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.sources = []
+        def handle_starttag(self, tag, attrs):
+            if tag == 'script' and dict(attrs).get('src'):
+                self.sources.append(dict(attrs)['src'])
+    parser = Scripts()
+    parser.feed(html.decode())
+    if not parser.sources:
+        raise RuntimeError('Frontend HTML did not include a script asset')
+    asset = urllib.parse.urljoin(base+'/',parser.sources[0])
+    if urllib.parse.urlsplit(asset).netloc != urllib.parse.urlsplit(base).netloc:
+        raise RuntimeError('Unexpected external frontend asset')
+    with urllib.request.urlopen(asset,timeout=10) as response:
+        data = response.read(4*1024*1024)
+        if response.status != 200 or not data:
+            raise RuntimeError('Frontend entry script was unavailable')
+    return {'root_http_status':200,'script':urllib.parse.urlsplit(asset).path,
+            'script_bytes':len(data),'script_sha256':hashlib.sha256(data).hexdigest()}
 
 
 def main() -> None:
@@ -59,6 +88,7 @@ def main() -> None:
                     raise RuntimeError("ComfyUI readiness timeout:\n" + docker("logs", container))
                 time.sleep(1)
         ready_seconds = time.monotonic() - start
+        frontend = verify_frontend(base)
         objects = request(base, "/object_info")
         if not {"EmptyImage", "SaveImage"}.issubset(objects):
             raise RuntimeError("Core workflow nodes were not registered")
@@ -89,7 +119,7 @@ def main() -> None:
         patch_record = json.loads(docker("exec", container, "python", "-c",
                            "import importlib.util,json,pathlib;p=pathlib.Path(importlib.util.find_spec('comfy_env').origin).parent/'runpod-patch.json';print(p.read_text() if p.is_file() else 'null')"))
         result = {"kind": "linux-amd64-core-cpu-gate", "image_id": metadata["Id"],
-                  "ready_seconds": round(ready_seconds, 3), "system_stats": stats,
+                  "ready_seconds": round(ready_seconds, 3), "system_stats": stats, "frontend": frontend,
                   "graph": graph, "output_png_sha256": hashlib.sha256(png).hexdigest(),
                   "image_lock_hashes": locks,
                   "comfy_env_patch": patch_record,

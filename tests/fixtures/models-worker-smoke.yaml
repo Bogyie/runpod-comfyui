@@ -1,0 +1,10 @@
+# Public model metadata checked 2026-11-04. About 3.59 GB; opt-in GPU tests only.
+# Weights stay outside the image. Revisions and full LFS SHA256 are pinned.
+schema_version: 1
+models:
+  - source: https://huggingface.co/apozz/sam3-safetensors/resolve/e88da2ed02aded4006f4711ee6a9c75d5aa38d0c/sam3.safetensors
+    target: sam3/sam3.safetensors
+    sha256: 127037a7a11169c63a210b8e3e9caad24a66abdd65d3a78bbc3a7d8577d57026
+  - source: https://huggingface.co/depth-anything/DA3-SMALL/resolve/e08cab65ca0ec38e7826075418411ab90cab4da3/model.safetensors
+    target: depthanything3/da3_small.safetensors
+    sha256: 364492e38a3a06d221ac75da7f6621ada3f2361cd24fde11ba79091e9f40efcf
