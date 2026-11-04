@@ -1,0 +1,357 @@
+{
+  "da3_camera_matrices": [
+    [
+      [
+        [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      ]
+    ],
+    [
+      [
+        [
+          [
+            50.0,
+            0.0,
+            32.0
+          ],
+          [
+            0.0,
+            50.0,
+            16.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      ]
+    ]
+  ],
+  "error_events": [
+    [
+      "execution_start",
+      {
+        "prompt_id": "48dd6a1f-4458-4ee4-bf92-ee839bea14ca",
+        "timestamp": 1793771428663
+      }
+    ],
+    [
+      "execution_cached",
+      {
+        "nodes": [],
+        "prompt_id": "48dd6a1f-4458-4ee4-bf92-ee839bea14ca",
+        "timestamp": 1793771428663
+      }
+    ],
+    [
+      "execution_error",
+      {
+        "current_inputs": {
+          "coordinates": [
+            "[{\"x\":16}]"
+          ],
+          "extra_pnginfo": [
+            null
+          ],
+          "image": [
+            "tensor([[[[1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          ...,\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.]],\n\n         [[1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          ...,\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.]],\n\n         [[1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          ...,\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.]],\n\n         [[1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          ...,\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.]],\n\n         [[1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          ...,\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.]],\n\n         [[1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          ...,\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.]],\n\n         ...,\n\n         [[1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          ...,\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.]],\n\n         [[1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          ...,\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.]],\n\n         [[1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          ...,\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.]],\n\n         [[1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          ...,\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.]],\n\n         [[1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          ...,\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.]],\n\n         [[1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          ...,\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.],\n          [1., 0., 0.]]]])"
+          ],
+          "neg_coordinates": [
+            "[]"
+          ],
+          "points_store": [
+            "{}"
+          ],
+          "prompt": [
+            "{'1': {'class_type': 'EmptyImage', 'inputs': {'width': 64, 'height': 64, 'batch_size': 1, 'color': 16711680}}, '2': {'class_type': 'SAM3PointCollector', 'inputs': {'image': ['1', 0], 'points_store': '{}', 'coordinates': '[{\"x\":16}]', 'neg_coordinates': '[]'}}, '3': {'class_type': 'PreviewAny', 'inputs': {'source': ['2', 0]}}}"
+          ]
+        },
+        "current_outputs": [
+          "1",
+          "3",
+          "2"
+        ],
+        "exception_message": "'y'\n\nWorker traceback:\nTraceback (most recent call last):\n  File \"/tmp/comfyui_pvenv_wk7l8xak/persistent_worker.py\", line 1772, in main\n    result = method(**inputs)\n             ^^^^^^^^^^^^^^^^\n  File \"/opt/probe/ComfyUI/comfy_api/latest/_io.py\", line 2219, in EXECUTE_NORMALIZED\n    to_return = cls.execute(*args, **kwargs)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/probe/ComfyUI/custom_nodes/ComfyUI-SAM3/nodes/sam3_interactive.py\", line 143, in execute\n    normalized_y = p['y'] / img_height\n                   ~^^^^^\nKeyError: 'y'\n\n",
+        "exception_type": "comfy_env.isolation.workers.base.WorkerError",
+        "executed": [
+          "1"
+        ],
+        "node_id": "2",
+        "node_type": "SAM3PointCollector",
+        "prompt_id": "48dd6a1f-4458-4ee4-bf92-ee839bea14ca",
+        "timestamp": 1793771428677,
+        "traceback": [
+          "  File \"/opt/probe/ComfyUI/execution.py\", line 556, in execute\n    output_data, output_ui, has_subgraph, has_pending_tasks = await get_output_data(prompt_id, unique_id, obj, input_data_all, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)\n                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+          "  File \"/opt/probe/ComfyUI/execution.py\", line 353, in get_output_data\n    return_values = await _async_map_node_over_list(prompt_id, unique_id, obj, input_data_all, obj.FUNCTION, allow_interrupt=True, execution_block_cb=execution_block_cb, pre_execute_cb=pre_execute_cb, v3_data=v3_data)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+          "  File \"/opt/probe/ComfyUI/execution.py\", line 327, in _async_map_node_over_list\n    await process_inputs(input_dict, i)\n",
+          "  File \"/opt/probe/ComfyUI/execution.py\", line 315, in process_inputs\n    result = f(**inputs)\n             ^^^^^^^^^^^\n",
+          "  File \"/opt/runtime/venv/lib/python3.11/site-packages/comfy_env/isolation/metadata.py\", line 572, in proxy\n    result = worker.call_method(\n             ^^^^^^^^^^^^^^^^^^^\n",
+          "  File \"/opt/runtime/venv/lib/python3.11/site-packages/comfy_env/isolation/workers/subprocess.py\", line 674, in call_method\n    raise WorkerError(\n"
+        ]
+      }
+    ]
+  ],
+  "host_fingerprint_after": {
+    "gpu_files": {
+      "torch/_C.cpython-311-x86_64-linux-gnu.so": "4349b125953ce9e0f7e0e94f5a78519107f15a234e1fb3703e86c12c405b09cd",
+      "torch/__init__.py": "51c90fe34a7cf869517d1bab4cd114498790e169ec668f1a154c35ec64117a5e",
+      "torch/version.py": "53e3fb24ceaf300de811ae08721e5ca3a0720c7ef900c8365da3fe80c7271ebc"
+    },
+    "packages_sha256": "3b1e15eb9cee9e275e29cec53bbb3f6ed70db4457920d05cc60aa71927558290"
+  },
+  "host_fingerprint_before": {
+    "gpu_files": {
+      "torch/_C.cpython-311-x86_64-linux-gnu.so": "4349b125953ce9e0f7e0e94f5a78519107f15a234e1fb3703e86c12c405b09cd",
+      "torch/__init__.py": "51c90fe34a7cf869517d1bab4cd114498790e169ec668f1a154c35ec64117a5e",
+      "torch/version.py": "53e3fb24ceaf300de811ae08721e5ca3a0720c7ef900c8365da3fe80c7271ebc"
+    },
+    "packages_sha256": "3b1e15eb9cee9e275e29cec53bbb3f6ed70db4457920d05cc60aa71927558290"
+  },
+  "image_id": "sha256:e235cf85b8556e7b73cb6c5645693b2695cb0cb14d58c206907c3cf4acdfe714",
+  "kind": "comfy-env-native-workers-cpu-gate",
+  "ordinary_exception": "propagated-with-worker-alive",
+  "processes_after_restart": {
+    "depthanythingv3-nodes": {
+      "attention_policy": "pytorch",
+      "cmd": [
+        "/opt/workers/depthanythingv3-nodes/bin/python",
+        "/tmp/comfyui_pvenv_4qb5jyq3/persistent_worker.py",
+        "abstract://comfy_worker_b899dc2500f5"
+      ],
+      "cpu_mode": "1",
+      "pid": 144,
+      "ppid": 1
+    },
+    "sam3-nodes": {
+      "attention_policy": "pytorch",
+      "cmd": [
+        "/opt/workers/sam3-nodes/bin/python",
+        "/tmp/comfyui_pvenv_wk7l8xak/persistent_worker.py",
+        "abstract://comfy_worker_e6ff64ea0bdb"
+      ],
+      "cpu_mode": "1",
+      "pid": 203,
+      "ppid": 1
+    }
+  },
+  "processes_before": {
+    "depthanythingv3-nodes": {
+      "attention_policy": "pytorch",
+      "cmd": [
+        "/opt/workers/depthanythingv3-nodes/bin/python",
+        "/tmp/comfyui_pvenv_4qb5jyq3/persistent_worker.py",
+        "abstract://comfy_worker_b899dc2500f5"
+      ],
+      "cpu_mode": "1",
+      "pid": 144,
+      "ppid": 1
+    },
+    "sam3-nodes": {
+      "attention_policy": "pytorch",
+      "cmd": [
+        "/opt/workers/sam3-nodes/bin/python",
+        "/tmp/comfyui_pvenv_wk7l8xak/persistent_worker.py",
+        "abstract://comfy_worker_101c617cd962"
+      ],
+      "cpu_mode": "1",
+      "pid": 124,
+      "ppid": 1
+    }
+  },
+  "ready_seconds": 50.563,
+  "sam3_after_crash": {
+    "normalized_points": {
+      "labels": [
+        1
+      ],
+      "points": [
+        [
+          0.1875,
+          0.5
+        ]
+      ]
+    },
+    "ui_jpeg_bytes": 693,
+    "ui_jpeg_sha256": "f7a580f44a671204ec76b6cc3de0ffd1b6b6fbc0d097d0048fc3d72159f3eece"
+  },
+  "sam3_points_and_ui": {
+    "normalized_points": {
+      "labels": [
+        1
+      ],
+      "points": [
+        [
+          0.25,
+          0.5
+        ]
+      ]
+    },
+    "ui_jpeg_bytes": 693,
+    "ui_jpeg_sha256": "f7a580f44a671204ec76b6cc3de0ffd1b6b6fbc0d097d0048fc3d72159f3eece"
+  },
+  "scope": "CPU worker registration/tensor/UI IPC, exception and crash recovery only; no segmentation/depth model inference or GPU worker certification",
+  "worker_environments": {
+    "depthanythingv3-nodes": {
+      "extra_realpath": "/opt/workers/depthanythingv3-nodes/lib/python3.11/site-packages/omegaconf/__init__.py",
+      "prefix": "/opt/workers/depthanythingv3-nodes",
+      "sys_path": [
+        "",
+        "/usr/local/lib/python311.zip",
+        "/usr/local/lib/python3.11",
+        "/usr/local/lib/python3.11/lib-dynload",
+        "/opt/workers/depthanythingv3-nodes/lib/python3.11/site-packages"
+      ],
+      "torch_realpath": "/opt/runtime/venv/lib/python3.11/site-packages/torch/__init__.py",
+      "torch_version": "2.10.0+cu128"
+    },
+    "sam3-nodes": {
+      "extra_realpath": "/opt/workers/sam3-nodes/lib/python3.11/site-packages/ftfy/__init__.py",
+      "prefix": "/opt/workers/sam3-nodes",
+      "sys_path": [
+        "",
+        "/usr/local/lib/python311.zip",
+        "/usr/local/lib/python3.11",
+        "/usr/local/lib/python3.11/lib-dynload",
+        "/opt/workers/sam3-nodes/lib/python3.11/site-packages"
+      ],
+      "torch_realpath": "/opt/runtime/venv/lib/python3.11/site-packages/torch/__init__.py",
+      "torch_version": "2.10.0+cu128"
+    }
+  },
+  "worker_manifest": {
+    "gpu_lock_sha256": "a7471e51bd75cc8c6dd3470ba72bedb837b3de77f6f96e97f51e1b405e672549",
+    "provider": "uv-frozen-venv",
+    "schema_version": 1,
+    "workers": {
+      "depth-anything-v3": {
+        "commit": "20ef6c8ccf8d57a0ad6f6fa7031739eb8489f2a4",
+        "config": "nodes/comfy-env.toml",
+        "config_sha256": "555bbcee663449f473315b5083b32a1750b70f775540adf8b89a63280b3f9bc7",
+        "cuda_policy": "pytorch-sdpa",
+        "environment": "depthanythingv3-nodes",
+        "lock_file": "depth-anything-v3-linux-amd64-cu128.txt",
+        "lock_sha256": "a03ad0126187151901eeadf3f16bc89f12bd95f85a13a292b3ead06e7fcfeb8b",
+        "optional_cuda_extensions": [
+          "flash_attn",
+          "sageattention"
+        ],
+        "optional_pypi_omissions": {},
+        "plugin_directory": "ComfyUI-DepthAnythingV3",
+        "requirements_sha256": "ff85770c9e498627a26271f45e263a8b1b612f0e419e4c92f8e675d2a52af6bb",
+        "scope": "Candidate requirements only; no node execution or GPU certification",
+        "source": "depth-anything-v3",
+        "system_dependencies": {
+          "av": "pypi",
+          "c-compiler": "build-only"
+        },
+        "upstream_cuda_extensions_not_selected": [
+          "flash_attn",
+          "sageattention"
+        ]
+      },
+      "itools": {
+        "adapter": "itools",
+        "adapter_files_sha256": {
+          "build/adapters/itools/__init__.py": "7ca1ac7d2b9b266377c2531fb19cbb1cb0e03b9b2a8ddcfcb122eee1ac69ec52",
+          "build/adapters/itools/_comfyctl_adapter.py": "5a7026064855821be70ef1d0720e9b5aa3bece4078b20ff11a77a438bb519c39",
+          "build/adapters/itools/worker_nodes/__init__.py": "624a5b0022b45200c1e516dd502b5977b5907cf204f4884f24b5fc1b010e9995",
+          "build/adapters/itools/worker_nodes/comfy-env.toml": "f23850272958b2cdd75c55a3c21688da7c1accac9a3c70ce2e625c9ef40ca37d",
+          "tools/rebuild/apply_itools_adapter.py": "bef70ee88a815ca3bf76b4976e57f48331eb35443328ae9564e368c000309f29"
+        },
+        "commit": "a8f2fef227ca5b0cb9321c39ac7b874a906b1a5b",
+        "config": "build/adapters/itools/worker_nodes/comfy-env.toml",
+        "config_sha256": "f23850272958b2cdd75c55a3c21688da7c1accac9a3c70ce2e625c9ef40ca37d",
+        "cuda_policy": "pytorch-sdpa",
+        "environment": "itools-workernodes",
+        "lock_file": "itools-linux-amd64-cu128.txt",
+        "lock_sha256": "b3661cf8ffe2a34f49adaa30935255598662da95dbfcfe00fdf4f25e85147aff",
+        "optional_cuda_extensions": [],
+        "optional_pypi_omissions": {},
+        "plugin_directory": "ComfyUI-iTools",
+        "requirements_sha256": "6028cba743476f8b1ee7dafa651e2d70e79b544e92cc304bdff3ebeebcc785b9",
+        "scope": "Candidate requirements only; no node execution or GPU certification",
+        "source": "itools",
+        "system_dependencies": {},
+        "upstream_cuda_extensions_not_selected": []
+      },
+      "kjnodes": {
+        "adapter": "kjnodes",
+        "adapter_files_sha256": {
+          "build/adapters/kjnodes/__init__.py": "62fee905f5a1517878a0cdab03476a7b01f5c561ec3bdfbb03fa77cce9c86e00",
+          "build/adapters/kjnodes/policy.json": "172ad8fe9594b3d96ba998a6d020dc28196c4c71ffe88acd0a9a774e99f80177",
+          "build/adapters/kjnodes/worker_nodes/__init__.py": "c7721241281c96a265a373fd126d1e7ec3e2e78516d08920e0dd6f9eb2fe75a0",
+          "build/adapters/kjnodes/worker_nodes/comfy-env.toml": "31775da5497b3803870a27924d1a4b4f1ff8b1ed2496061b9fb7715722fa079e",
+          "tools/rebuild/apply_kjnodes_adapter.py": "d5e535864f7fdabb2767835286ac0a4fb125d496bfb609ed461a81484ad7fda3"
+        },
+        "commit": "ab72eda7ffad6280422d71ab7d54d3fb87c0ba18",
+        "config": "build/adapters/kjnodes/worker_nodes/comfy-env.toml",
+        "config_sha256": "31775da5497b3803870a27924d1a4b4f1ff8b1ed2496061b9fb7715722fa079e",
+        "cuda_policy": "pytorch-sdpa",
+        "environment": "kjnodes-workernodes",
+        "lock_file": "kjnodes-linux-amd64-cu128.txt",
+        "lock_sha256": "f17f1654c3449f6420042800a591107100f8fb6cae4fd2c2ea489135f201b58b",
+        "optional_cuda_extensions": [],
+        "optional_pypi_omissions": {},
+        "plugin_directory": "ComfyUI-KJNodes",
+        "requirements_sha256": "f4133a666e3a41ae5d37e9b20e56291fead875cf8df5e3fdf81b021f1021144d",
+        "scope": "Candidate requirements only; no node execution or GPU certification",
+        "source": "kjnodes",
+        "system_dependencies": {},
+        "upstream_cuda_extensions_not_selected": []
+      },
+      "sam3": {
+        "commit": "de0ff5d2c2ea435d29f800abfa568cffdfb94773",
+        "config": "nodes/comfy-env.toml",
+        "config_sha256": "1b22db4bc6c7f36f39567c36d59e37fec1f30f34d318e4b3fcd4aec322439d01",
+        "cuda_policy": "pytorch-sdpa",
+        "environment": "sam3-nodes",
+        "lock_file": "sam3-linux-amd64-cu128.txt",
+        "lock_sha256": "868cecaece0a5c7454224e86f26b9c3ddf014b15445c90a714e121064a649203",
+        "optional_cuda_extensions": [
+          "cc_torch",
+          "torch_generic_nms",
+          "flash-attn"
+        ],
+        "optional_pypi_omissions": {},
+        "plugin_directory": "ComfyUI-SAM3",
+        "requirements_sha256": "a67cb57bf513d4d3e46b4dd2afa8183bb58280cdf24459bbfb61badffdf28ca9",
+        "scope": "Candidate requirements only; no node execution or GPU certification",
+        "source": "sam3",
+        "system_dependencies": {
+          "av": "pypi",
+          "ffmpeg": "system"
+        },
+        "upstream_cuda_extensions_not_selected": [
+          "cc_torch",
+          "torch_generic_nms",
+          "flash-attn"
+        ]
+      }
+    }
+  }
+}

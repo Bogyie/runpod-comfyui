@@ -1,0 +1,387 @@
+{
+  "run_id": 41779549836,
+  "url": "https://github.com/Bogyie/runpod-comfyui/actions/runs/41779549836",
+  "head_sha": "64880247cf5886bbeb399ef15e6c15b8c3c852db",
+  "status": "completed",
+  "conclusion": "success",
+  "registry": {
+    "anonymous_manifest_read": true,
+    "digest": "sha256:291980f28606bd98e9b55850027892eb50b46906a0e11b26acf60c9f79b212fd",
+    "config_digest": "sha256:760d90fc03103a16bb60fbe37e43a9f8b752610eefafde0b74e4def498929199",
+    "compressed_layer_bytes": 6222732365,
+    "manifest": {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "config": {
+        "mediaType": "application/vnd.oci.image.config.v1+json",
+        "digest": "sha256:760d90fc03103a16bb60fbe37e43a9f8b752610eefafde0b74e4def498929199",
+        "size": 12202
+      },
+      "layers": [
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:3c5439d0ae62993af4cc4e21b8c777297e81bc40e200d4633c85a3e0f977a3bc",
+          "size": 28247437
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:7d94a600ec4db9376baf5256fe8930655328c1f5e0d170179a0180dcecf69098",
+          "size": 3341499
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:8f7c262eb376d9d177f52c91b6a03c3b4996055a9e84ca2b7e92412ddd29d5ae",
+          "size": 16031646
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:1f235d1b4734e9d629d1705e7caf2db4ffc7775086658cc46a22b6eb2c7a726f",
+          "size": 250
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:7bd3107fdaa9b704c08f3b3fe53b073c825eca6e987f771624dca1f12b545f5a",
+          "size": 23244800
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:d7ee0dd5b6dfe2c5719f887ba3e07317d144136a430ae59b6050f7ec8a901f13",
+          "size": 17832
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:144a29ab9edc9b0939c53772fbe0d2a873c07323132e2b95f81a75de2dc6915f",
+          "size": 4187209003
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:58a594c6fff96ffb51851df2e8665fc786c255d8747ee61c27323eafba2982b8",
+          "size": 200150467
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:4480b301c005cf5fdfd6440af2d72cbaf938fedec2f3f4bd5de443cfc90c379b",
+          "size": 104361
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:392d0b000bdba584e9f4f5dbb88574eaa20b30ad8e4990301aebf96137fa42ae",
+          "size": 824067471
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:f987ecd73c974c08bc6d711dbe58a947a1bbffc9dcff9f2ac29e8e2926a005c7",
+          "size": 2823
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:96721f6fbb3366cb897e5b4ab22935df0df1334074fa7e6261b225388b612d9d",
+          "size": 49742
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:74f957c350cb23ce6dff6f5529d45f28c19d47f35088dfa76ecbc3fcdb4d1764",
+          "size": 12804024
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1",
+          "size": 32
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:cc9ed08e6f401c8da976175092b8fd7e40e8a0bbd60dc7e196dc5b8c4bdb7918",
+          "size": 267257
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:1dae0956078dd1e0ecb1cd74fabcf789280088b9371e433f9e936d8aeadcb158",
+          "size": 2896
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:185cf3b168b2ec2d3aa31295ad1eaa893e5c116950953d6cf25f30c58ac9a01d",
+          "size": 870050762
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:096db4510ed88fb072b100248bb934775df9c78e89401ee9adc25c082bafbcea",
+          "size": 57140063
+        }
+      ]
+    }
+  },
+  "jobs": [
+    {
+      "completedAt": "2026-11-04T05:29:45Z",
+      "conclusion": "success",
+      "databaseId": 126407725458,
+      "name": "checks / static",
+      "startedAt": "2026-11-04T05:29:30Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-04T05:29:31Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-04T05:29:30Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:29:32Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 2,
+          "startedAt": "2026-11-04T05:29:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:29:32Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 3,
+          "startedAt": "2026-11-04T05:29:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:29:35Z",
+          "conclusion": "success",
+          "name": "Install pinned resolver",
+          "number": 4,
+          "startedAt": "2026-11-04T05:29:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:29:36Z",
+          "conclusion": "success",
+          "name": "Restore development environment from lock",
+          "number": 5,
+          "startedAt": "2026-11-04T05:29:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:29:42Z",
+          "conclusion": "success",
+          "name": "Reproduce source audit",
+          "number": 6,
+          "startedAt": "2026-11-04T05:29:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:29:43Z",
+          "conclusion": "success",
+          "name": "Unit tests",
+          "number": 7,
+          "startedAt": "2026-11-04T05:29:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:29:43Z",
+          "conclusion": "success",
+          "name": "Syntax checks",
+          "number": 8,
+          "startedAt": "2026-11-04T05:29:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:29:43Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 15,
+          "startedAt": "2026-11-04T05:29:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:29:44Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 16,
+          "startedAt": "2026-11-04T05:29:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:29:44Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 17,
+          "startedAt": "2026-11-04T05:29:44Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Bogyie/runpod-comfyui/actions/runs/41779549836/job/126407725458"
+    },
+    {
+      "completedAt": "2026-11-04T05:43:16Z",
+      "conclusion": "success",
+      "databaseId": 126407821079,
+      "name": "image",
+      "startedAt": "2026-11-04T05:29:48Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-04T05:29:51Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-04T05:29:49Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:29:51Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 2,
+          "startedAt": "2026-11-04T05:29:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:31:56Z",
+          "conclusion": "success",
+          "name": "Free disposable runner disk",
+          "number": 3,
+          "startedAt": "2026-11-04T05:29:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:32:01Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 4,
+          "startedAt": "2026-11-04T05:31:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:32:07Z",
+          "conclusion": "success",
+          "name": "Prepare locked build context",
+          "number": 5,
+          "startedAt": "2026-11-04T05:32:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:32:07Z",
+          "conclusion": "success",
+          "name": "Build identity",
+          "number": 6,
+          "startedAt": "2026-11-04T05:32:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:32:08Z",
+          "conclusion": "success",
+          "name": "Run docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6",
+          "number": 7,
+          "startedAt": "2026-11-04T05:32:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:32:18Z",
+          "conclusion": "success",
+          "name": "Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
+          "number": 8,
+          "startedAt": "2026-11-04T05:32:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:38:18Z",
+          "conclusion": "success",
+          "name": "Build candidate with registry cache",
+          "number": 9,
+          "startedAt": "2026-11-04T05:32:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:40:32Z",
+          "conclusion": "success",
+          "name": "Test candidate before publication",
+          "number": 10,
+          "startedAt": "2026-11-04T05:38:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:40:35Z",
+          "conclusion": "success",
+          "name": "Publish tested candidate with BuildKit",
+          "number": 11,
+          "startedAt": "2026-11-04T05:40:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:42:51Z",
+          "conclusion": "success",
+          "name": "Verify immutable registry image",
+          "number": 12,
+          "startedAt": "2026-11-04T05:40:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:42:52Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f",
+          "number": 13,
+          "startedAt": "2026-11-04T05:42:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:42:54Z",
+          "conclusion": "success",
+          "name": "Post Publish tested candidate with BuildKit",
+          "number": 21,
+          "startedAt": "2026-11-04T05:42:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:42:56Z",
+          "conclusion": "success",
+          "name": "Post Build candidate with registry cache",
+          "number": 22,
+          "startedAt": "2026-11-04T05:42:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:43:13Z",
+          "conclusion": "success",
+          "name": "Post Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
+          "number": 23,
+          "startedAt": "2026-11-04T05:42:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:43:13Z",
+          "conclusion": "success",
+          "name": "Post Run docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6",
+          "number": 24,
+          "startedAt": "2026-11-04T05:43:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:43:13Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 25,
+          "startedAt": "2026-11-04T05:43:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:43:13Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 26,
+          "startedAt": "2026-11-04T05:43:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T05:43:13Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 27,
+          "startedAt": "2026-11-04T05:43:13Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Bogyie/runpod-comfyui/actions/runs/41779549836/job/126407821079"
+    }
+  ],
+  "scope": "Core CPU/guard/native SAM3+DA3 recovery and iTools CPU/HTTP/data/host boundary gates before push and after immutable pull. No GPU model execution in Actions."
+}

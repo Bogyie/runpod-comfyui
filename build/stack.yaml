@@ -33,6 +33,11 @@ host_requirements_sources:
   - manager
   - sam3
   - depth-anything-v3
+host_extra_requirements:
+  matplotlib:
+    source: kjnodes
+    requirement: matplotlib
+    reason: Host model/debug nodes render CUDA-memory and sigma plots
 required_nodes:
   - manager
   - kjnodes
@@ -80,6 +85,16 @@ workers:
       adapter: itools
       config: build/adapters/itools/worker_nodes/comfy-env.toml
       environment: itools-workernodes
+      optional_pypi_omissions: {}
+      cuda_policy: pytorch-sdpa
+      optional_cuda_extensions: []
+      system_dependencies: {}
+    kjnodes:
+      source: kjnodes
+      plugin_directory: ComfyUI-KJNodes
+      adapter: kjnodes
+      config: build/adapters/kjnodes/worker_nodes/comfy-env.toml
+      environment: kjnodes-workernodes
       optional_pypi_omissions: {}
       cuda_policy: pytorch-sdpa
       optional_cuda_extensions: []

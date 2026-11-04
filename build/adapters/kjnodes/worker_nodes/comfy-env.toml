@@ -1,0 +1,2 @@
+[env_vars]
+COMFYCTL_KJNODES_WORKER = "1"

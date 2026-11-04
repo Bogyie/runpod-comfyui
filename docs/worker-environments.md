@@ -1,6 +1,6 @@
 # comfy-env worker 환경
 
-현재 구현은 SAM3·DepthAnythingV3의 native worker와 iTools 혼합 격리 P0 후보다. H100·RTX PRO 6000에서 실제 분할·깊이 모델 추론과 GPU worker 연결을 확인했다. Manager·KJNodes·VHS와 운영 계정 보호는 아직 남아 있다.
+현재 구현은 SAM3·DepthAnythingV3의 native worker와 iTools·KJNodes 혼합 격리 P0 후보다. H100·RTX PRO 6000에서 실제 분할·깊이 모델 추론과 GPU worker 연결을 확인했다. Manager·VHS와 운영 계정 보호는 아직 남아 있다.
 
 ## 실행과 설치를 분리한다
 
@@ -83,3 +83,21 @@ GHCR의 `8125a0f4…f9c0c3d` 후보를 미국 H100(US-GA-2)과 RTX PRO 6000 Blac
 `probe_itools.py`는 자신이 만든 CPU 컨테이너를 삭제한다. 텍스트 V1→V3 UI, Checkerboard→V3 preview, Paint multipart/readback→worker 합성→host PNG와 픽셀 값, 스타일 template API, 기본 prompt 저장·로드, host 모듈 import 경계를 검사한다. VAE 예외는 소유 PID를 검사하는 합성 객체로 dispatch를 확인하며 실제 checkpoint 추론으로 표시하지 않는다. UI JS asset의 HTTP 응답과 브라우저의 실제 조작도 구분한다. 선택 rembg background-removal 기능은 이번 gate 범위가 아니다.
 
 iTools 전용 lock은 GPU 기반층과 같은 torch 계열 pin을 유지한다. 다른 SAM3/DA3 venv의 임시 별칭을 사용한 초기 가능성 검사와 달리 최종 CPU gate는 별도로 구성한 frozen iTools prefix를 사용한다. 설정 변경에 따른 metadata cache 갱신, 영속 데이터 경로와 nonroot 권한은 P2/P3의 추가 시험 대상이다. comfy-env 0.3.89는 현재 metadata cache를 worker prefix에 쓰므로 운영 권한 분리 전에 cache 위치도 바꿔야 한다.
+
+## KJNodes 혼합 격리 후보
+
+고정한 KJNodes `ab72eda7…c0ba18`에 `build/adapters/kjnodes`를 적용한다. 정책에는 이미지·마스크·bbox·좌표 계산 등 108개 worker 노드를 명시했다. 전체 upstream catalog와 host hook은 유지하고, 해당 노드의 실행 클래스를 comfy-env proxy로 대체한다. 따라서 host에도 일부 계산 클래스 정의가 import되지만 해당 108개의 실행은 별도 worker로 전달한다. `color-matcher`와 OpenCV는 worker 전용 의존성으로 설치했다. host 모델/debug 차트에 필요한 matplotlib과 전이 패키지 8개만 host lock에 추가했으며 기존 pin은 바꾸지 않았다.
+
+FastPreview·ImageResizeKJv2의 PromptServer callback, 모델/CLIP/GLIGEN 객체, 복잡한 V3 실행 문맥이 필요한 노드는 host 구현을 유지한다. 이는 해당 모델 워크플로 전체가 이미 검증됐다는 뜻은 아니다. 원래 catalog를 없애거나 선택 노드만 넣은 축소판도 아니다. 필수 worker 등록을 먼저 검증하므로 worker가 없으면 upstream host startup hook까지 실행하지 않는다. 원본 source·adapter/config/도구 hash를 worker identity에 포함한다.
+
+[CPU 검사](../tests/evidence/kjnodes-cpu-probe.json)는 다음을 실제 ComfyUI로 통과했다.
+
+- ColorMatchV2 histogram matching: 입력 픽셀 32 → 기준 픽셀 192. 원본을 돌려주는 upstream fallback으로 통과하지 않았음을 확인.
+- ResizeMask → GetMaskSizeAndCount → host: MASK 수치·형태와 정수 width/height/count 보존.
+- host bbox → KJ BboxToInt → host: 좌표·크기·중심 값 보존.
+- 잘못된 bbox가 실제 KJ 노드에서 실패한 뒤 같은 PID가 살아 있고, 다른 입력의 uncached 재호출 성공.
+- worker FloatToSigmas → host VisualizeSigmasKJ: 실제 matplotlib PNG와 SIGMAS 값 보존.
+- host FastPreview → 실제 WebSocket binary PNG: 헤더·크기·픽셀 일치.
+- 모델 시간 조회 HTTP와 web/추가 async JS asset 응답, host 패키지 불변, private worker 패키지 경로 및 컨테이너 삭제.
+
+이는 108개 등록과 대표 CPU 워크플로에 대한 증거다. 모든 알고리즘, 실제 모델 패치·checkpoint 추론, GPU 계산과 브라우저 조작을 인증하지 않는다. 전체 노드의 새 입력 이미지 목록, `IS_CHANGED`·validation callback, 설정에 따른 metadata 갱신과 데이터 경로는 P2에서 추가 검증한다. 현재 comfy-env 0.3.89의 정적 proxy metadata를 동적 파일 목록/변경 감지의 성공 근거로 사용하지 않는다.

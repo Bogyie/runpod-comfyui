@@ -30,6 +30,12 @@ def prepare(stack: dict, source_lock: dict, cache: Path, output: Path) -> None:
         source = inspected["sources"][name]
         lines.append(f"\n# {source['repository']}@{source['commit']}")
         lines.extend(source["requirements"])
+    for name, exception in stack.get('host_extra_requirements', {}).items():
+        source=inspected['sources'][exception['source']]
+        requirement=exception['requirement']
+        if requirement not in source['requirements']:
+            raise ValueError('Unreviewed host exception requirement: '+name)
+        lines.extend([f"\n# Host exception: {exception['reason']}; {source['repository']}@{source['commit']}",requirement])
     lines.extend(["\n# Pin the installer used by Manager/comfy-env as well as by CI",
                   f"uv=={stack['resolver']['uv']}",
                   "\n# GPU stack may not drift during application resolution", gpu_requirements.strip()])

@@ -1,0 +1,17 @@
+{
+  "before_commit": "64880247cf5886bbeb399ef15e6c15b8c3c852db",
+  "before_sha256": "c03335a966b5836282cba7de7c700b01f76cafa607504f979368be7ff917ca09",
+  "after_sha256": "22beba8cac5b8c370be217cf2d8f69a39b875ca871097396f90fc025a5a53d40",
+  "existing_pins_unchanged": true,
+  "added": {
+    "contourpy": "1.3.3",
+    "cycler": "0.12.1",
+    "fonttools": "4.68.0",
+    "kiwisolver": "1.5.1",
+    "matplotlib": "3.11.2",
+    "pyparsing": "3.3.3",
+    "python-dateutil": "4.0.0",
+    "tzdata": "2026.6"
+  },
+  "reason": "KJ host VisualizeSigmas and CUDA/debug plot nodes need matplotlib; color-matcher/OpenCV remain private worker dependencies."
+}

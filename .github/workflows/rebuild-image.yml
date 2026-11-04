@@ -99,6 +99,7 @@ jobs:
           uv run --frozen python tools/rebuild/probe_guards.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/guards-before-push.json
           uv run --frozen python tools/rebuild/probe_workers.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/workers-before-push.json
           uv run --frozen python tools/rebuild/probe_itools.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/itools-before-push.json
+          uv run --frozen python tools/rebuild/probe_kjnodes.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/kjnodes-before-push.json
       - name: Publish tested candidate with BuildKit
         id: publish
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
@@ -141,8 +142,9 @@ jobs:
           uv run --frozen python tools/rebuild/probe_guards.py --image "$immutable" --output .work/ci-evidence/guards-registry.json
           uv run --frozen python tools/rebuild/probe_workers.py --image "$immutable" --output .work/ci-evidence/workers-registry.json
           uv run --frozen python tools/rebuild/probe_itools.py --image "$immutable" --output .work/ci-evidence/itools-registry.json
+          uv run --frozen python tools/rebuild/probe_kjnodes.py --image "$immutable" --output .work/ci-evidence/kjnodes-registry.json
           printf '%s\n' "$immutable" > .work/ci-evidence/image.txt
-          printf 'P0 native-worker candidate: `%s`\n\nImmutable image: `%s`\n\nCore CPU workflow, native SAM3/DA3 worker IPC/crash recovery and iTools CPU/HTTP/data gates passed after registry pull. GPU/model gates are separate; this Actions run does not execute them.\n' "$IMAGE" "$immutable" >> "$GITHUB_STEP_SUMMARY"
+          printf 'P0 native-worker candidate: `%s`\n\nImmutable image: `%s`\n\nCore CPU workflow, native SAM3/DA3 worker IPC/crash recovery and iTools/KJNodes CPU/HTTP/data/host-preview gates passed after registry pull. GPU/model gates are separate; this Actions run does not execute them.\n' "$IMAGE" "$immutable" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: always()
         with:

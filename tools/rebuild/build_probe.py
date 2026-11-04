@@ -103,10 +103,13 @@ def main() -> None:
                 raise ValueError(f"Node source archive hash mismatch: {definition['source']}")
             materialize(data,nodes_root/definition['plugin_directory'])
             if definition.get('adapter'):
-                if definition['adapter'] != 'itools':
+                if definition['adapter'] == 'itools':
+                    from apply_itools_adapter import apply
+                elif definition['adapter'] == 'kjnodes':
+                    from apply_kjnodes_adapter import apply
+                else:
                     raise ValueError('Unknown worker source adapter')
-                from apply_itools_adapter import apply
-                apply(nodes_root/definition['plugin_directory'],source,ROOT/'build/adapters/itools')
+                apply(nodes_root/definition['plugin_directory'],source,ROOT/'build/adapters'/definition['adapter'])
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
             list(pool.map(prepare_node,definitions['workers'].values()))
     if args.prepare_only:

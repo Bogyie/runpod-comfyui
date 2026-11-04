@@ -1,0 +1,1 @@
+ghcr.io/bogyie/runpod-comfyui@sha256:291980f28606bd98e9b55850027892eb50b46906a0e11b26acf60c9f79b212fd

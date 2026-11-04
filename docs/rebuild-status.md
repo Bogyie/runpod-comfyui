@@ -158,3 +158,21 @@ SAM3·DepthAnythingV3는 upstream의 `register_nodes`와 `SubprocessWorker`를 �
 이 새 iTools 이미지의 전체 GPU 검증은 아직 하지 않았다. 앞의 H100·Blackwell SAM3/DA3 모델 증거는 실제로 실행한 `8125…` digest에 대한 기록이다. CI에는 iTools gate를 게시 전후 모두 추가했으며 새 원격 실행 결과는 별도 기록으로 확인한다.
 
 같은 iTools 후보에서 [코어/프런트엔드](../tests/evidence/itools-image-host.json), [설치 guard](../tests/evidence/itools-image-guards.json), [SAM3/DA3 IPC·강제 종료 복구](../tests/evidence/itools-image-workers.json)도 통과했다. iTools 검사에서는 전용 venv 패키지 경로와 소스·assets/host 패키지의 실행 전후 hash 불변, 테스트 컨테이너 삭제까지 확인했다.
+
+## iTools 원격 게시 결과
+
+[성공 실행 #41779549836](https://github.com/Bogyie/runpod-comfyui/actions/runs/41779549836), 소스 `64880247cf5886bbeb399ef15e6c15b8c3c852db`에서 iTools를 포함한 native-worker 후보가 빌드·게시 전 검사·GHCR 게시·immutable pull 후 같은 검사를 모두 통과했다. 최초 실행 #41779233102는 스택 전체 input identity 생성물 누락을 재현 검사에서 잡았고, 생성물 갱신과 전체 재현 절차 후 성공했다.
+
+- 고정 참조: `ghcr.io/bogyie/runpod-comfyui@sha256:291980f28606bd98e9b55850027892eb50b46906a0e11b26acf60c9f79b212fd`.
+- 게시 전 local/registry config는 모두 `sha256:760d90fc03103a16bb60fbe37e43a9f8b752610eefafde0b74e4def498929199`로 일치했다. 익명 manifest 조회도 성공했다.
+- 압축 레이어 합계 6,222,732,365바이트(약 6.22GB), 이전 2-worker 후보 대비 약 0.26GB 증가. 모델 weight는 제외한다.
+- 단일 image job 13분 28초, 빌드 6분, 게시 전 검사 2분 14초, BuildKit 게시 3초, pull·게시 후 검사 2분 16초. 캐시/네트워크 조건과 검사 범위도 달라 단순 성능 비교로 해석하지 않는다.
+- [Actions 증거](evidence/actions-41779549836/run.json), 게시 전후 iTools와 기존 worker/코어/guard 결과를 보존했다. 이 digest는 CPU gate를 통과한 P0 후보이며, GPU 모델 증거는 앞의 `8125…`와 구분한다.
+
+## KJNodes 어댑터 후보
+
+원본 catalog/host hook을 보존한 채 108개 이미지·마스크·bbox·좌표 노드를 실제 comfy-env worker로 전달하는 후보를 구현했다. FastPreview, 모델 객체와 일부 V3 문맥은 host 예외로 유지한다. `color-matcher`·OpenCV는 전용 worker에 설치했다. host matplotlib 예외는 [의존성 차이](../tests/evidence/kj-host-dependency-diff.json)에 기록했으며 기존 host pin은 변경하지 않았다.
+
+[대표 CPU 검사](../tests/evidence/kjnodes-cpu-probe.json)에서 ColorMatchV2의 실제 픽셀 변경, MASK/bbox/정수 전달, KJ 오류 전파 후 동일 worker 재호출, worker SIGMAS→host matplotlib, FastPreview의 실제 WebSocket PNG와 host HTTP/JS를 확인했다. 합성 타입 제공·관찰 노드는 테스트 컨테이너에만 연결했고 이미지에 포함하지 않았다. 실제 checkpoint/GPU 및 108개 알고리즘 전체 성공으로 확대하지 않는다.
+
+같은 이미지의 [코어/프런트엔드](../tests/evidence/kjnodes-image-host.json), [설치 guard](../tests/evidence/kjnodes-image-guards.json), [기존 SAM3/DA3 IPC·복구](../tests/evidence/kjnodes-image-workers.json), [iTools](../tests/evidence/kjnodes-image-itools.json)도 통과했다. 단위 검사는 37개다. 원격 CI에 KJ gate를 게시 전후 추가했으며 새 원격 실행 결과는 확인 중이다. Manager·VHS 통합, 동적 schema/파일 변경 감지, 운영 데이터·권한·복구와 업데이트/승격은 남아 있다.

@@ -29,11 +29,11 @@ def package_name(requirement: str) -> str:
 
 
 def adapter_identity(name: str) -> dict:
-    if name != 'itools':
+    if name not in {'itools','kjnodes'}:
         raise ValueError('Unreviewed worker adapter')
     folder = ROOT/'build/adapters'/name
     paths = [p for p in folder.rglob('*') if p.is_file() and '__pycache__' not in p.parts]
-    paths.append(ROOT/'tools/rebuild/apply_itools_adapter.py')
+    paths.append(ROOT/f'tools/rebuild/apply_{name}_adapter.py')
     if any(p.is_symlink() or not p.resolve().is_relative_to(ROOT) for p in paths):
         raise ValueError('Unsafe worker adapter source')
     return {p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)}

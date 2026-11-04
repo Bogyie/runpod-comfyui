@@ -38,6 +38,13 @@
         "torchvision": "0.25.0",
         "xformers": "0.0.35"
       },
+      "host_extra_requirements": {
+        "matplotlib": {
+          "reason": "Host model/debug nodes render CUDA-memory and sigma plots",
+          "requirement": "matplotlib",
+          "source": "kjnodes"
+        }
+      },
       "host_requirements_sources": [
         "comfyui",
         "manager",
@@ -100,6 +107,17 @@
             "source": "itools",
             "system_dependencies": {}
           },
+          "kjnodes": {
+            "adapter": "kjnodes",
+            "config": "build/adapters/kjnodes/worker_nodes/comfy-env.toml",
+            "cuda_policy": "pytorch-sdpa",
+            "environment": "kjnodes-workernodes",
+            "optional_cuda_extensions": [],
+            "optional_pypi_omissions": {},
+            "plugin_directory": "ComfyUI-KJNodes",
+            "source": "kjnodes",
+            "system_dependencies": {}
+          },
           "sam3": {
             "config": "nodes/comfy-env.toml",
             "cuda_policy": "pytorch-sdpa",
@@ -128,5 +146,5 @@
     }
   },
   "kind": "candidate-input-identity",
-  "sha256": "8105040a9bd0f3c95babc41b8f22a5c339c91dbec181019ccb33dfcb345b449d"
+  "sha256": "99fb0790a764011924857d8ff40428c3f0518c0748e0b4b43642ca4c6084a07a"
 }

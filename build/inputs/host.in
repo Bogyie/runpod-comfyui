@@ -61,6 +61,9 @@ comfy-3d-viewers==0.2.44
 comfy-env==0.3.89
 comfy-3d-viewers==0.2.44
 
+# Host exception: Host model/debug nodes render CUDA-memory and sigma plots; kijai/ComfyUI-KJNodes@ab72eda7ffad6280422d71ab7d54d3fb87c0ba18
+matplotlib
+
 # Pin the installer used by Manager/comfy-env as well as by CI
 uv==0.10.8
 

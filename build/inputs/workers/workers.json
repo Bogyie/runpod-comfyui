@@ -49,6 +49,29 @@
       "system_dependencies": {},
       "upstream_cuda_extensions_not_selected": []
     },
+    "kjnodes": {
+      "adapter": "kjnodes",
+      "adapter_files_sha256": {
+        "build/adapters/kjnodes/__init__.py": "62fee905f5a1517878a0cdab03476a7b01f5c561ec3bdfbb03fa77cce9c86e00",
+        "build/adapters/kjnodes/policy.json": "172ad8fe9594b3d96ba998a6d020dc28196c4c71ffe88acd0a9a774e99f80177",
+        "build/adapters/kjnodes/worker_nodes/__init__.py": "c7721241281c96a265a373fd126d1e7ec3e2e78516d08920e0dd6f9eb2fe75a0",
+        "build/adapters/kjnodes/worker_nodes/comfy-env.toml": "31775da5497b3803870a27924d1a4b4f1ff8b1ed2496061b9fb7715722fa079e",
+        "tools/rebuild/apply_kjnodes_adapter.py": "d5e535864f7fdabb2767835286ac0a4fb125d496bfb609ed461a81484ad7fda3"
+      },
+      "commit": "ab72eda7ffad6280422d71ab7d54d3fb87c0ba18",
+      "config": "build/adapters/kjnodes/worker_nodes/comfy-env.toml",
+      "config_sha256": "31775da5497b3803870a27924d1a4b4f1ff8b1ed2496061b9fb7715722fa079e",
+      "cuda_policy": "pytorch-sdpa",
+      "environment": "kjnodes-workernodes",
+      "optional_cuda_extensions": [],
+      "optional_pypi_omissions": {},
+      "plugin_directory": "ComfyUI-KJNodes",
+      "requirements_sha256": "f4133a666e3a41ae5d37e9b20e56291fead875cf8df5e3fdf81b021f1021144d",
+      "scope": "Candidate requirements only; no node execution or GPU certification",
+      "source": "kjnodes",
+      "system_dependencies": {},
+      "upstream_cuda_extensions_not_selected": []
+    },
     "sam3": {
       "commit": "de0ff5d2c2ea435d29f800abfa568cffdfb94773",
       "config": "nodes/comfy-env.toml",

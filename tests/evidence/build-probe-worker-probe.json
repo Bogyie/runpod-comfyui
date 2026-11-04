@@ -1,6 +1,6 @@
 {
   "base_image": "python:3.11-slim-bookworm@sha256:94a8fee35252d06ab75856f15f12c7bae67b10e8a6da93c7fded82b2610926cd",
-  "elapsed_seconds": 51.413,
+  "elapsed_seconds": 76.569,
   "host": {
     "architecture": "arm64",
     "system": "Darwin"
@@ -9,7 +9,7 @@
   "kind": "local-experimental-build",
   "lock_hashes": {
     "gpu": "a7471e51bd75cc8c6dd3470ba72bedb837b3de77f6f96e97f51e1b405e672549",
-    "host": "c03335a966b5836282cba7de7c700b01f76cafa607504f979368be7ff917ca09"
+    "host": "22beba8cac5b8c370be217cf2d8f69a39b875ca871097396f90fc025a5a53d40"
   },
   "scope": "Local Docker build only; not a GitHub Actions benchmark or GPU validation",
   "target": "worker-probe"
