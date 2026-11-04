@@ -52,7 +52,7 @@
 - 로컬 Python 3.11에서 단위 테스트를 실행했다. 재개/오류는 가짜 transport로 재현하며, 실제 0.3.89 등록 함수가 누락 worker를 host import 전에 거부하는지도 검사한다.
 - HF 공개 테스트 모델 520,212바이트와 Civitai 공개 모델 57,420,828바이트를 실제 다운로드하고 SHA256을 검증했다. Civitai는 65,536바이트 뒤 중단한 상태에서 HTTP 206 재개와 전체 hash 일치도 확인했다. `tests/evidence/public-download-gates.json`에 응답 범위와 결과를 남겼다. 인증/gated 시험은 아직 남아 있다.
 - Docker Desktop에서 Linux amd64 후보 이미지를 빌드했고, 최초 후보의 ComfyUI 0.44.0 `/system_stats`·`/object_info`·`/prompt`·`/history`·`/view` 및 EmptyImage→SaveImage 출력 PNG를 확인했다. 이 초기 결과는 `tests/evidence/host-initial-cpu-probe.json`이다. installer 버전과 격리 guard를 반영한 후보도 재검증을 통과했다. 최신 결과는 `tests/evidence/host-cpu-probe.json`과 `tests/evidence/comfy-env-installed-guards.json`이다.
-- RTX PRO 6000 Blackwell과 H100 실연산, RunPod 영속 볼륨, 성능·이미지 용량 비교는 아직 미검증이다.
+- RTX PRO 6000 Blackwell과 H100에서 BF16 행렬곱·SDPA·xformers 커널을 검증했다. H100에서는 실제 ComfyUI GPU 기동·프런트엔드·모델 없는 그래프까지 확인했다. 6종 커스텀 노드 실연산·모델 샘플링·RunPod 영속 볼륨은 미검증이다.
 - P0 전체를 완료한 상태가 아니다. 따라서 정식 GPU 스택 확정과 stable 이미지 배포는 수행하지 않았다. 기존 구현은 `legacy/`로 옮겨 현재 빌드 경로에서 제외했다.
 
 ## 재현 명령
@@ -90,3 +90,19 @@ uv run python tools/rebuild/smoke_downloads.py
 - 성공 image job 전체 12분 28초. push와 digest pull·재검증 단계가 5분 16초여서 빌드 시간 단축만으로 전체 배포 시간이 줄어들지는 않는다.
 - 첫 실행은 GitHub runner Docker CLI의 `image inspect --platform` 미지원 때문에 게시 전 검사에서 실패했다. 해당 옵션을 제거하고 실제 Architecture 검사와 `docker run --platform linux/amd64`는 유지한 뒤 성공했다.
 - `latest`/`stable`은 변경하지 않았다. 실행용 이미지는 P0 핵심 환경 후보이며 커스텀 노드 6종, SSH/영속 저장소 등 RunPod 운영 환경은 아직 통합하지 않았다.
+
+## RunPod GPU 실검증 (2026-11-04)
+
+GHCR에 게시한 동일 digest `414962d4…15bf2c23`를 사용했다. 컨테이너 내부에서 패키지를 추가·변경하지 않았다.
+
+| GPU | 배치 | 결과 | 증거 |
+|---|---|---|---|
+| RTX PRO 6000 Blackwell Server Edition | US-NC-1 | CC 12.0, CUDA 12.8, BF16 행렬곱·SDPA·xformers 통과 | [커널 결과](evidence/runpod-blackwell-kernels.json) |
+| H100 SXM 80GB | US-GA-2 | CC 9.0, CUDA 12.8, 동일 커널 통과 | [커널 결과](evidence/runpod-h100-kernels.json) |
+| H100 ComfyUI | US-GA-2 | GPU 모드 기동, `/` HTML과 JS asset HTTP 200, API와 EmptyImage→SaveImage PNG 통과 | [UI/API 결과](evidence/runpod-h100-ui.json) |
+
+두 GPU 모두 driver 595.91.07, torch 2.10.0+cu128, xformers 0.0.35를 확인했다. 실제 ComfyUI 기본 attention은 PyTorch로 실행했다. 이는 커널·핵심 환경 검증이며 전체 노드 지원을 인증하는 결과는 아니다.
+
+초기 임시 GPU 커널 서버는 일반 `/`에 UI를 제공하지 않았다. H100 AP-IN-1 배치는 이미지 다운로드 중 서비스 미기동 상태였고, 사용자 요청으로 삭제 후 미국 US-GA-2에 재생성했다. 미국 배치에서는 커널 검사 후 실제 ComfyUI를 8188에 기동하도록 명령을 변경했다. Python 기본 User-Agent 요청은 RunPod 프록시에서 403을 받았지만 일반 브라우저 User-Agent로 페이지·API가 정상 응답했다.
+
+Blackwell 검증 Pod와 인도 H100 Pod는 삭제 후 목록에서 부재를 확인했다. 미국 H100은 UI 확인을 위해 일시 유지 중이며 $3.99/시간이다. 영구 RunPod 템플릿은 아직 생성하지 않았다.
