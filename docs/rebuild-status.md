@@ -72,7 +72,7 @@ uv run python tools/rebuild/smoke_downloads.py
 
 소스 snapshot 재현은 네트워크를 사용한다. upstream을 갱신하려면 `snapshot_upstreams.py --resolve`를 명시적으로 실행하고 lock과 audit diff를 검토한다.
 
-다음 작업은 GitHub Actions 빌드와 GHCR 게시 확인, worker lock과 comfy-env 어댑터 실험, Manager 설치 경계, 인증 다운로드 시험이다. 이후 계획서의 P1–P5를 이어서 수행한다.
+GitHub Actions 빌드·GHCR 게시와 두 native worker lock/CPU 연결은 확인했다. 다음 작업은 나머지 노드의 comfy-env 어댑터, Manager 설치 경계, 운영 데이터 경로·권한·복구와 인증 다운로드 시험이다. 이후 계획서의 P1–P5를 이어서 수행한다.
 
 ## 새 CI 배포 경로
 
@@ -122,7 +122,7 @@ SAM3·DepthAnythingV3는 upstream의 `register_nodes`와 `SubprocessWorker`를 �
 - worker에도 명시적 PyTorch attention 정책 전달. 설치된 Flash/Sage를 자동 선택하지 않도록 고정했다.
 - ComfyUI 루트 HTML과 프런트엔드 entry JS의 HTTP 200, 모델 없는 코어 그래프, 누락 worker의 host import 거부.
 
-[CPU IPC·복구 결과](../tests/evidence/workers-cpu-probe.json), [코어·프런트엔드](../tests/evidence/worker-image-host-cpu.json), [설치 guard](../tests/evidence/worker-image-guards.json), [파일 공유 측정](../tests/evidence/worker-package-sharing.json)을 보존했다. 이 결과는 로컬 Docker의 amd64 에뮬레이션에서 얻었으며 이전 GHCR 핵심 이미지의 GPU 검사와 구분한다. **새 worker 이미지의 SAM3 분할/영상·DA3 깊이 모델 추론, GPU IPC/VRAM, 나머지 네 노드와 운영 권한은 아직 미검증이다.**
+[CPU IPC·복구 결과](../tests/evidence/workers-cpu-probe.json), [코어·프런트엔드](../tests/evidence/worker-image-host-cpu.json), [설치 guard](../tests/evidence/worker-image-guards.json), [파일 공유 측정](../tests/evidence/worker-package-sharing.json)을 보존했다. 이 결과는 로컬 Docker의 amd64 에뮬레이션에서 얻었으며 이전 GHCR 핵심 이미지의 GPU 검사와 구분한다. 이 CPU 검사만으로 실제 GPU 모델 추론을 판정하지 않는다. 새 worker 이미지의 두 GPU 실연산 결과는 아래 별도 기록에 있다. 나머지 네 노드와 운영 권한은 아직 미검증이다.
 
 `candidate.target`을 `worker-probe`로 바꿨다. CI는 worker 입력/lock 일치와 이 IPC·장애 복구 검사를 게시 전후에 수행하고 `candidate-p0-workers-*` 태그를 사용한다. 원격 CI도 통과했으며 아래 실행과 증거에 기록했다. 실제 모델 GPU 시험에 쓸 공개 weight revision/hash도 `tests/fixtures/models-worker-smoke.yaml`에 잠갔다. weight는 이미지에 포함하지 않는다.
 
@@ -135,4 +135,16 @@ SAM3·DepthAnythingV3는 upstream의 `register_nodes`와 `SubprocessWorker`를 �
 - [원격 증거](evidence/actions-41773238555/run.json)에 게시 전후 worker PID 변경, 명시적 PyTorch 정책, host metadata/검사 GPU 파일 hash 불변과 출력 수치를 보존했다.
 - 압축 레이어 합계는 5,961,606,258바이트(약 5.96GB). 이전 핵심 후보 5.30GB 대비 약 0.67GB 증가했다. 모델 weight는 포함하지 않는다.
 - 단일 실행의 image job은 17분 20초, 빌드 5분 31초, 게시 전 검사 1분 46초, push/pull 및 게시 후 검사 6분 27초였다. 전체 배포 시간의 병목이 설치뿐 아니라 레지스트리 전송에도 있음을 확인했다.
-- 위 digest는 아직 P0 후보이며 두 GPU의 실제 SAM3/DA3 모델 추론을 통과한 이미지가 아니다. 이전 핵심 digest의 GPU 성공을 이 새 worker 이미지의 검증으로 대체하지 않는다.
+- 위 digest는 P0 후보이며, 이전 핵심 digest의 GPU 성공과 구분하여 아래 native worker 모델 검사를 추가했다.
+
+## 게시 경로 최적화 실측
+
+[성공 실행 #41775695694](https://github.com/Bogyie/runpod-comfyui/actions/runs/41775695694), 소스 `1b65664842cc5107ae34db99785ff259fb85d6f9`에서 게시 전 검사를 마친 뒤 같은 BuildKit 결과를 직접 게시했다. image job은 10분 54초, 빌드·캐시 export·로컬 load 단계는 3분 55초, 별도 게시 단계는 3초, immutable pull·게시 후 검사는 1분 41초였다. 이전 실행의 Docker CLI push는 약 4분 40초였으나 단일 실행 비교이며 캐시·네트워크 조건도 달라 전체 시간 차이를 게시 방식의 효과로만 계산하지 않는다.
+
+게시된 digest는 `sha256:a334ee1ff1fd54b5b386d30467c869db803ccec5c5f4245de9dacd3ea1574812`다. 게시 전 로컬 config와 registry config는 모두 `sha256:c4987947a03778fa1a1b6c815bb6b148a13637117985bfe4e87fb44d68e246a5`로 일치한다. 이는 앞서 게시한 `8125…` 후보의 config와도 같다. manifest digest는 다르므로 GPU 실검증 기록은 실제 사용한 `8125…` 참조를 유지한다. [원격 검증 증거](evidence/actions-41775695694/run.json), [동일 config 검사](evidence/actions-41775695694/publish.json), 게시 전후 코어·guard·worker 결과를 보존했다. `latest`/`stable`은 갱신하지 않았다.
+
+## Native worker 실제 모델 GPU 검사
+
+같은 `8125…f9c0c3d` 이미지로 미국 H100(US-GA-2)과 RTX PRO 6000 Blackwell(US-NC-2)에서 CUDA 텐서 왕복과 실제 SAM3 이미지 분할·3프레임 추적, DA3 단일·3프레임 깊이 추론을 통과했다. [H100 결과](evidence/native-h100-models.json)와 [Blackwell 결과](evidence/native-blackwell-models.json)에 모델 SHA256/크기, worker CUDA·attention, 그래프 성공 상태와 출력 통계를 보존했다. 시험 Pod는 삭제 후 목록 부재까지 확인했다. 상세 범위와 재실행 방법은 [worker 문서](worker-environments.md)에 있다. 나머지 노드·운영 권한·복구·장시간 작업의 검증은 남아 있다.
+
+두 Pod 모두 종료했으며 최종 목록이 비어 있음을 확인했다. 두 모델 검사 Pod의 생성~삭제 확인 시간으로 계산한 GPU 임대료 상한 추정치는 H100 약 $0.49, Blackwell 약 $0.14다(종료 확인 시각을 사용한 대략값, 디스크 요금·실제 청구와 구분). 승인받은 전체 검증 예산 $10 범위 안에서 진행했다.

@@ -8,7 +8,7 @@ RunPod용 ComfyUI 이미지를 전면 개편하고 있습니다.
 - [후보 스택](build/stack.yaml)
 - [worker 구성과 검증 범위](docs/worker-environments.md)
 
-현재 `docker/Dockerfile.probe`는 ComfyUI 핵심 환경과 SAM3·DepthAnythingV3의 comfy-env worker를 검증하는 P0 후보입니다. 실제 모델 추론, 나머지 네 노드와 RunPod 운영 환경은 통합 중입니다. CPU 기동·worker IPC·복구 검사를 통과한 후보만 GitHub Actions에서 GHCR의 고유 `candidate-p0-workers-*` 태그로 게시합니다. `latest`와 `stable`은 갱신하지 않습니다.
+현재 `docker/Dockerfile.probe`는 ComfyUI 핵심 환경과 SAM3·DepthAnythingV3의 comfy-env worker를 검증하는 P0 후보입니다. 미국 H100·RTX PRO 6000에서 SAM3 이미지·영상 분할과 DA3 단일·배치 깊이 추론을 확인했습니다. 나머지 네 노드와 RunPod 운영 환경은 통합 중입니다. CPU 기동·worker IPC·복구 검사를 통과한 후보만 GitHub Actions에서 GHCR의 고유 `candidate-p0-workers-*` 태그로 게시합니다. `latest`와 `stable`은 갱신하지 않습니다.
 
 ```bash
 uv sync --frozen

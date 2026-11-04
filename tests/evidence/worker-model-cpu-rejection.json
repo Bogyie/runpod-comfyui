@@ -1,0 +1,7 @@
+{
+  "exit_code": 1,
+  "status": "failed",
+  "cuda_required": true,
+  "model_download_started": false,
+  "scope": "CPU rejection of standalone GPU model verifier; no positive GPU execution"
+}

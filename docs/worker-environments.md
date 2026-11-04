@@ -1,6 +1,6 @@
 # comfy-env worker 환경
 
-현재 구현은 SAM3와 DepthAnythingV3의 P0 후보다. 나머지 네 노드, 실제 분할·깊이 모델 추론, GPU worker 검증과 운영 계정 보호는 아직 남아 있다.
+현재 구현은 SAM3와 DepthAnythingV3의 P0 후보다. H100·RTX PRO 6000에서 실제 분할·깊이 모델 추론과 GPU worker 연결을 확인했다. 나머지 네 노드와 운영 계정 보호는 아직 남아 있다.
 
 ## 실행과 설치를 분리한다
 
@@ -58,3 +58,15 @@ uv run python tools/rebuild/probe_workers.py
 - VHS: 영상·오디오 스트리밍 route, 전역 latent preview hook, host prompt queue를 다시 넣는 batch 동작이 있다. 열려 있는 입력 generator를 배치 상태에 보존하므로 일반 텐서만 전달하는 흐름과 다르다.
 
 실제 comfy-env SubprocessWorker에 일반 dict와 generator를 보낸 [IPC 가능성 실험](evidence/comfy-env-generator-capability.json)에서 전자는 정상 반환되고 후자는 `Object of type generator is not JSON serializable`로 거부됐다. 이는 generator 경계에 대한 증거이며 VHS 워크플로 전체의 실패 판정은 아니다. 배치 기능을 없애거나 통째로 격리됐다고 주장하는 대신, 상태 소유 위치와 host 연동을 명시한 뒤 실제 영상·배치 그래프로 검증한다.
+
+## 실제 GPU 모델 검사
+
+GHCR의 `8125a0f4…f9c0c3d` 후보를 미국 H100(US-GA-2)과 RTX PRO 6000 Blackwell(US-NC-2)에서 실행했다. [H100 결과](evidence/native-h100-models.json)와 [Blackwell 결과](evidence/native-blackwell-models.json)에 CUDA 텐서 왕복, BF16 SDPA와 CPU 기준값 비교, worker별 prefix/PID, 실제 PyTorch attention 선택과 종료 결과를 기록했다. 이어서 고정한 공개 weight의 전체 SHA256·크기를 확인하고 다음 ComfyUI API 그래프를 통과했다.
+
+- DA3 small BF16/SDPA: 단일 이미지와 3프레임 배치 깊이 출력.
+- SAM3 BF16: 점 프롬프트 이미지 분할과 3프레임 순방향 영상 추적.
+- 출력의 batch/channel 형태, 유한한 값, 비어 있지 않은 결과 확인.
+
+입력은 256×256 합성 이미지다. 정확도·장시간 영상·성능 벤치마크나 6종 노드 전체 인증으로 해석하지 않는다. host의 할당 메모리 수치는 기록하지만 zero-copy나 GPU 전체 메모리 회수를 보장하는 시험은 아니다. 모델·관찰 노드는 일회용 Pod에만 추가했고 SAM3/DA3 소스·고정 패키지는 변경하지 않았다.
+
+`tools/rebuild/verify_worker_gpu.py`는 CUDA 연결 검사, `verify_worker_models.py`는 실제 모델 그래프 검사다. 둘을 같은 디렉터리에 넣고 일회용 후보 컨테이너에서 `GATE_IMAGE_DIGEST=sha256:… GATE_EXPECTED_CC=9.0 python verify_worker_models.py`로 실행한다(Blackwell은 `12.0`). 모델 다운로드와 테스트 파일을 생성하므로 사용 중인 Pod에서 실행하지 않는다. CPU에서는 실패하며 성공 결과를 만들지 않는다. 당시 RunPod payload의 [정확한 suite 소스와 hash](evidence/native-worker-suite-source.json)도 보존했다. 독립 실행 스크립트는 같은 그래프를 사용하며, 인접한 CUDA 검사 파일을 읽고 결과 후 종료하도록 정리했다.

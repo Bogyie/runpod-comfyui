@@ -1,0 +1,344 @@
+{
+  "kind": "sam3-da3-model-gpu-gate",
+  "image_digest": "sha256:8125a0f42366db8c18644a3c55234f2db3feb8d99b3de250802b4b17ff9c0c3d",
+  "expected_cc": "12.0",
+  "checks": {
+    "da3_single": {
+      "seconds": 9.021530534839258,
+      "stats": {
+        "label": "da3-depth",
+        "shape": [
+          1,
+          256,
+          256,
+          3
+        ],
+        "dtype": "torch.float32",
+        "device": "cpu",
+        "min": 0,
+        "max": 1,
+        "mean": 0.5876324772834778
+      },
+      "history_status": {
+        "status_str": "success",
+        "completed": true,
+        "messages": [
+          [
+            "execution_start",
+            {
+              "prompt_id": "2f3b9874-914e-426f-a269-b83e0e07e89a",
+              "timestamp": 1793769035336
+            }
+          ],
+          [
+            "execution_cached",
+            {
+              "nodes": [],
+              "prompt_id": "2f3b9874-914e-426f-a269-b83e0e07e89a",
+              "timestamp": 1793769035338
+            }
+          ],
+          [
+            "execution_success",
+            {
+              "prompt_id": "2f3b9874-914e-426f-a269-b83e0e07e89a",
+              "timestamp": 1793769043787
+            }
+          ]
+        ]
+      }
+    },
+    "sam3_image": {
+      "seconds": 10.06506070191972,
+      "stats": {
+        "label": "sam3-mask",
+        "shape": [
+          1,
+          256,
+          256,
+          3
+        ],
+        "dtype": "torch.float32",
+        "device": "cpu",
+        "min": 0,
+        "max": 1,
+        "mean": 0.130523681640625
+      },
+      "history_status": {
+        "status_str": "success",
+        "completed": true,
+        "messages": [
+          [
+            "execution_start",
+            {
+              "prompt_id": "11c83889-c79c-4ab0-912b-e7a8a6228d51",
+              "timestamp": 1793769044357
+            }
+          ],
+          [
+            "execution_cached",
+            {
+              "nodes": [
+                "1"
+              ],
+              "prompt_id": "11c83889-c79c-4ab0-912b-e7a8a6228d51",
+              "timestamp": 1793769044359
+            }
+          ],
+          [
+            "execution_success",
+            {
+              "prompt_id": "11c83889-c79c-4ab0-912b-e7a8a6228d51",
+              "timestamp": 1793769054084
+            }
+          ]
+        ]
+      }
+    },
+    "da3_batch": {
+      "seconds": 1.0033885529264808,
+      "stats": {
+        "label": "da3-batch",
+        "shape": [
+          3,
+          256,
+          256,
+          3
+        ],
+        "dtype": "torch.float32",
+        "device": "cpu",
+        "min": 0,
+        "max": 1,
+        "mean": 0.5027679800987244
+      },
+      "history_status": {
+        "status_str": "success",
+        "completed": true,
+        "messages": [
+          [
+            "execution_start",
+            {
+              "prompt_id": "057cced4-1771-4428-8790-590bcc06b7f7",
+              "timestamp": 1793769054422
+            }
+          ],
+          [
+            "execution_cached",
+            {
+              "nodes": [
+                "10",
+                "2"
+              ],
+              "prompt_id": "057cced4-1771-4428-8790-590bcc06b7f7",
+              "timestamp": 1793769054423
+            }
+          ],
+          [
+            "execution_success",
+            {
+              "prompt_id": "057cced4-1771-4428-8790-590bcc06b7f7",
+              "timestamp": 1793769054587
+            }
+          ]
+        ]
+      }
+    },
+    "sam3_video": {
+      "seconds": 2.005537021905184,
+      "stats": {
+        "label": "sam3-video",
+        "shape": [
+          3,
+          256,
+          256,
+          3
+        ],
+        "dtype": "torch.float32",
+        "device": "cpu",
+        "min": 0,
+        "max": 1,
+        "mean": 0.1317647248506546
+      },
+      "history_status": {
+        "status_str": "success",
+        "completed": true,
+        "messages": [
+          [
+            "execution_start",
+            {
+              "prompt_id": "f46d5254-3f92-42ad-95e2-930e08cb2840",
+              "timestamp": 1793769055426
+            }
+          ],
+          [
+            "execution_cached",
+            {
+              "nodes": [
+                "10",
+                "11",
+                "12",
+                "13",
+                "14",
+                "2",
+                "3",
+                "4"
+              ],
+              "prompt_id": "f46d5254-3f92-42ad-95e2-930e08cb2840",
+              "timestamp": 1793769055428
+            }
+          ],
+          [
+            "execution_success",
+            {
+              "prompt_id": "f46d5254-3f92-42ad-95e2-930e08cb2840",
+              "timestamp": 1793769056907
+            }
+          ]
+        ]
+      }
+    }
+  },
+  "bridge": {
+    "compute_capability": "12.0",
+    "cuda": "12.8",
+    "gpu": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+    "image_digest": "sha256:8125a0f42366db8c18644a3c55234f2db3feb8d99b3de250802b4b17ff9c0c3d",
+    "kind": "native-worker-cuda-bridge-gate",
+    "scope": "CUDA tensor values/device, BF16 SDPA, worker backend and shutdown only; not model inference or a zero-copy/total-VRAM guarantee",
+    "workers": {
+      "depthanythingv3-nodes": {
+        "attention_function": "attention_pytorch",
+        "bf16_sdpa_vs_cpu": "passed",
+        "compute_capability": [
+          12,
+          0
+        ],
+        "cuda": "12.8",
+        "cuda_tensor_roundtrip": "passed",
+        "host_allocated_after_shutdown_bytes": 100864,
+        "host_allocated_before_bytes": 50688,
+        "host_pid": 58,
+        "pid": 192,
+        "prefix": "/opt/workers/depthanythingv3-nodes",
+        "pytorch_policy": true,
+        "shutdown": "passed",
+        "torch": "2.10.0+cu128"
+      },
+      "sam3-nodes": {
+        "attention_function": "attention_pytorch",
+        "bf16_sdpa_vs_cpu": "passed",
+        "compute_capability": [
+          12,
+          0
+        ],
+        "cuda": "12.8",
+        "cuda_tensor_roundtrip": "passed",
+        "host_allocated_after_shutdown_bytes": 50688,
+        "host_allocated_before_bytes": 0,
+        "host_pid": 58,
+        "pid": 188,
+        "prefix": "/opt/workers/sam3-nodes",
+        "pytorch_policy": true,
+        "shutdown": "passed",
+        "torch": "2.10.0+cu128"
+      }
+    }
+  },
+  "models": [
+    {
+      "repo": "depth-anything/DA3-SMALL",
+      "revision": "e08cab65ca0ec38e7826075418411ab90cab4da3",
+      "file": "model.safetensors",
+      "target": "depthanything3/da3_small.safetensors",
+      "sha256": "364492e38a3a06d221ac75da7f6621ada3f2361cd24fde11ba79091e9f40efcf",
+      "size": 137248940
+    },
+    {
+      "repo": "apozz/sam3-safetensors",
+      "revision": "e88da2ed02aded4006f4711ee6a9c75d5aa38d0c",
+      "file": "sam3.safetensors",
+      "target": "sam3/sam3.safetensors",
+      "sha256": "127037a7a11169c63a210b8e3e9caad24a66abdd65d3a78bbc3a7d8577d57026",
+      "size": 3449860632
+    }
+  ],
+  "system_stats": {
+    "system": {
+      "os": "linux",
+      "ram_total": 187999997952,
+      "ram_free": 186328719360,
+      "comfyui_version": "0.44.0",
+      "required_frontend_version": "1.57.6",
+      "installed_templates_version": "0.11.101",
+      "required_templates_version": "0.11.101",
+      "comfy_package_versions": [
+        {
+          "name": "comfyui-frontend-package",
+          "installed": "1.57.6",
+          "required": "1.57.6"
+        },
+        {
+          "name": "comfyui-workflow-templates",
+          "installed": "0.11.101",
+          "required": "0.11.101"
+        },
+        {
+          "name": "comfyui-embedded-docs",
+          "installed": "0.5.16",
+          "required": "0.5.16"
+        },
+        {
+          "name": "comfy-aimdo",
+          "installed": "0.6.0",
+          "required": "0.6.0"
+        },
+        {
+          "name": "comfy-kitchen",
+          "installed": "0.2.40",
+          "required": "0.2.40"
+        }
+      ],
+      "python_version": "3.11.18 (main, Oct 28 2026, 02:05:49) [GCC 12.2.0]",
+      "pytorch_version": "2.10.0+cu128",
+      "embedded_python": false,
+      "deploy_environment": "local-git",
+      "argv": [
+        "main.py",
+        "--use-pytorch-cross-attention",
+        "--listen",
+        "0.0.0.0",
+        "--port",
+        "8188"
+      ]
+    },
+    "devices": [
+      {
+        "name": "cuda:0 NVIDIA RTX PRO 6000 Blackwell Server Edition : cudaMallocAsync",
+        "type": "cuda",
+        "index": 0,
+        "vram_total": 101975851008,
+        "vram_free": 101390548992,
+        "torch_vram_total": 0,
+        "torch_vram_free": 0
+      }
+    ]
+  },
+  "status": "passed",
+  "scope": "Native worker GPU bridge plus actual SAM3 image/video and DA3 single/batch inference on synthetic images; no accuracy benchmark or full six-node certification",
+  "pod": {
+    "id": "0rh4ub6obpaixv",
+    "name": "codex-native-blackwell-us-8125a0f4",
+    "dataCenterId": "US-NC-2",
+    "createdAt": "2026-11-04T05:08:04.016Z",
+    "hourly_usd": 2.49
+  },
+  "suite_identity": {
+    "suite_sha256": "be8ea44be74fdf2797328926fff7cbefd82b8ea73d49b3dc005ce8612d42e943",
+    "bridge_sha256": "62b4ae51de196a51742bd89317cba3bf850271f9f5c660e4e86f72b95dd5bc96"
+  },
+  "termination": {
+    "confirmed_absent": true,
+    "checked_at": "2026-11-04 05:11:17 UTC"
+  },
+  "instrumentation": "Ephemeral tensor-statistics observer node and synthetic images; frozen SAM3/DA3 source and package environments were not changed"
+}
