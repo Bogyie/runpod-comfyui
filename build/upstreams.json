@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "sources": {
+    "comfyui": {"repository": "Comfy-Org/ComfyUI", "ref": "latest-release", "role": "application"},
+    "comfy-env": {"repository": "PozzettiAndrea/comfy-env", "ref": "main", "role": "isolation-runtime"},
+    "manager": {"repository": "Comfy-Org/ComfyUI-Manager", "ref": "main", "role": "required-node"},
+    "kjnodes": {"repository": "kijai/ComfyUI-KJNodes", "ref": "main", "role": "required-node"},
+    "itools": {"repository": "MohammadAboulEla/ComfyUI-iTools", "ref": "default-branch", "role": "required-node"},
+    "sam3": {"repository": "PozzettiAndrea/ComfyUI-SAM3", "ref": "main", "role": "required-node"},
+    "video-helper-suite": {"repository": "Kosinkadink/ComfyUI-VideoHelperSuite", "ref": "main", "role": "required-node"},
+    "depth-anything-v3": {"repository": "PozzettiAndrea/ComfyUI-DepthAnythingV3", "ref": "main", "role": "required-node"},
+    "multiband": {"repository": "PozzettiAndrea/ComfyUI-Multiband", "ref": "main", "role": "transitive-node"},
+    "geometry-pack": {"repository": "PozzettiAndrea/ComfyUI-GeometryPack", "ref": "main", "role": "transitive-node"}
+  }
+}

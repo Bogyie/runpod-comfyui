@@ -1,0 +1,41 @@
+# syntax=docker/dockerfile:1.7
+# Experimental P0 image. No registry push/stable tag; not a RunPod production image.
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE} AS gpu-base
+
+ARG UV_VERSION
+ARG TORCH_BACKEND
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    UV_LINK_MODE=copy \
+    NVIDIA_VISIBLE_DEVICES=all \
+    NVIDIA_DRIVER_CAPABILITIES=compute,utility \
+    PATH=/opt/runtime/venv/bin:$PATH
+
+RUN python -m pip install --no-cache-dir "uv==${UV_VERSION}" && \
+    uv venv --python /usr/local/bin/python /opt/runtime/venv
+COPY gpu.txt /opt/locks/gpu.txt
+RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv \
+    uv pip install --python /opt/runtime/venv/bin/python \
+      --require-hashes --only-binary=:all: --torch-backend "${TORCH_BACKEND}" \
+      --requirement /opt/locks/gpu.txt && \
+    python -c 'import torch, torchvision, torchaudio, xformers; assert torch.version.cuda == "12.8"; print(torch.__version__, torch.version.cuda)'
+
+FROM gpu-base AS host
+ARG TORCH_BACKEND
+ENV COMFYCTL_REQUIRE_ISOLATION=1
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ffmpeg git libgl1 libglib2.0-0 && rm -rf /var/lib/apt/lists/*
+COPY host.txt /opt/locks/host.txt
+RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv \
+    uv pip install --python /opt/runtime/venv/bin/python \
+      --require-hashes --only-binary=:all: --torch-backend "${TORCH_BACKEND}" \
+      --requirement /opt/locks/host.txt && \
+    uv pip check --python /opt/runtime/venv/bin/python
+COPY apply_comfy_env_patch.py /opt/probe/apply_comfy_env_patch.py
+RUN python -c 'import importlib.util, pathlib, subprocess, sys; root = pathlib.Path(importlib.util.find_spec("comfy_env").origin).parent; subprocess.run([sys.executable, "/opt/probe/apply_comfy_env_patch.py", str(root)], check=True)'
+COPY ComfyUI/ /opt/probe/ComfyUI/
+WORKDIR /opt/probe/ComfyUI
+# P0 core CPU startup only: custom-node and GPU gates are intentionally separate.
+CMD ["python", "main.py", "--cpu", "--use-pytorch-cross-attention", "--disable-all-custom-nodes", "--listen", "0.0.0.0", "--port", "8188"]

@@ -1,0 +1,42 @@
+schema_version: 1
+status: experimental-p0
+platform: linux/amd64
+python: "3.11"
+base_image: python:3.11-slim-bookworm@sha256:94a8fee35252d06ab75856f15f12c7bae67b10e8a6da93c7fded82b2610926cd
+resolver:
+  uv: "0.10.8"
+  python_platform: x86_64-manylinux_2_36
+gpu:
+  cuda: "12.8"
+  torch_backend: cu128
+  torch: "2.10.0"
+  torchvision: "0.25.0"
+  torchaudio: "2.10.0"
+  xformers: "0.0.35"
+  attention_default: pytorch
+  targets:
+    - name: RTX PRO 6000 Blackwell
+      compute_capability: "12.0"
+    - name: H100
+      compute_capability: "9.0"
+isolation:
+  package: comfy-env
+  version: "0.3.89"
+  workspace_variable: COMFY_ENV_ROOT
+  policy: prefer-worker-fail-closed
+  gpu_verified: false
+host_requirements_sources:
+  - comfyui
+  - manager
+  - sam3
+  - depth-anything-v3
+required_nodes:
+  - manager
+  - kjnodes
+  - itools
+  - sam3
+  - video-helper-suite
+  - depth-anything-v3
+transitive_nodes:
+  - multiband
+  - geometry-pack

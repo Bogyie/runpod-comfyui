@@ -1,0 +1,449 @@
+{
+  "gpu_verified": false,
+  "kind": "static-source-audit",
+  "missing_node_sources": [],
+  "schema_version": 1,
+  "sources": {
+    "comfy-env": {
+      "commit": "ff8650a46d295ccb5de987c74ad24cdb99d89e50",
+      "execution_verified": false,
+      "install_hooks": [],
+      "isolation_evidence": "adapter-investigation-required",
+      "node_dependencies": {},
+      "project_dependencies": [
+        "tomli>=2.0.0",
+        "tomli-w>=1.0.0",
+        "uv>=0.4.0",
+        "pip>=21.0",
+        "numpy",
+        "pyyaml>=6.0",
+        "pre-commit"
+      ],
+      "repository": "PozzettiAndrea/comfy-env",
+      "requirements": [],
+      "requires_python": ">=3.10",
+      "role": "isolation-runtime",
+      "version": "0.4.46",
+      "worker_configs": {}
+    },
+    "comfyui": {
+      "commit": "2c75dc1b379a59e0880619d029607af5169a62ef",
+      "execution_verified": false,
+      "install_hooks": [],
+      "isolation_evidence": "adapter-investigation-required",
+      "node_dependencies": {},
+      "project_dependencies": [],
+      "repository": "Comfy-Org/ComfyUI",
+      "requirements": [
+        "comfyui-frontend-package==1.57.6",
+        "comfyui-workflow-templates==0.11.101",
+        "comfyui-embedded-docs==0.5.16",
+        "torch",
+        "torchsde",
+        "torchvision",
+        "numpy>=1.25.0",
+        "einops",
+        "transformers>=4.50.3",
+        "tokenizers>=0.13.3",
+        "sentencepiece",
+        "safetensors>=0.4.2",
+        "aiohttp>=3.11.8",
+        "yarl>=1.18.0",
+        "pyyaml",
+        "Pillow>=10.1.0",
+        "scipy",
+        "tqdm",
+        "psutil",
+        "alembic",
+        "SQLAlchemy>=2.0.0",
+        "filelock",
+        "av>=17.0.0",
+        "comfy-aimdo==0.6.0",
+        "comfy-kitchen==0.2.40",
+        "requests",
+        "simpleeval>=1.0.0",
+        "blake3",
+        "",
+        "#non essential dependencies:",
+        "kornia>=0.7.1",
+        "spandrel",
+        "pydantic~=2.0",
+        "pydantic-settings~=2.0",
+        "PyOpenGL>=3.1.8",
+        "comfy-angle"
+      ],
+      "requires_python": ">=3.10",
+      "role": "application",
+      "version": "0.44.0",
+      "worker_configs": {}
+    },
+    "depth-anything-v3": {
+      "commit": "20ef6c8ccf8d57a0ad6f6fa7031739eb8489f2a4",
+      "execution_verified": false,
+      "install_hooks": [
+        "install.py",
+        "prestartup_script.py"
+      ],
+      "isolation_evidence": "upstream-configured-not-execution-verified",
+      "node_dependencies": {
+        "ComfyUI-GeometryPack": "PozzettiAndrea/ComfyUI-GeometryPack",
+        "ComfyUI-KJNodes": "kijai/ComfyUI-KJNodes",
+        "ComfyUI-VideoHelperSuite": "Kosinkadink/ComfyUI-VideoHelperSuite"
+      },
+      "project_dependencies": [],
+      "repository": "PozzettiAndrea/ComfyUI-DepthAnythingV3",
+      "requirements": [
+        "comfy-env==0.3.89",
+        "comfy-3d-viewers==0.2.44"
+      ],
+      "requires_python": null,
+      "role": "required-node",
+      "version": "0.1.19",
+      "worker_configs": {
+        "nodes/comfy-env.toml": {
+          "cuda": {
+            "packages": [
+              "flash_attn",
+              "sageattention"
+            ]
+          },
+          "dependencies": {
+            "av": "*",
+            "c-compiler": "*"
+          },
+          "pypi-dependencies": {
+            "accelerate": ">=0.25.0",
+            "addict": "*",
+            "comfy-aimdo": "*",
+            "comfy-kitchen": "*",
+            "e3nn": ">=0.5.0",
+            "einops": ">=0.7.0,<1.0.0",
+            "huggingface_hub": "*",
+            "omegaconf": ">=2.3.0,<3.0.0",
+            "plyfile": ">=1.0.0",
+            "safetensors": ">=0.4.0,<1.0.0",
+            "transformers": "*",
+            "trimesh": "*"
+          }
+        }
+      }
+    },
+    "geometry-pack": {
+      "commit": "1cbd14431bc88df27e5368f3e375b6bafd09006e",
+      "execution_verified": false,
+      "install_hooks": [
+        "install.py",
+        "prestartup_script.py"
+      ],
+      "isolation_evidence": "upstream-configured-not-execution-verified",
+      "node_dependencies": {},
+      "project_dependencies": [],
+      "repository": "PozzettiAndrea/ComfyUI-GeometryPack",
+      "requirements": [
+        "comfy-env==0.3.89",
+        "comfy-3d-viewers==0.2.44",
+        "trimesh[easy]>=4.0.0"
+      ],
+      "requires_python": null,
+      "role": "transitive-node",
+      "version": "0.2.19",
+      "worker_configs": {
+        "nodes/comfy-env.toml": {
+          "cuda": {
+            "packages": [
+              "cumesh"
+            ]
+          },
+          "dependencies": {
+            "av": "*",
+            "bpy": {
+              "channel": "pozzettiandrea",
+              "version": "*"
+            },
+            "cgal": "*",
+            "einops": "*",
+            "igl": "*",
+            "matplotlib": ">=3.5.0",
+            "pillow": ">=9.0.0",
+            "psutil": "*",
+            "pyopengl": ">=3.1.10",
+            "pyvista": ">=0.43.0",
+            "rtree": "*",
+            "safetensors": "*",
+            "scipy": ">=1.11,<1.17",
+            "tqdm": ">=4.60.0",
+            "trimesh": "*"
+          },
+          "env_vars": {
+            "KMP_DUPLICATE_LIB_OK": "TRUE",
+            "OMP_NUM_THREADS": 1
+          },
+          "pypi-dependencies": {
+            "comfy-aimdo": "*",
+            "comfy-kitchen": "*",
+            "fast-simplification": ">=0.1.5",
+            "point-cloud-utils": ">=0.30.0",
+            "pygeogram-ap": {
+              "index": "https://pozzettiandrea.github.io/pygeogram/simple/",
+              "version": ">=0.1.0"
+            },
+            "pymesh2": {
+              "index": "https://pozzettiandrea.github.io/PyMesh/simple/",
+              "version": ">=0.3"
+            },
+            "pymeshfix": ">=0.17.0",
+            "pynanoinstantmeshes": "*",
+            "pypmp": {
+              "index": "https://pozzettiandrea.github.io/pypmp/simple/",
+              "version": ">=0.1.0"
+            },
+            "pyquadriflow": {
+              "index": "https://pozzettiandrea.github.io/pyQuadriFlow/simple/",
+              "version": ">=0.2.0"
+            },
+            "pyquadwild": {
+              "index": "https://pozzettiandrea.github.io/pyquadwild/simple/",
+              "version": ">=0.1.0"
+            },
+            "requests": ">=2.25.0",
+            "skeletor": ">=1.2.0",
+            "torchgen": "*",
+            "xatlas": ">=0.0.11"
+          },
+          "target": {
+            "linux-64": {
+              "dependencies": {
+                "libglu": "*",
+                "libglvnd": "*",
+                "mesalib": "*",
+                "mmgpy": ">=0.5.2,<0.14",
+                "pymeshlab": "*",
+                "xorg-libsm": "*"
+              },
+              "pypi-dependencies": {
+                "embreex": "*"
+              }
+            },
+            "osx-arm64": {
+              "pypi-dependencies": {
+                "mmgpy": ">=0.5.2,<0.14",
+                "pymeshlab": "*"
+              }
+            },
+            "win-64": {
+              "pypi-dependencies": {
+                "embreex": "*",
+                "msvc-runtime": "*",
+                "pymeshlab": "*"
+              }
+            }
+          },
+          "workspace": {
+            "channels": [
+              "conda-forge",
+              "pozzettiandrea"
+            ]
+          }
+        }
+      }
+    },
+    "itools": {
+      "commit": "a8f2fef227ca5b0cb9321c39ac7b874a906b1a5b",
+      "execution_verified": false,
+      "install_hooks": [],
+      "isolation_evidence": "adapter-investigation-required",
+      "node_dependencies": {},
+      "project_dependencies": [
+        "Pillow",
+        "numpy",
+        "torch",
+        "pyyaml"
+      ],
+      "repository": "MohammadAboulEla/ComfyUI-iTools",
+      "requirements": [],
+      "requires_python": null,
+      "role": "required-node",
+      "version": "0.7.8",
+      "worker_configs": {}
+    },
+    "kjnodes": {
+      "commit": "ab72eda7ffad6280422d71ab7d54d3fb87c0ba18",
+      "execution_verified": false,
+      "install_hooks": [],
+      "isolation_evidence": "adapter-investigation-required",
+      "node_dependencies": {},
+      "project_dependencies": [
+        "pillow>=10.3.0",
+        "color-matcher",
+        "matplotlib"
+      ],
+      "repository": "kijai/ComfyUI-KJNodes",
+      "requirements": [
+        "pillow>=10.3.0",
+        "color-matcher",
+        "matplotlib",
+        "mss",
+        "opencv-python-headless"
+      ],
+      "requires_python": null,
+      "role": "required-node",
+      "version": "1.5.3",
+      "worker_configs": {}
+    },
+    "manager": {
+      "commit": "4c50a2bc8b9e684d8a85930567957470b952bebe",
+      "execution_verified": false,
+      "install_hooks": [
+        "prestartup_script.py"
+      ],
+      "isolation_evidence": "adapter-investigation-required",
+      "node_dependencies": {},
+      "project_dependencies": [
+        "GitPython",
+        "PyGithub",
+        "matrix-nio",
+        "transformers",
+        "huggingface-hub>0.20",
+        "typer",
+        "rich",
+        "typing-extensions",
+        "toml",
+        "uv",
+        "chardet",
+        "packaging",
+        "nh3>=0.3.7"
+      ],
+      "repository": "Comfy-Org/ComfyUI-Manager",
+      "requirements": [
+        "GitPython",
+        "PyGithub",
+        "matrix-nio",
+        "transformers",
+        "huggingface-hub",
+        "typer",
+        "rich",
+        "typing-extensions",
+        "toml",
+        "uv",
+        "chardet",
+        "packaging",
+        "nh3>=0.3.7"
+      ],
+      "requires_python": ">=3.9",
+      "role": "required-node",
+      "version": "3.42",
+      "worker_configs": {}
+    },
+    "multiband": {
+      "commit": "121606fa1f36c11467f205f348aabc1395bd3de4",
+      "execution_verified": false,
+      "install_hooks": [],
+      "isolation_evidence": "adapter-investigation-required",
+      "node_dependencies": {},
+      "project_dependencies": [
+        "numpy>=1.20.0",
+        "torch>=1.9.0",
+        "tifffile>=2023.0.0"
+      ],
+      "repository": "PozzettiAndrea/ComfyUI-Multiband",
+      "requirements": [
+        "# Required",
+        "numpy>=1.20.0",
+        "torch>=1.9.0",
+        "",
+        "# For TIFF support",
+        "tifffile>=2023.0.0",
+        "",
+        "# Optional: For OpenEXR support",
+        "# OpenEXR",
+        "# Imath"
+      ],
+      "requires_python": null,
+      "role": "transitive-node",
+      "version": "0.0.3",
+      "worker_configs": {}
+    },
+    "sam3": {
+      "commit": "de0ff5d2c2ea435d29f800abfa568cffdfb94773",
+      "execution_verified": false,
+      "install_hooks": [
+        "install.py",
+        "prestartup_script.py"
+      ],
+      "isolation_evidence": "upstream-configured-not-execution-verified",
+      "node_dependencies": {
+        "ComfyUI-Multiband": "PozzettiAndrea/ComfyUI-Multiband",
+        "ComfyUI-VideoHelperSuite": "Kosinkadink/ComfyUI-VideoHelperSuite"
+      },
+      "project_dependencies": [],
+      "repository": "PozzettiAndrea/ComfyUI-SAM3",
+      "requirements": [
+        "comfy-env==0.3.89",
+        "comfy-3d-viewers==0.2.44"
+      ],
+      "requires_python": null,
+      "role": "required-node",
+      "version": "0.1.21",
+      "worker_configs": {
+        "nodes/comfy-env.toml": {
+          "cuda": {
+            "packages": [
+              "cc_torch",
+              "torch_generic_nms",
+              "flash-attn"
+            ]
+          },
+          "dependencies": {
+            "av": "*",
+            "ffmpeg": "*"
+          },
+          "env_vars": {
+            "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+          },
+          "pypi-dependencies": {
+            "comfy-aimdo": "*",
+            "comfy-kitchen": "*",
+            "einops": "*",
+            "ftfy": "*",
+            "hf_xet": "*",
+            "huggingface_hub": "*",
+            "iopath": "*",
+            "numpy": "*",
+            "opencv-python": "*",
+            "pillow": "*",
+            "psutil": "*",
+            "pycocotools": "*",
+            "regex": "*",
+            "requests": "*",
+            "safetensors": ">=0.4.0",
+            "scikit-image": "*",
+            "timm": "*",
+            "tqdm": "*",
+            "transformers": "*",
+            "typing_extensions": "*"
+          }
+        }
+      }
+    },
+    "video-helper-suite": {
+      "commit": "4d907bee61e92c2e65af3bd6383a4e4d356126d1",
+      "execution_verified": false,
+      "install_hooks": [],
+      "isolation_evidence": "adapter-investigation-required",
+      "node_dependencies": {},
+      "project_dependencies": [
+        "opencv-python",
+        "imageio-ffmpeg"
+      ],
+      "repository": "Kosinkadink/ComfyUI-VideoHelperSuite",
+      "requirements": [
+        "opencv-python",
+        "imageio-ffmpeg"
+      ],
+      "requires_python": null,
+      "role": "required-node",
+      "version": "1.7.9",
+      "worker_configs": {}
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "kind": "live-public-provider-gates",
+  "receipts": [
+    {
+      "file_id": null,
+      "provider": "huggingface",
+      "revision": "f171d7baecaf37b5da5a3616d8833b9969753535",
+      "sha256": "965f02b6a7e5520fc12f710e4e3b6132f697f1c8f648819553c5ade86752d2de",
+      "size": 520212,
+      "source": "https://huggingface.co/hf-internal-testing/tiny-random-bert/resolve/f171d7baecaf37b5da5a3616d8833b9969753535/model.safetensors",
+      "target": "checkpoints/provider-smoke-bert.safetensors",
+      "version_id": null
+    },
+    {
+      "file_id": 1458454,
+      "provider": "civitai",
+      "revision": null,
+      "sha256": "df7c757437ef3696e76ee5cc18c063681478639132547b6292b0b4d773814ba5",
+      "size": 57420828,
+      "source": "https://civitai.com/api/download/models/1558543",
+      "target": "loras/provider-smoke.safetensors",
+      "version_id": 1558543
+    }
+  ],
+  "resume": {
+    "file_id": 1458454,
+    "partial_bytes": 65536,
+    "requests": [
+      {
+        "content_range": null,
+        "range": null,
+        "status": 200
+      },
+      {
+        "content_range": "bytes 0-65535/57420828",
+        "range": "bytes=0-65535",
+        "status": 206
+      },
+      {
+        "content_range": "bytes 65536-57420827/57420828",
+        "range": "bytes=65536-",
+        "status": 206
+      }
+    ],
+    "sha256": "df7c757437ef3696e76ee5cc18c063681478639132547b6292b0b4d773814ba5",
+    "size": 57420828,
+    "source": "https://civitai.com/api/download/models/1558543"
+  },
+  "scope": "Public files and real Range resume only; private/gated access not certified"
+}

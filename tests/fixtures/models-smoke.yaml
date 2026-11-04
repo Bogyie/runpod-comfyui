@@ -1,0 +1,10 @@
+# Public download fixtures, not ComfyUI workflow models. About 56 MB in total.
+schema_version: 1
+models:
+  - source: https://huggingface.co/hf-internal-testing/tiny-random-bert/resolve/f171d7baecaf37b5da5a3616d8833b9969753535/model.safetensors
+    target: checkpoints/provider-smoke-bert.safetensors
+    sha256: 965f02b6a7e5520fc12f710e4e3b6132f697f1c8f648819553c5ade86752d2de
+  - source: https://civitai.com/models/264290?modelVersionId=1558543
+    file_id: 1458454
+    target: loras/provider-smoke.safetensors
+    sha256: df7c757437ef3696e76ee5cc18c063681478639132547b6292b0b4d773814ba5

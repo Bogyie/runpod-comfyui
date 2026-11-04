@@ -1,0 +1,95 @@
+{
+  "graph": {
+    "1": {
+      "class_type": "EmptyImage",
+      "inputs": {
+        "batch_size": 1,
+        "color": 0,
+        "height": 64,
+        "width": 64
+      }
+    },
+    "2": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "filename_prefix": "host-probe",
+        "images": [
+          "1",
+          0
+        ]
+      }
+    }
+  },
+  "image_id": "sha256:14af147b0ab0a7092436ae4227e84f7b7e82eda2c2fe23c797550f8bb042df3f",
+  "image_lock_hashes": {
+    "gpu.txt": "a7471e51bd75cc8c6dd3470ba72bedb837b3de77f6f96e97f51e1b405e672549",
+    "host.txt": "5654634eaf3cf5abe7f57328c14762e06dcbfcd59135c7fcbc70f70393e63b09"
+  },
+  "kind": "linux-amd64-core-cpu-gate",
+  "output_png_sha256": "9f2b282550943c3df88da03258a86dc4e0561d2f7265be3bc2038cddf9ede9d1",
+  "ready_seconds": 12.435,
+  "scope": "ComfyUI core API and model-free CPU graph only; custom nodes and GPU remain unverified",
+  "system_stats": {
+    "devices": [
+      {
+        "index": null,
+        "name": "cpu",
+        "torch_vram_free": 6895169536,
+        "torch_vram_total": 8321515520,
+        "type": "cpu",
+        "vram_free": 6895169536,
+        "vram_total": 8321515520
+      }
+    ],
+    "system": {
+      "argv": [
+        "main.py",
+        "--cpu",
+        "--use-pytorch-cross-attention",
+        "--disable-all-custom-nodes",
+        "--listen",
+        "0.0.0.0",
+        "--port",
+        "8188"
+      ],
+      "comfy_package_versions": [
+        {
+          "installed": "1.57.6",
+          "name": "comfyui-frontend-package",
+          "required": "1.57.6"
+        },
+        {
+          "installed": "0.11.101",
+          "name": "comfyui-workflow-templates",
+          "required": "0.11.101"
+        },
+        {
+          "installed": "0.5.16",
+          "name": "comfyui-embedded-docs",
+          "required": "0.5.16"
+        },
+        {
+          "installed": "0.6.0",
+          "name": "comfy-aimdo",
+          "required": "0.6.0"
+        },
+        {
+          "installed": "0.2.40",
+          "name": "comfy-kitchen",
+          "required": "0.2.40"
+        }
+      ],
+      "comfyui_version": "0.44.0",
+      "deploy_environment": "local-git",
+      "embedded_python": false,
+      "installed_templates_version": "0.11.101",
+      "os": "linux",
+      "python_version": "3.11.18 (main, Oct 28 2026, 02:05:49) [GCC 12.2.0]",
+      "pytorch_version": "2.10.0+cu128",
+      "ram_free": 6895169536,
+      "ram_total": 8321515520,
+      "required_frontend_version": "1.57.6",
+      "required_templates_version": "0.11.101"
+    }
+  }
+}

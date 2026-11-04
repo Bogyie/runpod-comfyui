@@ -1,0 +1,74 @@
+{
+  "gpu_verified": false,
+  "inputs": {
+    "sources": {
+      "comfy-env": "ff8650a46d295ccb5de987c74ad24cdb99d89e50",
+      "comfyui": "2c75dc1b379a59e0880619d029607af5169a62ef",
+      "depth-anything-v3": "20ef6c8ccf8d57a0ad6f6fa7031739eb8489f2a4",
+      "geometry-pack": "1cbd14431bc88df27e5368f3e375b6bafd09006e",
+      "itools": "a8f2fef227ca5b0cb9321c39ac7b874a906b1a5b",
+      "kjnodes": "ab72eda7ffad6280422d71ab7d54d3fb87c0ba18",
+      "manager": "4c50a2bc8b9e684d8a85930567957470b952bebe",
+      "multiband": "121606fa1f36c11467f205f348aabc1395bd3de4",
+      "sam3": "de0ff5d2c2ea435d29f800abfa568cffdfb94773",
+      "video-helper-suite": "4d907bee61e92c2e65af3bd6383a4e4d356126d1"
+    },
+    "stack": {
+      "base_image": "python:3.11-slim-bookworm@sha256:94a8fee35252d06ab75856f15f12c7bae67b10e8a6da93c7fded82b2610926cd",
+      "gpu": {
+        "attention_default": "pytorch",
+        "cuda": "12.8",
+        "targets": [
+          {
+            "compute_capability": "12.0",
+            "name": "RTX PRO 6000 Blackwell"
+          },
+          {
+            "compute_capability": "9.0",
+            "name": "H100"
+          }
+        ],
+        "torch": "2.10.0",
+        "torch_backend": "cu128",
+        "torchaudio": "2.10.0",
+        "torchvision": "0.25.0",
+        "xformers": "0.0.35"
+      },
+      "host_requirements_sources": [
+        "comfyui",
+        "manager",
+        "sam3",
+        "depth-anything-v3"
+      ],
+      "isolation": {
+        "gpu_verified": false,
+        "package": "comfy-env",
+        "policy": "prefer-worker-fail-closed",
+        "version": "0.3.89",
+        "workspace_variable": "COMFY_ENV_ROOT"
+      },
+      "platform": "linux/amd64",
+      "python": "3.11",
+      "required_nodes": [
+        "manager",
+        "kjnodes",
+        "itools",
+        "sam3",
+        "video-helper-suite",
+        "depth-anything-v3"
+      ],
+      "resolver": {
+        "python_platform": "x86_64-manylinux_2_36",
+        "uv": "0.10.8"
+      },
+      "schema_version": 1,
+      "status": "experimental-p0",
+      "transitive_nodes": [
+        "multiband",
+        "geometry-pack"
+      ]
+    }
+  },
+  "kind": "candidate-input-identity",
+  "sha256": "ebab477d19b09f1db6b9c6892324004321ee0bf60a72d61690038365c67cef50"
+}

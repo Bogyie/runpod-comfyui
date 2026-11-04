@@ -1,0 +1,104 @@
+name: rebuild-image
+
+on:
+  push:
+    branches: ['codex/rebuild-*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rebuild-image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    uses: ./.github/workflows/rebuild-check.yml
+  image:
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Free disposable runner disk
+        run: bash .github/scripts/free-disk-space.sh
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+      - name: Prepare locked build context
+        run: |
+          python -m pip install uv==0.10.8
+          uv sync --frozen
+          uv run --frozen python tools/rebuild/build_probe.py --prepare-only
+          mkdir -p .work/ci-evidence
+      - name: Build identity
+        id: identity
+        run: |
+          uv run --frozen python - <<'PY'
+          import os, yaml
+          from pathlib import Path
+          stack = yaml.safe_load(Path('build/stack.yaml').read_text())
+          repository = os.environ['GITHUB_REPOSITORY'].lower()
+          tag = f"candidate-p0-host-{os.environ['GITHUB_SHA'][:12]}-{os.environ['GITHUB_RUN_ID']}-{os.environ['GITHUB_RUN_ATTEMPT']}"
+          values = {'image': f'ghcr.io/{repository}:{tag}', 'cache': f'ghcr.io/{repository}:cache-rebuild-p0',
+                    'base': stack['base_image'], 'uv': stack['resolver']['uv'], 'backend': stack['gpu']['torch_backend']}
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              for key, value in values.items():
+                  print(f'{key}={value}', file=output)
+          PY
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+        with:
+          buildkitd-config-inline: |
+            [worker.oci]
+              max-parallelism = 2
+      - name: Build candidate with registry cache
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: .work/probe-context
+          file: docker/Dockerfile.probe
+          platforms: linux/amd64
+          target: host
+          load: true
+          push: false
+          provenance: false
+          tags: |
+            runpod-comfyui:probe-host
+            ${{ steps.identity.outputs.image }}
+          build-args: |
+            BASE_IMAGE=${{ steps.identity.outputs.base }}
+            UV_VERSION=${{ steps.identity.outputs.uv }}
+            TORCH_BACKEND=${{ steps.identity.outputs.backend }}
+          cache-from: type=registry,ref=${{ steps.identity.outputs.cache }}
+          cache-to: type=registry,ref=${{ steps.identity.outputs.cache }},mode=max,image-manifest=true,oci-mediatypes=true
+      - name: Test candidate before publication
+        run: |
+          uv run --frozen python tools/rebuild/probe_host.py --output .work/ci-evidence/host-before-push.json
+          uv run --frozen python tools/rebuild/probe_guards.py --output .work/ci-evidence/guards-before-push.json
+      - name: Push and verify immutable registry image
+        env:
+          IMAGE: ${{ steps.identity.outputs.image }}
+        run: |
+          docker push "$IMAGE" | tee .work/ci-evidence/push.log
+          digest=$(docker buildx imagetools inspect "$IMAGE" --format '{{json .Manifest}}' | python -c 'import json,sys; print(json.load(sys.stdin)["digest"])')
+          [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
+          immutable="${IMAGE%:*}@$digest"
+          docker pull "$immutable"
+          uv run --frozen python tools/rebuild/probe_host.py --image "$immutable" --output .work/ci-evidence/host-registry.json
+          uv run --frozen python tools/rebuild/probe_guards.py --image "$immutable" --output .work/ci-evidence/guards-registry.json
+          printf '%s\n' "$immutable" > .work/ci-evidence/image.txt
+          printf 'P0 core candidate: `%s`\n\nImmutable image: `%s`\n\nCPU workflow and isolation guards passed after registry pull. GPU and custom nodes remain unverified.\n' "$IMAGE" "$immutable" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        if: always()
+        with:
+          name: p0-image-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .work/ci-evidence/
+          if-no-files-found: warn

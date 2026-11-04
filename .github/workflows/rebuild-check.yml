@@ -1,0 +1,46 @@
+name: rebuild-check
+
+on:
+  pull_request:
+    paths:
+      - 'build/**'
+      - 'locks/**'
+      - 'tools/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - '.github/workflows/rebuild-check.yml'
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rebuild-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+      - name: Install pinned resolver
+        run: python -m pip install uv==0.10.8
+      - name: Restore development environment from lock
+        run: uv sync --frozen
+      - name: Reproduce source audit
+        run: |
+          uv run --frozen python tools/rebuild/snapshot_upstreams.py
+          uv run --frozen python tools/rebuild/snapshot_artifact.py
+          uv run --frozen python tools/rebuild/audit_upstreams.py
+          uv run --frozen python tools/rebuild/prepare_lock_inputs.py
+          git diff --exit-code -- build/upstream-audit.json build/inputs
+      - name: Unit tests
+        run: uv run --frozen python -m unittest discover -s tests -v
+      - name: Syntax checks
+        run: uv run --frozen python -m compileall -q tools tests

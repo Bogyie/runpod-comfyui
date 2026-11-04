@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ "${GITHUB_ACTIONS:-}" != "true" || "${RUNNER_ENVIRONMENT:-}" != "github-hosted" ]]; then
+  echo "Cleanup is restricted to disposable GitHub-hosted runners" >&2
+  exit 1
+fi
+
 echo "Disk usage before cleanup:"
 df -h /
 

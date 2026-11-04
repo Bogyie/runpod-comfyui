@@ -1,0 +1,13 @@
+.git
+.github
+.DS_Store
+README.md
+storage
+tmp
+*.log
+__pycache__
+*.pyc
+.omc
+.env
+.env.*
+docs
