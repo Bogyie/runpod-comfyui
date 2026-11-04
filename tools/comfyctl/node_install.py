@@ -131,6 +131,9 @@ def stage_node(store, args):
         raise NodeSourceError('Smoke workflow must contain at least one required added node')
     profile = store.fork_code()
     generation = store.generations / profile['id']
+    archive_path = generation / ('source-'+args.name+'.tar.gz')
+    archive_path.write_bytes(data)
+    archive_path.chmod(0o644)
     if updating:
         # The clone is private. Existing code and prefixes remain available to
         # the running process and rollback; no installed venv is overwritten.
@@ -176,7 +179,9 @@ def stage_node(store, args):
     profile['nodes'][args.name] = {'directory': directory, 'enabled': True, 'repository': repository, 'commit': commit,
         'archive_sha256': plan['archive_sha256'], 'source_plan_sha256': plan['plan_sha256'], 'source_plan': plan,
         'install_mode': mode, 'hooks_skipped': plan['hooks'], 'environment_keys': keys,
-        'required_nodes': args.required_node, 'lock_sha256': receipt['lock_sha256']}
+        'required_nodes': args.required_node, 'lock_sha256': receipt['lock_sha256'],
+        'source_archive':str(archive_path),'smoke_workflow':workflow,
+        'smoke_workflow_sha256':hashlib.sha256(json.dumps(workflow,sort_keys=True,separators=(',',':')).encode()).hexdigest()}
     return store.save_candidate(profile), workflow
 
 

@@ -50,7 +50,7 @@ def validate(store, profile, smoke_workflow=None):
                    COMFYCTL_WORKER_MAP_FILE=str(directory / 'workers.json'), COMFYCTL_STORAGE_DIR=str(root), COMFYCTL_VALIDATING='1',
                    COMFYCTL_METADATA_CACHE=str(root / 'cache'), COMFY_ENV_ROOT=str(root / 'cache/workspace'),
                    HOME=str(root / 'home'), XDG_CACHE_HOME=str(root / 'cache'), HF_HOME=str(root / 'cache/hf'),
-                   TORCH_HOME=str(root / 'cache/torch'), TMPDIR=str(root / 'worker-tmp'), COMFYCTL_RUNTIME_ID=profile['runtime_id'])
+                   TORCH_HOME=str(root / 'cache/torch'), TMPDIR=str(root / 'worker-tmp'), COMFYCTL_RUNTIME_ID=store.base['runtime_id'])
         with (directory / 'validation.log').open('w') as log:
             process = subprocess.Popen([profile['host_python'], '-I', '/opt/runtime/control/run_comfy.py', '--cpu',
                                         '--use-pytorch-cross-attention', '--listen', '127.0.0.1', '--port', str(port)],

@@ -53,6 +53,7 @@ def plan(store, record, *, min_age_hours=24, now=None, process_ids=None):
         raise SelectionError('Unfinished transition; generation cleanup refused')
     state = store.state()
     retained = {value for value in [state['desired'], state['last_good'], state['previous_good']] if value}
+    retained.update(store.images.referenced_generations())
     if record.get('generation_id'):
         retained.add(record['generation_id'])
     retained.update(process_references(store.generations, record) if process_ids is None else process_ids)
@@ -82,6 +83,13 @@ def plan(store, record, *, min_age_hours=24, now=None, process_ids=None):
                     if len(parts) != 3 or not ID.fullmatch(parts[0]) or not parts[1].startswith('environment-') or parts[2] != 'venv':
                         raise SelectionError('Unsafe retained worker prefix; cleanup refused')
                     retained.add(parts[0])
+            for node in profile.get('nodes',{}).values():
+                if 'source_archive' in node:
+                    archive=Path(node['source_archive'])
+                    if (archive.parent.parent!=store.generations or not ID.fullmatch(archive.parent.name)
+                            or not archive.name.startswith('source-') or not archive.name.endswith('.tar.gz')):
+                        raise SelectionError('Unsafe retained source archive; cleanup refused')
+                    retained.add(archive.parent.name)
         # An orphan installer can still own an unfinished generation without a
         # generation.json. Retain its entire final prefix until the process ends.
         elif identifier not in (process_ids if process_ids is not None else set()):

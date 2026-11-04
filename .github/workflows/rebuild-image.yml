@@ -136,6 +136,11 @@ jobs:
           RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
         run: |
           uv run --frozen python tools/rebuild/probe_metadata.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/dynamic-metadata-preview.json
+      - name: Verify compatible image adoption and image history recovery
+        env:
+          RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
+        run: |
+          uv run --frozen python tools/rebuild/probe_image_compatibility.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/image-compatibility-preview.json
       - name: Verify Manager catalog and guarded changes
         env:
           RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime

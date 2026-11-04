@@ -1,6 +1,6 @@
-# 기본 노드의 세대 관리
+# 노드와 실행 환경의 세대 관리
 
-현재는 **이미 검증된 이미지 환경을 그대로 사용하는 노드 상태 변경**을 지원한다. 새 노드 설치·의존성 변경은 후속 작업이다. `--defer`는 다음 컨테이너 재기동에 적용하고, `--restart`는 기존 큐의 작업이 끝나면 host와 worker 프로세스를 교체한다.
+기본 노드의 활성 상태 변경과 추가 노드의 격리 설치·업데이트를 세대 단위로 관리한다. 추가 노드는 새 절대 경로의 private worker 환경에서 설치하고 실제 후보 ComfyUI와 smoke workflow를 통과해야 선택할 수 있다. `--defer`는 다음 컨테이너 재기동에 적용하고, `--restart`는 기존 큐의 작업이 끝나면 host와 worker 프로세스를 교체한다.
 
 ## 명령
 
@@ -20,7 +20,7 @@ comfyctl node disable itools --restart
 comfyctl env rollback --restart
 ```
 
-현재 관리 식별자는 `sam3`, `depth-anything-v3`, `itools`, `kjnodes`, `video-helper-suite`다. 고정 plugin 디렉터리 이름으로도 지정할 수 있다. Manager와 새 노드의 관리 항목은 실제 통합 단계에서 추가한다.
+기본 관리 식별자는 `sam3`, `depth-anything-v3`, `itools`, `kjnodes`, `video-helper-suite`, `manager`다. 고정 plugin 디렉터리 이름과 추가 설치 시 지정한 이름으로도 관리할 수 있다. Manager UI의 카탈로그 조회는 지원하지만 설치·업데이트는 root의 `comfyctl`을 사용한다.
 
 - disable/enable은 전체 ComfyUI 코드·노드 소스를 새 최종 경로로 복사하고 `.disabled` 상태를 기록한다. 검사 전에는 다음 부팅 선택도 바꾸지 않는다.
 - 후보는 서비스 UID 1000으로 별도 포트·별도 데이터 디렉터리에서 실제 ComfyUI를 기동한다. 남은 필수 노드 등록과 EmptyImage→SaveImage를 확인한다. CPU catalog/core 검사이며 GPU 모델 검증으로 표시하지 않는다.
@@ -36,7 +36,13 @@ comfyctl env rollback --restart
 
 root bootstrap은 `/workspace` 최상위와 `runtime/control`, `runtime/generations`를 root 소유 0755로 준비한다. 서비스가 관리 디렉터리를 rename하여 바꿔치기하지 못하게 하기 위한 경계다. storage/state/cache의 서비스 경로와 기존 사용자 파일을 재귀 chown하지 않는다. 기존 volume의 소유권/모드 정책과 실제 network volume 동작은 배포 전에 확인해야 한다.
 
-선택한 코드의 hash·노드 정의·worker 경로표·이미지 identity가 다르면 부팅 전에 거부한다. 다른 이미지의 선택을 자동 재사용하거나 노드를 자동으로 되살리지 않는다. 명시적 reset으로 현재 이미지 기본값을 선택할 수 있으며 이전/손상된 상태 기록은 별도 archive에 보존한다. 현재는 CLI/runtime 코드 변경도 fingerprint에 포함해 엄격히 구분한다. 업데이트 때 노드 상태를 보존하는 compatibility 판정·rebase는 P4의 추가 작업이다.
+선택한 코드의 hash·노드 정의·worker 경로표가 다르면 부팅 전에 거부한다. 새 compatibility manifest에서는 전체 소스 fingerprint인 `runtime_id`와 실행 호환성인 `compatibility_id`를 구분한다. CLI만 변경되고 실행 계약이 같으면 부팅 때 selection의 runtime ID만 갱신하고 기존 세대·활성 상태·private prefix를 유지한다. 세대의 코드·환경 hash 검사는 생략하지 않는다.
+
+실행 계약에는 base/Python/GPU lock/SDK 패치 정책의 ABI, host·worker lock, ComfyUI·기본 노드·Manager 어댑터·런타임 API 소스가 포함된다. 이 중 하나라도 달라지면 기존 선택을 자동 적용하지 않는다. 서비스는 `recovery-required`로 대기하며 명시적 reset 또는 이전 이미지로 복귀해야 한다. ComfyUI 버전을 바꾼 뒤 추가 노드를 옮기는 명시적 `env rebase`는 아직 구현하지 않았다.
+
+이미지 그룹별 baseline과 selection은 `control/images/<compatibility_id>/`에 보존한다. 다른 그룹에서 reset하더라도 이전 이미지로 재배포하면 그 그룹의 선택을 복원한다. GC는 비활성 이미지 그룹의 선택과 그 세대가 참조하는 private 환경·원본 source archive도 보존한다. 이미지 그룹의 자동 만료는 없으므로 과거 그룹이 많으면 디스크 보존량이 늘어난다. 미완료 live 전환이 다른 그룹에 속하면 먼저 이전 이미지에서 복구해야 한다.
+
+추가 노드는 설치 당시 원본 archive와 실제 smoke workflow 및 hash도 보관한다. 향후 재구성의 입력이며, 이를 저장한 것만으로 이미지 간 rebase를 지원하는 것은 아니다. compatibility manifest가 없던 이전 preview의 상태는 자동 호환으로 간주하지 않는다. 명시적 reset은 사용자 모델·입출력·워크플로를 보존하고 현재 이미지 기본 노드를 선택하며 이전 선택은 archive에 남긴다.
 
 검사 프로세스의 OS 임시 경로와 ComfyUI의 정리 대상 temp를 분리한다. Linux comfy-env subprocess에는 외부 `PYTHONPATH`, `PYTHONHOME`, `PYTHONSTARTUP`, `PYTHONUSERBASE`를 전달하지 않는다. host와 관리 bootstrap도 isolated Python 모드를 사용한다. 소스 경로는 검증된 명시적 경로로 전달한다.
 

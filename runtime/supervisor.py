@@ -107,7 +107,7 @@ def main():
         except Exception as exc:
             status('recovery-required', error=str(exc), failed_generation=_desired_id())
             child = None
-            if not explicit_reload:
+            if not explicit_reload and os.environ.get('COMFYCTL_IMAGE_RECOVERY')!='1':
                 raise
         if child is None:
             while not flags['stop'] and not flags['reload']:

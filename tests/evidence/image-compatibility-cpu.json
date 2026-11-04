@@ -1,0 +1,15 @@
+{
+  "compatible_runtime_id": "cadf68b501e13caefeb718735f0fd6a409bf8d9364039354bd47b36079d0064d",
+  "data_and_packages_unchanged": true,
+  "foreign_gc_retained": [
+    "4322d4787f7e4aff91a46a92bdb74dcf",
+    "fe86ede68c5142419d2d010bdccaf67b"
+  ],
+  "foreign_recovery": true,
+  "image_id": "sha256:bbb75d04dab810519c4a8df7fa23c82d2b89b7f673b7be526d5080d4ba9e4430",
+  "kind": "image-compatibility-cpu-gate",
+  "new_generation": "fe86ede68c5142419d2d010bdccaf67b",
+  "preserved_generation": "4322d4787f7e4aff91a46a92bdb74dcf",
+  "rollback_generation": "4322d4787f7e4aff91a46a92bdb74dcf",
+  "scope": "Real CLI-only image update, persistent selections and rollback; synthetic foreign contract refusal. No application rebase, GPU or network-volume certification."
+}

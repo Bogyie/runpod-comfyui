@@ -10,7 +10,8 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools/rebuild'))
-from build_probe import prepare_worker_install_inputs
+from build_probe import prepare_worker_install_inputs, execution_contract
+import yaml
 
 
 def hashes(path):
@@ -54,6 +55,25 @@ class WorkerBuildInputsTests(unittest.TestCase):
         del self.definitions['workers']['itools']
         with self.assertRaisesRegex(ValueError, 'explicit Docker stages'):
             prepare_worker_install_inputs(self.context, self.definitions)
+
+    def test_execution_contract_distinguishes_source_dependency_and_abi_updates(self):
+        stack=yaml.safe_load((ROOT/'build/stack.yaml').read_text())
+        sources=json.loads((ROOT/'locks/upstreams.lock.json').read_text())['sources']
+        original=execution_contract(stack,sources,self.definitions,'host-lock')
+        source=copy.deepcopy(sources)
+        source['comfyui']['archive_sha256']='new-source'
+        app=execution_contract(stack,source,self.definitions,'host-lock')
+        self.assertEqual(app['abi_id'],original['abi_id'])
+        self.assertEqual(app['environment_id'],original['environment_id'])
+        self.assertNotEqual(app['application_id'],original['application_id'])
+        self.assertNotEqual(app['compatibility_id'],original['compatibility_id'])
+        environment=execution_contract(stack,sources,self.definitions,'new-host-lock')
+        self.assertEqual(environment['abi_id'],original['abi_id'])
+        self.assertNotEqual(environment['environment_id'],original['environment_id'])
+        self.assertNotEqual(environment['compatibility_id'],original['compatibility_id'])
+        gpu=copy.deepcopy(self.definitions)
+        gpu['gpu_lock_sha256']='new-gpu-stack'
+        self.assertNotEqual(execution_contract(stack,sources,gpu,'host-lock')['abi_id'],original['abi_id'])
 
 
 if __name__ == '__main__':

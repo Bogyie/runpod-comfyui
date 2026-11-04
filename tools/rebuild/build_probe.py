@@ -52,6 +52,25 @@ WORKER_ENVIRONMENTS = {
 }
 
 
+def execution_contract(stack, sources, definitions, host_lock_sha):
+    def identity(value):
+        return digest(json.dumps(value,sort_keys=True,separators=(',',':')).encode())
+    policy = {name:digest((ROOT/'tools/rebuild'/name).read_bytes()) for name in
+              ['apply_comfy_env_patch.py','managed_metadata.py','link_gpu_packages.py']}
+    abi = identity({'base':stack['base_image'],'python':stack['python'],
+                    'gpu':definitions['gpu_lock_sha256'],'sdk_policy':policy})
+    environment = identity({'abi':abi,'host':host_lock_sha,
+        'workers':{name:item['lock_sha256'] for name,item in definitions['workers'].items()}})
+    application = identity({'comfyui':sources['comfyui']['archive_sha256'],
+        'workers':definitions,'manager':sources['manager']['archive_sha256'],
+        'manager_adapter':{path.name:digest(path.read_bytes()) for path in sorted((ROOT/'build/adapters/manager').glob('*.py'))},
+        'manager_patch':digest((ROOT/'tools/rebuild/apply_manager_adapter.py').read_bytes()),
+        'runtime_api':{name:digest((ROOT/'runtime'/name).read_bytes()) for name in
+                       ['control_plugin.py','runtime_paths.py','run_comfy.py']}})
+    return {'generation_schema':2,'abi_id':abi,'environment_id':environment,'application_id':application,
+            'compatibility_id':identity({'schema':2,'environment':environment,'application':application})}
+
+
 def prepare_worker_install_inputs(context: Path, definitions: dict) -> None:
     """Keep package installation inputs independent of source/adapter metadata.
 
@@ -214,6 +233,7 @@ def main() -> None:
         baseline['nodes']['manager'] = {'directory':'ComfyUI-Manager','commit':manager_source['commit'],
             'repository':manager_source['repository'],'enabled':True,'required_nodes':[],
             'required_endpoints':['/comfyctl/manager/status'],'lock_sha256':baseline['host_lock_sha256']}
+        baseline.update(execution_contract(stack,lock['sources'],definitions,baseline['host_lock_sha256']))
         (control / 'baseline.json').write_text(json.dumps(baseline, indent=2, sort_keys=True) + '\n')
     if args.prepare_only:
         print(context)

@@ -36,9 +36,17 @@ def main():
     if sys.argv[1:2] == ['comfyctl']:
         os.execv('/usr/local/bin/comfyctl', ['comfyctl', *sys.argv[2:]])
     sys.path.insert(0, str(Path(__file__).parent))
-    from selection import Store
-    with Store().locked():
-        Store().recover_interrupted()
+    from selection import Store, SelectionError
+    store=Store()
+    os.environ.pop('COMFYCTL_IMAGE_RECOVERY',None)
+    with store.locked():
+        try:
+            store.prepare_image()
+            store.recover_interrupted()
+            store.state()
+        except SelectionError as error:
+            print('Image selection requires explicit recovery: '+str(error),file=sys.stderr,flush=True)
+            os.environ['COMFYCTL_IMAGE_RECOVERY']='1'
     os.umask(0o027)
     if os.getuid() == 0:
         os.setgroups([])

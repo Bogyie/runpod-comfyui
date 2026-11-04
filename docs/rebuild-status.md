@@ -392,3 +392,11 @@ CI의 별도 runtime preview에도 같은 빌더 gate를 추가했다. 아직 �
 [최종 raw worker의 native IPC/복구 gate](../tests/evidence/metadata-image-workers-cpu.json)와 [두 이미지의 SDK byte 검사](../tests/evidence/metadata-sdk-cohort.json)를 보존했다. host·기본 worker 모두 원본 7개 파일 hash를 검사한 동일 패치와 metadata helper를 사용한다. deep 진단에는 wheel RECORD에 없는 helper 파일도 포함했다. SDK PoolIPC 전역 handle의 경쟁 상태는 원본 코드의 CPU 단위 검사에서 재현한 뒤 ContextVar로 분리했다. GPU PoolIPC 실연산 인증은 아니다.
 
 단위 검사 101개와 소스/artifact/lock 재현 검사가 통과했다. metadata 프로세스의 RSS/PSS와 지연은 로컬 에뮬레이션 측정이며 native runner·최종 두 GPU의 자원 측정은 남아 있다. CI runtime preview에 metadata gate와 node update/GC 검사를 추가했다. 최종 runtime 게시, ComfyUI 업데이트/이미지 호환성·rebase, 같은 digest의 두 GPU/RunPod 검증과 성능·크기 비교는 계속 진행한다.
+
+## P4 이미지 호환성 구분과 이미지별 선택 보존
+
+전체 변경을 나타내는 runtime ID와 실행 계약의 compatibility ID를 분리했다. CLI만 바뀌면 기존 코드 세대·노드 활성 상태·private prefix를 그대로 검증해 사용한다. ComfyUI·기본 노드·Manager/runtime API·host/worker lock·Python/GPU/SDK 정책이 바뀌면 자동 적용을 거부한다. 이미지 그룹별 baseline/selection을 보존하고, 다른 그룹에서 reset한 뒤 이전 이미지로 돌아오면 그 그룹의 선택을 복원한다. GC는 비활성 이미지 그룹과 source archive 소유 세대도 보존한다.
+
+[실제 로컬 컨테이너 검사](../tests/evidence/image-compatibility-cpu.json)는 CLI help를 변경한 이미지의 기존 비활성 세대 사용, 새 세대 생성 후 이전 이미지에서 사용·롤백, synthetic foreign contract의 recovery-required 대기·명시적 reset, 이전 이미지의 선택 복원, GC 보존, 사용자 데이터·패키지 fingerprint 불변을 통과했다. foreign contract는 거부 경로의 fixture이며 실제 ComfyUI 버전업 증거가 아니다. 손상된 image history의 추가 검사를 포함해 단위 검사 109개도 통과했다.
+
+추가 노드의 원본 archive와 실제 smoke workflow를 root 소유 세대에 보관하고 hash를 검증하도록 확장했다. 해당 변경의 native 자동 lock·업데이트·GC 회귀는 진행 중이다. 명시적 `env rebase`, 실제 ComfyUI 업데이트·업데이트 PR, 최종 runtime의 GHCR 게시와 두 GPU/RunPod 검증은 아직 완료하지 않았다. 이미지 호환성 gate는 CI runtime preview에도 추가했다.

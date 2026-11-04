@@ -77,6 +77,17 @@ def main():
             print('Candidate installation and workflow validation passed', flush=True)
             generation = added['selection']['desired']
             assert generation!='image-base' and 'ComfyctlAddedEnvironment' not in request(base,'/object_info')
+            provenance=inside(container,"""import hashlib,json
+from pathlib import Path
+p=json.loads(Path('/workspace/runtime/generations/"""+generation+"""/generation.json').read_text())['nodes']['fixture']
+archive=Path(p['source_archive'])
+assert archive.stat().st_uid==0 and not archive.stat().st_mode & 0o022
+assert hashlib.sha256(archive.read_bytes()).hexdigest()==p['archive_sha256']
+assert hashlib.sha256(json.dumps(p['smoke_workflow'],sort_keys=True,separators=(',',':')).encode()).hexdigest()==p['smoke_workflow_sha256']
+print(json.dumps({'archive_sha256':p['archive_sha256'],'smoke_workflow':p['smoke_workflow']}))""")
+            assert provenance['archive_sha256']==hashlib.sha256(data).hexdigest()
+            assert provenance['smoke_workflow']==graph
+            result['preserved_source_and_smoke']=provenance
             docker('stop','--time','25',container)
             container,state,base = launch('-added')
             assert state['generation_id']==generation

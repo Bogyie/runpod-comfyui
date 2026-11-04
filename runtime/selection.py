@@ -58,6 +58,20 @@ class Store:
         self.generations = Path(generations)
         self.base = json.loads(Path(baseline).read_text())
         self.state_file = self.control / 'selection.json'
+        from image_state import ImageHistory
+        self.images = ImageHistory(self.control,self.base)
+
+    def write_state(self, state):
+        if self.images.enabled:
+            state['compatibility_id'] = self.images.key
+        durable_json(self.state_file,state)
+        self.images.save(state)
+
+    def prepare_image(self):
+        transaction = self.pending_transition()
+        if transaction and transaction.get('compatibility_id',transaction['runtime_id']) != self.images.key:
+            raise SelectionError('Interrupted transition belongs to another execution environment; recover the previous image first')
+        self.images.prepare(self.state_file)
 
     @contextlib.contextmanager
     def locked(self):
@@ -71,14 +85,16 @@ class Store:
 
     def state(self):
         if not self.state_file.exists():
-            return {'runtime_id': self.base['runtime_id'], 'desired': 'image-base',
-                    'last_good': None, 'previous_good': None, 'revision': 0}
+            result = {'runtime_id': self.base['runtime_id'], 'desired': 'image-base',
+                      'last_good': None, 'previous_good': None, 'revision': 0}
+            if self.images.enabled:result['compatibility_id']=self.images.key
+            return result
         state = json.loads(self.state_file.read_text())
         if not isinstance(state, dict) or not all(key in state for key in ['runtime_id', 'desired', 'last_good', 'previous_good', 'revision']):
             raise SelectionError('Selection state is malformed; use explicit env reset')
         if not isinstance(state['revision'], int) or state['revision'] < 0:
             raise SelectionError('Selection revision is malformed; use explicit env reset')
-        if state['runtime_id'] != self.base['runtime_id']:
+        if state['runtime_id'] != self.base['runtime_id'] or (self.images.enabled and state.get('compatibility_id')!=self.images.key):
             raise SelectionError('Selection belongs to another image; use explicit env reset in recovery mode')
         return state
 
@@ -91,8 +107,12 @@ class Store:
         if directory.is_symlink() or directory.resolve() != directory:
             raise SelectionError('Unsafe generation directory')
         profile = json.loads((directory / 'generation.json').read_text())
-        if profile['id'] != identifier or profile['runtime_id'] != self.base['runtime_id']:
+        compatible = (profile.get('compatibility_id')==self.images.key if self.images.enabled
+                      else profile['runtime_id']==self.base['runtime_id'])
+        if profile['id'] != identifier or not compatible:
             raise SelectionError('Generation identity does not match this image')
+        if self.images.enabled and any(profile.get(key)!=self.base[key] for key in ['abi_id','environment_id','application_id']):
+            raise SelectionError('Generation execution contract differs from this image')
         if profile['comfy_root'] != str(directory / 'ComfyUI'):
             raise SelectionError('Generation source is not at its final path')
         managed = profile.get('kind') == 'managed-nodes-v1'
@@ -131,6 +151,19 @@ class Store:
             if not re.fullmatch(r'[A-Za-z0-9_-]+', node.get('directory', '')) or node['directory'] in directories:
                 raise SelectionError('Added node directory collides or is unsafe')
             directories.add(node['directory'])
+            if self.base.get('generation_schema',1)>=2:
+                archive=Path(node.get('source_archive',''))
+                if (not archive.is_absolute() or archive.parent.parent!=self.generations or
+                        not re.fullmatch(r'[0-9a-f]{32}',archive.parent.name) or archive.name!='source-'+key+'.tar.gz' or
+                        archive.is_symlink() or archive.resolve()!=archive or not archive.is_file() or
+                        archive.stat().st_uid!=0 or archive.stat().st_mode & 0o022):
+                    raise SelectionError('Added node source archive is missing or unsafe')
+                if verify and hashlib.sha256(archive.read_bytes()).hexdigest()!=node.get('archive_sha256'):
+                    raise SelectionError('Added node source archive drift detected')
+                smoke=node.get('smoke_workflow')
+                if (not isinstance(smoke,dict) or not smoke or
+                        hashlib.sha256(json.dumps(smoke,sort_keys=True,separators=(',',':')).encode()).hexdigest()!=node.get('smoke_workflow_sha256')):
+                    raise SelectionError('Added node smoke workflow drift detected')
             if (not re.fullmatch(r'[0-9a-f]{40}', node.get('commit', '')) or
                     any(not re.fullmatch(r'[0-9a-f]{64}', node.get(field, '')) for field in ['archive_sha256', 'source_plan_sha256', 'lock_sha256']) or
                     node.get('install_mode') not in {'native', 'adapter'} or not isinstance(node.get('required_nodes'), list) or not node['required_nodes'] or
@@ -172,8 +205,8 @@ class Store:
                     raise SelectionError('Candidate environment file drift detected')
             checked.add(prefix)
 
-    def fork_code(self):
-        parent = self.desired()
+    def fork_code(self, parent=None):
+        parent = self.desired() if parent is None else parent
         source = Path(parent['comfy_root'])
         size = sum(p.stat().st_size for p in source.rglob('*') if p.is_file())
         if shutil.disk_usage(self.generations).free < 2 * size + 512 * 1024 * 1024:
@@ -184,7 +217,8 @@ class Store:
         destination = directory / 'ComfyUI'
         shutil.copytree(source, destination, ignore=shutil.ignore_patterns('__pycache__', '.git'), symlinks=True)
         profile = json.loads(json.dumps(parent))
-        profile.update(id=identifier, parent=parent['id'], comfy_root=str(destination), validation=None)
+        profile.update(id=identifier, parent=parent['id'], comfy_root=str(destination), validation=None,
+                       runtime_id=self.base['runtime_id'])
         profile.pop('files', None)
         return profile
 
@@ -211,7 +245,7 @@ class Store:
             if state['last_good'] != identifier:
                 state['previous_good'] = state['last_good']
                 state['last_good'] = identifier
-                durable_json(self.state_file, state)
+                self.write_state(state)
         return state
 
     def stage_node_state(self, name, enabled):
@@ -222,27 +256,15 @@ class Store:
         node = matches[0]
         if parent['nodes'][node]['enabled'] == enabled:
             return parent, False
-        source = Path(parent['comfy_root'])
-        size = sum(p.stat().st_size for p in source.rglob('*') if p.is_file())
-        if shutil.disk_usage(self.generations).free < 2 * size + 512 * 1024 * 1024:
-            raise SelectionError('Insufficient disk space to prepare a code generation')
-        identifier = uuid.uuid4().hex
-        directory = self.generations / identifier
-        directory.mkdir(mode=0o755)
-        destination = directory / 'ComfyUI'
-        shutil.copytree(source, destination, ignore=shutil.ignore_patterns('__pycache__', '.git'), symlinks=True)
-        nodes = json.loads(json.dumps(parent['nodes']))
+        profile = self.fork_code(parent)
+        destination = Path(profile['comfy_root'])
+        nodes = profile['nodes']
         item = nodes[node]
         old = item['directory'] + ('' if item['enabled'] else '.disabled')
         new = item['directory'] + ('' if enabled else '.disabled')
         (destination / 'custom_nodes' / old).rename(destination / 'custom_nodes' / new)
         item['enabled'] = enabled
-        profile = {key: value for key, value in parent.items() if key not in {'files', 'validation'}}
-        profile.update(id=identifier, parent=parent['id'], comfy_root=str(destination), nodes=nodes,
-                       files=code_hashes(destination), validation=None)
-        durable_json(directory / 'workers.json', profile['workers'])
-        durable_json(directory / 'generation.json', profile)
-        return profile, True
+        return self.save_candidate(profile), True
 
     def validated(self, profile, receipt):
         directory = self.generations / profile['id']
@@ -257,7 +279,7 @@ class Store:
             raise SelectionError('Generation has not passed validation')
         state = self.state()
         state.update(desired=identifier, revision=state['revision'] + 1)
-        durable_json(self.state_file, state)
+        self.write_state(state)
         return state
 
     def rollback_target(self):
@@ -294,6 +316,7 @@ class Store:
         transaction = {'id': uuid.uuid4().hex, 'phase': 'draining', 'target': target,
                        'old_generation': old_generation, 'before_state': self.state(),
                        'runtime_id': self.base['runtime_id'], 'pid_namespace': os.readlink('/proc/self/ns/pid'), 'controller_pid': os.getpid()}
+        if self.images.enabled:transaction['compatibility_id']=self.images.key
         durable_json(self.control / 'transition.json', transaction)
         durable_json(self.control / 'maintenance.json', {'transaction_id': transaction['id']})
         return transaction
@@ -305,7 +328,7 @@ class Store:
         return transaction
 
     def restore_transition(self, transaction):
-        if transaction['runtime_id'] != self.base['runtime_id']:
+        if transaction.get('compatibility_id',transaction['runtime_id']) != self.images.key:
             raise SelectionError('Interrupted transition belongs to another image')
         before = transaction['before_state']
         for target in [transaction['old_generation'], before['last_good'], before['previous_good'], 'image-base']:
@@ -313,8 +336,8 @@ class Store:
                 try:
                     profile = self.profile(target)
                     if profile.get('validation'):
-                        state = dict(before, desired=target, revision=before['revision'] + 2)
-                        durable_json(self.state_file, state)
+                        state = dict(before, runtime_id=self.base['runtime_id'], desired=target, revision=before['revision'] + 2)
+                        self.write_state(state)
                         return target
                 except (SelectionError, OSError, ValueError, KeyError):
                     pass
