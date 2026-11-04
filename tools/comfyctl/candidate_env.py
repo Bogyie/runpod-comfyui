@@ -132,6 +132,13 @@ def prepare_environment(generation, name, lock_data, expected_hash, *, timeout=1
         # second wheel cache. Keep the request, lock and installer log.
         shutil.rmtree(scratch)
         seal_tree(root)
+        import sys
+        sys.path.insert(0, '/opt/runtime/control')
+        from environment_manifest import snapshot
+        manifest = snapshot(prefix)
+        manifest_data = (json.dumps(manifest, indent=2, sort_keys=True) + '\n').encode()
+        (root / 'sealed-files.json').write_bytes(manifest_data)
+        receipt['sealed_files_sha256'] = hashlib.sha256(manifest_data).hexdigest()
         (root / 'receipt.json').write_text(json.dumps(receipt, indent=2, sort_keys=True) + '\n')
         return receipt
     except BaseException:

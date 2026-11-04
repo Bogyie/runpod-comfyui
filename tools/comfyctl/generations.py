@@ -19,7 +19,18 @@ def read_json(url):
         return json.load(response)
 
 
-def validate(store, profile):
+def refresh_record(previous, path=Path('/workspace/state/runtime-status.json')):
+    try:
+        current = json.loads(path.read_text())
+    except (OSError, ValueError):
+        raise SelectionError('Runtime status unavailable after candidate preparation') from None
+    for key in ['child_pid', 'generation_id', 'pid_namespace']:
+        if previous.get(key) is not None and previous[key] != current.get(key):
+            raise SelectionError('Running generation/process changed during candidate preparation; retry explicitly')
+    return current
+
+
+def validate(store, profile, smoke_workflow=None):
     directory = store.generations / profile['id']
     required = {'SaveImage'}
     for node in profile['nodes'].values():
@@ -55,6 +66,10 @@ def validate(store, profile):
                         objects = read_json(base + '/object_info')
                         if not required.issubset(objects):
                             raise SelectionError('Candidate is missing required nodes: ' + ','.join(sorted(required - objects.keys())) + '; inspect ' + str(directory / 'validation.log'))
+                        for name in profile['nodes'].keys() - store.base['nodes'].keys():
+                            node = profile['nodes'][name]
+                            if node['enabled'] and any(objects[item].get('python_module') != 'custom_nodes.' + node['directory'] for item in node['required_nodes']):
+                                raise SelectionError('Added node catalog was supplied by another plugin')
                         break
                     except (OSError, TimeoutError):
                         if time.monotonic() > deadline:
@@ -77,6 +92,22 @@ def validate(store, profile):
                 receipt = {'kind': 'state-only-candidate-cpu-validation', 'required_nodes': sorted(required),
                            'node_catalog': 'passed', 'core_graph': 'passed',
                            'environment_bindings': 'unchanged-image-prefixes', 'gpu': 'not-run', 'validated_at': time.time()}
+                if smoke_workflow:
+                    request = urllib.request.Request(base + '/prompt', data=json.dumps({'prompt': smoke_workflow}).encode(), headers={'Content-Type': 'application/json'})
+                    with urllib.request.urlopen(request, timeout=10) as response:
+                        submitted = json.load(response)
+                    if 'prompt_id' not in submitted or submitted.get('node_errors'):
+                        raise SelectionError('Added-node smoke workflow failed validation')
+                    while True:
+                        history = read_json(base + '/history/' + submitted['prompt_id'])
+                        if submitted['prompt_id'] in history:
+                            if history[submitted['prompt_id']]['status']['status_str'] != 'success':
+                                raise SelectionError('Added-node smoke workflow failed; inspect candidate validation log')
+                            break
+                        if time.monotonic() > deadline:
+                            raise SelectionError('Added-node smoke workflow timed out')
+                        time.sleep(0.5)
+                    receipt.update(kind='managed-node-candidate-cpu-validation', environment_bindings='sealed-private-prefixes', smoke_workflow='passed')
             finally:
                 try:
                     os.killpg(process.pid, signal.SIGTERM)
@@ -171,9 +202,14 @@ def operate(args):
         if args.action != 'reset' and healthy:
             store.acknowledge(record, os.readlink('/proc/self/ns/pid'))
         if args.command == 'node':
-            profile, changed = store.stage_node_state(args.name, args.action == 'enable')
-            if changed:
-                profile = validate(store, profile)
+            if args.action == 'add':
+                from .node_install import stage_node
+                profile, workflow = stage_node(store, args)
+                profile = validate(store, profile, workflow)
+            else:
+                profile, changed = store.stage_node_state(args.name, args.action == 'enable')
+                if changed:
+                    profile = validate(store, profile)
             target = profile['id']
         elif args.action == 'rollback':
             target = store.rollback_target()
@@ -182,7 +218,12 @@ def operate(args):
         else:
             target = 'image-base'
         if getattr(args, 'restart', False):
+            # Candidate installation/validation can outlive a heartbeat window.
+            # Re-read it without accepting an unrelated replacement process.
+            record = refresh_record(record)
+            if args.action != 'reset' and live_status(record, store.base['runtime_id'])['healthy']:
+                store.acknowledge(record, os.readlink('/proc/self/ns/pid'))
             return live_select(store, target, record, args)
         state = store.reset() if args.action == 'reset' else store.select(target)
         return {'selection': state, 'restart_required': not (healthy and record.get('generation_id') == state['desired']),
-                'applied_to_running_process': False, 'scope': 'Deferred state-only generation; GPU/host/worker packages unchanged'}
+                'applied_to_running_process': False, 'scope': 'Validated deferred generation; existing image environments unchanged'}

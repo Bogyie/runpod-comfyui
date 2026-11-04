@@ -95,20 +95,105 @@ class Store:
             raise SelectionError('Generation identity does not match this image')
         if profile['comfy_root'] != str(directory / 'ComfyUI'):
             raise SelectionError('Generation source is not at its final path')
-        # State-only generations reuse immutable environments, never aliases or moved venvs.
-        if profile['host_python'] != self.base['host_python'] or profile['workers'] != self.base['workers']:
+        managed = profile.get('kind') == 'managed-nodes-v1'
+        if profile.get('kind') not in {None, 'managed-nodes-v1'}:
+            raise SelectionError('Unknown generation kind')
+        if profile['host_python'] != self.base['host_python']:
+            raise SelectionError('Unreviewed host environment binding')
+        if not managed and profile['workers'] != self.base['workers']:
             raise SelectionError('Unreviewed environment bindings in state-only generation')
-        if set(profile['nodes']) != set(self.base['nodes']):
-            raise SelectionError('State-only generation changed the managed node catalog')
-        for name, node in profile['nodes'].items():
+        if (set(profile['nodes']) != set(self.base['nodes']) if not managed else not set(self.base['nodes']).issubset(profile['nodes'])):
+            raise SelectionError('Generation changed the image node catalog')
+        for name, original in self.base['nodes'].items():
+            node = profile['nodes'][name]
             if not isinstance(node['enabled'], bool) or any(node[key] != self.base['nodes'][name][key]
                     for key in ['directory', 'commit', 'required_nodes', 'lock_sha256']):
                 raise SelectionError('Unreviewed node definition in state-only generation')
+        if managed:
+            self.verify_managed(profile, verify)
         if json.loads((directory / 'workers.json').read_text()) != profile['workers']:
             raise SelectionError('Generation worker mapping drift detected')
         if verify and code_hashes(directory / 'ComfyUI') != profile['files']:
             raise SelectionError('Generation code drift detected')
         return profile
+
+    def verify_managed(self, profile, verify):
+        import re
+        bindings = profile.get('environment_bindings', {})
+        extras = set(profile['workers']) - self.base['workers'].keys()
+        if set(bindings) != extras or any(profile['workers'].get(k) != v for k, v in self.base['workers'].items()):
+            raise SelectionError('Managed generation changed image worker bindings')
+        used, directories = set(), {item['directory'] for item in self.base['nodes'].values()}
+        for key in profile['nodes'].keys() - self.base['nodes'].keys():
+            node = profile['nodes'][key]
+            if not re.fullmatch(r'[a-z][a-z0-9-]{0,63}', key) or not isinstance(node.get('enabled'), bool):
+                raise SelectionError('Invalid added node identity/state')
+            if not re.fullmatch(r'[A-Za-z0-9_-]+', node.get('directory', '')) or node['directory'] in directories:
+                raise SelectionError('Added node directory collides or is unsafe')
+            directories.add(node['directory'])
+            if (not re.fullmatch(r'[0-9a-f]{40}', node.get('commit', '')) or
+                    any(not re.fullmatch(r'[0-9a-f]{64}', node.get(field, '')) for field in ['archive_sha256', 'source_plan_sha256', 'lock_sha256']) or
+                    node.get('install_mode') not in {'native', 'adapter'} or not isinstance(node.get('required_nodes'), list) or not node['required_nodes'] or
+                    not all(isinstance(v, str) and v for v in node['required_nodes']) or
+                    not isinstance(node.get('environment_keys'), list) or not node['environment_keys'] or not set(node['environment_keys']).issubset(bindings) or
+                    not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', node.get('repository', ''))):
+                raise SelectionError('Added node provenance/environment definition is malformed')
+            used.update(node['environment_keys'])
+            plan = dict(node.get('source_plan', {}))
+            recorded = plan.pop('plan_sha256', None)
+            if (recorded != node['source_plan_sha256'] or hashlib.sha256(json.dumps(plan, sort_keys=True, separators=(',', ':')).encode()).hexdigest() != recorded or
+                    plan.get('repository') != node['repository'] or plan.get('commit') != node['commit'] or plan.get('archive_sha256') != node['archive_sha256']):
+                raise SelectionError('Added node source analysis identity drift detected')
+            for env in node['environment_keys']:
+                if bindings[env]['lock_sha256'] != node['lock_sha256']:
+                    raise SelectionError('Added node lock and environment disagree')
+        if used != extras:
+            raise SelectionError('Unreferenced candidate environment binding')
+        checked = set()
+        for name, binding in bindings.items():
+            prefix = Path(profile['workers'][name])
+            if (not prefix.is_absolute() or len(prefix.parents) < 3 or prefix.name != 'venv' or prefix.parents[2] != self.generations or
+                    not re.fullmatch(r'[0-9a-f]{32}', prefix.parents[1].name) or prefix.resolve() != prefix):
+                raise SelectionError('Candidate environment is not at a managed final prefix')
+            root = prefix.parent
+            receipt_data = (root / 'receipt.json').read_bytes()
+            receipt = json.loads(receipt_data)
+            manifest_data = (root / 'sealed-files.json').read_bytes()
+            if (hashlib.sha256(receipt_data).hexdigest() != binding['receipt_sha256'] or
+                    hashlib.sha256(manifest_data).hexdigest() != receipt['sealed_files_sha256'] or
+                    receipt['prefix'] != str(prefix) or receipt['lock_sha256'] != binding['lock_sha256'] or
+                    receipt['gpu_lock_sha256'] != self.base['gpu_lock_sha256'] or
+                    hashlib.sha256((root / 'requirements.txt').read_bytes()).hexdigest() != receipt['lock_sha256'] or
+                    prefix.stat().st_uid != 0 or prefix.stat().st_mode & 0o022):
+                raise SelectionError('Candidate environment receipt/lock/seal drift detected')
+            if verify and prefix not in checked:
+                from environment_manifest import snapshot
+                if snapshot(prefix) != json.loads(manifest_data):
+                    raise SelectionError('Candidate environment file drift detected')
+            checked.add(prefix)
+
+    def fork_code(self):
+        parent = self.desired()
+        source = Path(parent['comfy_root'])
+        size = sum(p.stat().st_size for p in source.rglob('*') if p.is_file())
+        if shutil.disk_usage(self.generations).free < 2 * size + 512 * 1024 * 1024:
+            raise SelectionError('Insufficient disk space to prepare a code generation')
+        identifier = uuid.uuid4().hex
+        directory = self.generations / identifier
+        directory.mkdir(mode=0o755)
+        destination = directory / 'ComfyUI'
+        shutil.copytree(source, destination, ignore=shutil.ignore_patterns('__pycache__', '.git'), symlinks=True)
+        profile = json.loads(json.dumps(parent))
+        profile.update(id=identifier, parent=parent['id'], comfy_root=str(destination), validation=None)
+        profile.pop('files', None)
+        return profile
+
+    def save_candidate(self, profile):
+        directory = self.generations / profile['id']
+        profile['files'] = code_hashes(Path(profile['comfy_root']))
+        durable_json(directory / 'workers.json', profile['workers'])
+        durable_json(directory / 'generation.json', profile)
+        return self.profile(profile['id'])
 
     def desired(self):
         return self.profile(self.state()['desired'])

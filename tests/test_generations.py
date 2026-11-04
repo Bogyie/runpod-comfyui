@@ -12,6 +12,18 @@ from selection import Store, SelectionError, durable_json
 
 
 class GenerationTests(unittest.TestCase):
+    def test_candidate_validation_refreshes_heartbeat_but_rejects_process_replacement(self):
+        from comfyctl.generations import refresh_record
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / 'runtime-status.json'
+            old = {'child_pid': 10, 'generation_id': 'image-base', 'pid_namespace': 'test', 'updated_at': 100}
+            fresh = dict(old, updated_at=1000)
+            path.write_text(json.dumps(fresh))
+            self.assertEqual(refresh_record(old, path), fresh)
+            path.write_text(json.dumps(dict(fresh, child_pid=11)))
+            with self.assertRaisesRegex(SelectionError, 'changed during candidate'):
+                refresh_record(old, path)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

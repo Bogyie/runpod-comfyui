@@ -1,6 +1,6 @@
 # 추가 노드의 소스 분석
 
-`comfyctl node plan`은 후보 설치에 사용할 소스 정보를 만든다. 분석 명령과 아래 내부 환경 빌더를 구현했으며, 새 노드의 의존성 해석·코드/환경 후보 조립·설치·실행 전환을 잇는 `node add`는 아직 구현 중이다. 기본 노드의 enable/disable과 전환은 [세대 관리](generations.md)를 따른다.
+`comfyctl node plan`은 후보 설치에 사용할 소스 정보를 만든다. `node add`는 고정 소스와 검토한 전체 worker lock을 묶어 별도 환경에 설치하고, 노드 등록·CPU 대표 workflow를 확인한 뒤 세대로 선택한다. 자동 의존성 해석과 복잡한 host 예외 처리는 아직 후속 작업이다. 기본/추가 노드의 enable/disable과 전환은 [세대 관리](generations.md)를 따른다.
 
 ```bash
 comfyctl node plan PozzettiAndrea/ComfyUI-SAM3 \
@@ -38,6 +38,38 @@ comfyctl node plan owner/repository --commit COMMIT_SHA \
 - 실제 venv 생성·wheel 설치·dependency check는 서비스 UID 1000과 다른 UID 1001, 보조 그룹 없음, `no_new_privs` 상태에서 수행한다. source/node hook을 실행하는 경로는 없다. 임의 노드 코드의 보안 sandbox를 제공한다는 뜻은 아니다.
 - GPU payload만 이미지의 immutable 파일에 연결한다. GPU dist-info와 CPU 패키지는 후보 안에 따로 설치한다. host site-packages를 sys.path에 넣지 않으며 venv를 옮기거나 별칭으로 실행하지 않는다.
 - wheel hash·전체 설치 버전·dependency check·GPU payload 경로를 확인하고 고정 SDK 패치를 적용한다. 성공 후 root 소유로 봉인하고 설치 캐시를 제거한다. 실패한 prefix도 봉인해 보존하며 같은 경로에 재설치하지 않는다. 기본 디스크 여유 검사와 설치 timeout을 적용한다.
-- receipt의 `selected`는 false다. 노드 등록·API·GPU 실행 검증을 대신하지 않으며, 기존 세대 선택기는 아직 이런 새 환경을 활성화하지 않는다. 코드·노드 정의·lock·환경 receipt를 함께 검증하는 추가 세대 schema와 조립 단계가 필요하다.
+- 빌더 receipt의 `selected`는 false다. 빌더 자체는 노드 등록·API·GPU 검증이나 전환을 수행하지 않는다. 아래 `node add`가 코드·노드 정의·lock·receipt를 `managed-nodes-v1`으로 묶고 별도 후보 검증 뒤에 선택한다.
 
 [실제 Linux 빌더 검사](../tests/evidence/candidate-environment-cpu.json)는 새 최종 prefix에 host의 151개 패키지 lock을 실제 wheel로 설치했다. 서비스 UID로 private NumPy와 공유 torch 경로를 확인하고 후보 파일 쓰기 거부를 검사했다. GPU 버전 불일치의 생성 전 거부, 잘못된 artifact hash의 설치 실패·봉인, 실패 prefix 재사용 거부, 선택 기록·사용자 sentinel·이미지 패키지 fingerprint 보존 및 private 사용자 파일에 대한 installer 쓰기 거부를 확인했다. 성공한 설치 캐시는 제거했고 검사 컨테이너·볼륨도 삭제했다. 이 검사는 새 노드 등록이나 GPU 모델 성공을 증명하지 않는다.
+
+## 고정 소스의 추가·전환
+
+관리 이미지의 root 터미널에서 실행한다. `--lock`은 전체 exact-version/SHA256 worker lock이어야 한다. 이미지 GPU pin·SDK 버전을 유지하고 노드의 명시된 requirements를 만족해야 한다. 이미지 의존성만으로 충분한 노드는 `/opt/locks/host.txt`를 사용할 수 있으며, 다른 의존성이 필요하면 검토한 빌드에서 생성한 전체 lock을 제공한다. 현재 명령은 새 의존성을 자동 해석하지 않는다.
+
+대상은 현재 소스에서 빌드한 `runtime-probe`다. 별도로 GHCR에 게시한 worker 후보 digest에는 이 관리 CLI가 포함되지 않는다.
+
+```bash
+comfyctl node plan OWNER/REPOSITORY --commit FULL_COMMIT_SHA > node-plan.json
+comfyctl node add OWNER/REPOSITORY --name my-node --commit FULL_COMMIT_SHA \
+  --lock /workspace/state/my-node.lock \
+  --required-node NODE_CLASS_ID \
+  --smoke-workflow /workspace/state/my-node-smoke.json --defer
+# 기존 큐가 끝난 뒤 검증된 desired를 적용한다.
+comfyctl env apply --restart
+comfyctl node disable my-node --restart
+comfyctl env rollback --restart
+```
+
+`--smoke-workflow`는 UI 저장 형식이 아닌 ComfyUI API prompt graph JSON이다. 최소 한 개의 `--required-node`가 실제 그래프에 들어가야 한다. 각 필수 노드가 추가한 plugin에서 등록됐는지도 검사하므로 기존 내장 노드를 지정해서 등록 실패를 숨길 수 없다. 필수 ID가 여러 개면 옵션을 반복한다. 후보는 별도 데이터 디렉터리·서비스 UID로 기동하며 core 그래프와 제공한 workflow가 통과하기 전에는 desired를 바꾸지 않는다. 검사는 CPU 기준이며 GPU 모델 성공을 대신하지 않는다.
+
+기본 `--mode auto`는 upstream comfy-env 설정과 등록이 있으면 native 경로를 사용한다. 그 외에는 전체 원본을 `managed_worker`에 보존하고 host에는 `register_nodes`만 남기는 계산 노드용 어댑터를 만든다. host server hook이 발견되면 범용 어댑터로 설치하지 않고 검토한 전용 어댑터를 요구한다. 복잡한 V3/모델/프런트엔드 호환성을 이 범용 경로만으로 보장하지 않는다.
+
+CUDA 확장, 처리할 수 없는 Conda/system 요구, 관리 환경 변수 덮어쓰기와 해석하지 못한 소스는 이미지 통합·전용 어댑터의 대상이다. install/startup/build hook이 있으면 기본적으로 거부한다. 분석을 검토하고 hook 없이 동작하는 노드는 `--skip-hooks`를 명시할 수 있다. hook은 실행하지 않고 보존하며, prestartup 파일은 `.disabled`로 바꿔 ComfyUI의 별도 startup 경로에서도 실행되지 않게 한다.
+
+로컬 archive도 `--archive FILE --archive-sha256 SHA256`으로 설치할 수 있다. 이때 commit은 제공자의 선언이며 GitHub를 조회해 확인하지 않는다. 실제 바이트는 archive/file hash로 고정한다.
+
+추가 노드는 `managed-nodes-v1` 세대로 기록한다. 이미지 host와 기본 worker binding은 유지하고, 새 worker binding만 봉인된 prefix·lock·receipt·전체 CPU 파일 manifest에 연결한다. 원본 source plan hash도 묶는다. 재기동·선택 때 코드/CPU 파일·lock·receipt와 권한이 다르면 거부한다. 비활성 상태 세대도 이 정의를 보존하므로 이전 코드와 같은 환경으로 rollback할 수 있다. prefix를 다른 경로로 옮기지 않는다. `env doctor`는 현재 추가 worker를 포함하고 `--deep`은 해당 prefix의 RECORD도 검사한다.
+
+[범용 어댑터 검사](../tests/evidence/node-install-cpu.json)와 [native comfy-env 검사](../tests/evidence/node-install-native-cpu.json)는 각각 실제 새 worker 설치, 후보 workflow, deferred 재기동 뒤 계산 결과·별도 prefix/PID/UID, disable·rollback, CPU 파일 손상 감지와 이미지 기본값 reset을 통과했다. 설치/startup hook은 opt-in 없이 거부됐고 skip 후에도 실행되지 않았다. 입력은 오프라인 fixture archive이며 공개 upstream 설치나 GPU 모델 검증으로 표시하지 않는다. 두 검사 모두 같은 image ID `sha256:a2b556b66dad65d5ca3bab43d7c4a3e9434796a12992bba015792d38f38398be`를 사용했고 자원을 삭제했다.
+
+추가 worker를 포함한 [deep 진단 결과](../tests/evidence/node-install-added-worker-deep.json)도 문제 없이 통과했다. 전체 165,688개 고유 파일을 hash했고 추가 prefix의 RECORD 49,638개 항목에 mismatch가 없었다.

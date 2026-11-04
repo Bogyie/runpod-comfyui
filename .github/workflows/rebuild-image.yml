@@ -139,6 +139,12 @@ jobs:
           RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
         run: |
           uv run --frozen python tools/rebuild/probe_candidate_env.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/candidate-environment-preview.json
+      - name: Verify added node installation and lifecycle
+        env:
+          RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
+        run: |
+          uv run --frozen python tools/rebuild/probe_node_install.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/node-install-adapter-preview.json
+          uv run --frozen python tools/rebuild/probe_node_install.py --native --image "$RUNTIME_IMAGE" --output .work/ci-evidence/node-install-native-preview.json
       - name: Publish tested candidate with BuildKit
         id: publish
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7

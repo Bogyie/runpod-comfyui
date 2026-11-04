@@ -109,7 +109,7 @@ def inspect_runtime(state, doctor=False, deep=False):
         selection = store.state()
         generation = {'active': record.get('generation_id'), 'desired': selection['desired'],
                       'last_known_good': selection['last_good'], 'previous_good': selection['previous_good'],
-                      'candidate_switching_implemented': 'state-only-deferred-or-drained-restart',
+                      'candidate_switching_implemented': 'managed-node-and-state-deferred-or-drained-restart',
                       'restart_required': record.get('generation_id') != selection['desired']}
     except (SelectionError, OSError, ValueError, KeyError) as exc:
         generation = {'error': str(exc), 'restart_required': True}
@@ -132,6 +132,15 @@ def inspect_runtime(state, doctor=False, deep=False):
                    'tools': (Path('/opt/comfyctl/venv'), Path('/opt/locks/tools.txt'))}
     definitions.update({name: (Path('/opt/workers') / item['environment'], WORKERS / item['lock_file'])
                         for name, item in manifest['workers'].items()})
+    if generation.get('active'):
+        try:
+            active = store.profile(generation['active'], verify=False)
+            for key in active.get('environment_bindings', {}):
+                prefix = Path(active['workers'][key])
+                definitions['added:' + key] = (prefix, prefix.parent / 'requirements.txt')
+        except (SelectionError, OSError, ValueError, KeyError):
+            if 'active-generation-drift' not in result['problems']:
+                result['problems'].append('active-generation-drift')
     hashes = {}
     for name, (prefix, lock) in definitions.items():
         report = {'prefix': str(prefix)}
@@ -163,7 +172,7 @@ def inspect_runtime(state, doctor=False, deep=False):
                 mismatches = []
                 for row in rows:
                     path = Path(row['path'])
-                    if not any(path.is_relative_to(root) for root in [Path('/opt/runtime'), Path('/opt/workers'), Path('/opt/comfyctl')]):
+                    if not any(path.is_relative_to(root) for root in [prefix, Path('/opt/runtime'), Path('/opt/workers'), Path('/opt/comfyctl')]):
                         mismatches.append({'path': row['path'], 'reason': 'record-path-escape'})
                         continue
                     if row['path'] not in hashes:

@@ -315,3 +315,25 @@ live 전환 커밋 `be4e12fbe1ea14f24ca98d2cfc129e6d822143ef`도 push했고 [후
 동일 image ID `sha256:486b9339d720e730bd94c977fcf7bd744dceb97710f7d3a1081918f7091847ba`의 [기존 runtime/CLI 회귀](../tests/evidence/candidate-builder-image-runtime-cpu.json)도 통과했다. 새 GPU-link helper를 runtime identity와 제어 코드 hash 검사에 포함했다.
 
 CI의 별도 runtime preview에도 같은 빌더 gate를 추가했다. 아직 해당 변경의 원격 결과는 없다. 이 내부 빌더만으로 새 노드 설치·Manager 대체 경로·GPU 검증을 완료했다고 판정하지 않는다.
+
+## Live 전환의 원격 결과
+
+[성공 실행 #41812352657](https://github.com/Bogyie/runpod-comfyui/actions/runs/41812352657), 소스 `be4e12fbe1ea14f24ca98d2cfc129e6d822143ef`에서 게시 전후 worker 검사와 별도 runtime/CLI·deferred·live 전환 검사가 통과했다. [원격 증거](evidence/actions-41812352657/run.json)와 [live 전환 결과](evidence/actions-41812352657/live-transitions-preview.json)를 보존했다.
+
+- worker 참조: `ghcr.io/bogyie/runpod-comfyui@sha256:a62dd3a4a509c833837fb2c0401547c05a06fa4562ea35a437a10568c13525b7`.
+- 익명 manifest 조회·digest hash·검사한 config 일치를 확인했다. 압축 레이어 합계 6,901,602,200바이트다.
+- image job은 35분 56초였다. 별도 runtime preview는 게시한 worker digest와 다르며 이 실행에는 새 노드 설치가 포함되지 않았다.
+
+## P3 새 노드의 private worker와 세대 전환
+
+`node add`를 소스 분석·검토한 전체 hash lock·UID 1001 설치·봉인·CPU 후보 검사·deferred/live 선택에 연결했다. native comfy-env를 우선하고, stateless V1 계산 노드는 얇은 host wrapper와 전체 원본 worker로 구성한다. host hook·불명확한 설정·CUDA 확장은 자동으로 처리하지 않고 전용 image/adapter를 요구한다. host와 기본 worker는 바꾸지 않는다.
+
+`managed-nodes-v1`은 기존 이미지 binding을 보존하면서 추가 worker의 source plan·lock·receipt·전체 파일 manifest·root 소유권을 검사한다. 추가 노드도 disable/enable·rollback/reset에 포함한다. `env doctor`는 추가 prefix를 읽으며 RECORD 검사 경계도 해당 prefix를 허용한다.
+
+[어댑터](../tests/evidence/node-install-cpu.json)와 [native](../tests/evidence/node-install-native-cpu.json) 두 Linux 검사는 후보 등록·대표 계산, 재기동 유지, 별도 worker prefix/PID/UID, disable·rollback, private CPU 파일 손상 감지와 이미지 reset을 통과했다. [추가 worker deep 진단](../tests/evidence/node-install-added-worker-deep.json)은 165,688개 고유 파일과 해당 prefix의 RECORD 49,638개 항목을 문제 없이 검사했다. 오프라인 fixture 증거이며 공개 upstream·GPU 성공으로 확대하지 않는다.
+
+직접 `node disable --restart` 검사에서 긴 후보 검증 전에 읽은 heartbeat를 다시 사용하는 오류를 발견했다. 전환 직전에 상태를 갱신하고 generation·PID namespace·child PID가 바뀌지 않았는지 확인하도록 수정했다. 두 전체 lifecycle이 수정 후 통과했고 단위 검사는 81개다. 명령·제약은 [추가 노드 설치](node-installation.md)에 기록했다.
+
+아직 자동 dependency 해석, 공개 추가 노드 조합, update·GC, Manager 연결, 동적 schema, 이미지 호환성/rebase, 최종 GPU·RunPod 검증은 남아 있다. 이 관리 runtime은 별도 preview이며 stable/latest나 main을 교체하지 않았다.
+
+동일 이미지의 [기존 deferred lifecycle](../tests/evidence/node-install-image-generations-cpu.json)과 [runtime/CLI 회귀](../tests/evidence/node-install-image-runtime-cpu.json)도 통과했다. 새 설치 및 기존 동작 검사를 CI runtime preview에 함께 추가했다.
