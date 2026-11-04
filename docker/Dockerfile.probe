@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-# Experimental P0 image. No registry push/stable tag; not a RunPod production image.
+# Experimental P0 core candidate; no stable promotion or RunPod production certification.
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE} AS gpu-base
 

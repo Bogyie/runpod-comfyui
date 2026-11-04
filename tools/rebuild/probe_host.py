@@ -35,7 +35,7 @@ def main() -> None:
     parser.add_argument("--output", type=Path, default=ROOT / "tests/evidence/host-cpu-probe.json")
     args = parser.parse_args()
     args.output.unlink(missing_ok=True)
-    metadata = json.loads(docker("image", "inspect", "--platform", "linux/amd64", args.image))[0]
+    metadata = json.loads(docker("image", "inspect", args.image))[0]
     if metadata.get("Architecture") != "amd64":
         raise RuntimeError("CPU probe requires the actual amd64 image")
     name = "runpod-comfy-probe-" + uuid.uuid4().hex[:10]

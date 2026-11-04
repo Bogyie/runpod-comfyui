@@ -55,7 +55,7 @@ def main() -> None:
     output = subprocess.check_output(command, input=PROGRAM, text=True)
     result = json.loads(output.strip().splitlines()[-1])
     result["image_id"] = subprocess.check_output([
-        "docker", "image", "inspect", "--platform", "linux/amd64", args.image,
+        "docker", "image", "inspect", args.image,
         "--format", "{{.Id}}"], text=True).strip()
     path = args.output
     path.parent.mkdir(parents=True, exist_ok=True)

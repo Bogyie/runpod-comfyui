@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build an experimental Linux host probe; never publish or promote it.
+"""Build an experimental Linux host probe locally; publication is handled by CI.
 
 Uses complete archive contents, not the text-only audit snapshot. Model/GPU and
 custom-node execution are separate gates after this core startup probe.
