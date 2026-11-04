@@ -1,30 +1,38 @@
 # Manager 연결 경계
 
-조사 대상은 `4c50a2bc8b9e684d8a85930567957470b952bebe`다. [고정 소스·HTTP 경로 목록](evidence/manager-boundary-audit.json)은 정적 분석 증거다. 현재 이미지에 Manager를 통합·검증한 상태는 아니다.
+runtime preview에는 Manager `4c50a2bc8b9e684d8a85930567957470b952bebe`의 원본 JavaScript UI와 고정 catalog를 포함한다. 검색과 설치 상태 조회는 읽기 전용 adapter가 처리한다. 설치·업데이트·환경 복구는 `comfyctl`을 사용한다. 계획서 §7.1의 관리 CLI 대체 경로이며 원본 Manager 설치 엔진을 재사용하지 않는다.
 
-## 한 곳의 subprocess hook으로는 충분하지 않다
+## 제공하는 동작
 
-`manager_core.ManagerFuncs.run_script`는 교체 가능한 실행 hook이고 서버가 `ManagerFuncsInComfyUI`를 설정한다. 하지만 UI의 `_queue_node_install`에는 이미 비활성인 노드를 즉시 enable하는 분기가 있고, queue worker는 별도 thread로 실행한다. 예약 설치는 prestartup에서 별도 `process_wrap`을 거치며, PIPFixer는 직접 subprocess로 패키지를 변경한다. `run_script`만 바꾸는 전역 대응으로 모든 설치를 후보 환경에 보냈다고 판정할 수 없다.
+- 원본 Manager 메뉴, 6,025개 catalog, 검색, node mapping과 JS assets.
+- 현재 실행 세대의 6종 기본 노드와 추가 관리 노드의 설치·활성 상태 조회. GitHub 이전 주소도 같은 저장소로 식별한다.
+- Manager mutation 요청과 `/api` 별칭은 HTTP 403과 실제 사용할 명령을 반환한다. 노드·모델 UI 오류에도 `comfyctl` 안내를 표시한다.
+- `comfyctl node add`는 pinned source → native comfy-env 우선 분류 → private worker lock/설치 → 후보 검사 → 세대 선택을 수행한다. [설치 방법과 제약](node-installation.md)을 따른다.
+- 모델은 `comfyctl model add`, 복구는 `comfyctl env rollback` 또는 `env reset`을 사용한다. 관리자 터미널 명령이며 서비스 계정에서 직접 환경을 바꾸지 않는다.
 
-| 경로 | 원본 동작 | 통합 시 필요한 처리 |
-|---|---|---|
-| `/manager/queue/install`, reinstall, fix, update, update_all | 요청을 queue에 추가하고 별도 thread에서 실행; enable은 즉시 처리하는 분기도 존재 | 활성 디렉터리를 변경하지 않고 관리 후보로 변환하거나 직접 변경을 거부 |
-| `/customnode/install/git_url`, `/customnode/install/pip` | git URL·패키지 직접 설치 | host 직접 설치 차단, 관리 CLI 안내 |
-| disable, uninstall, update_comfyui | 코드·활성 상태·앱 변경 | 관리 상태 기록과 코드/환경을 함께 전환 |
-| `/snapshot/restore` | 다음 시작을 위한 restore 예약 | Manager snapshot을 정상 환경 rollback과 혼용하지 않음 |
-| `prestartup_script.py` | install-scripts 예약, lazy install/CNR switch/delete, snapshot 복원·재시작 | 기존 예약 파일이 있어도 직접 실행하지 않음; 파일을 조용히 삭제하지 않고 상태와 사유 기록 |
-| `manager_util.PIPFixer.fix_broken` | torch·OpenCV·frontend·자동 수정 목록의 패키지 변경 | 실행 환경 수정을 금지하고 환경 검사/rollback으로 대체 |
-| `cm-cli.py` | UI를 거치지 않는 install·post-install 등 | 관리 이미지 안에서는 직접 mutation 명령 거부; 별도 comfyctl 후보 경로 사용 |
-| 모델 설치 queue | 자체 download 경로 | 검증된 모델 다운로드 CLI와 영속 경로 사용 |
+```bash
+comfyctl node add OWNER/REPO --name NAME --commit FULL_SHA \
+  --required-node NODE_CLASS_ID --smoke-workflow graph.json --defer
+comfyctl env apply --restart
+comfyctl node disable NAME --restart
+comfyctl env rollback --restart
+comfyctl model add URL --type TYPE
+```
 
-원본 `security_level`과 전용 git/pip 허용 flag는 보조 설정이다. prestartup 예약과 PIPFixer까지 통제하는 실행 계정 경계가 아니며, root P0에서 immutable 환경 보호를 주장할 근거로 쓰지 않는다.
+원본 UI의 CNR/원격 catalog 갱신, snapshot 복원, PIP 설치, ComfyUI 업데이트, 공유와 분석 기능을 그대로 제공하는 것은 아니다. 버전은 upstream catalog의 고정 정보이며 최신 버전 확인 결과가 아니다. 모델 catalog 조회도 다운로드 완료 판정이나 모델 설치 엔진을 대체하지 않는다. Manager 전체 기능 호환으로 표시하지 않는다.
 
-## 구현 순서와 완료 조건
+## 실행 경계
 
-1. nonroot 서비스와 root 소유 기본 코드·GPU/host/worker 환경을 구성한다. ComfyUI 및 worker의 input/output/user/models 경로를 영속 storage로 맞춘다.
-2. comfyctl이 후보 세대의 최종 prefix에 코드·환경을 만들고 lock·설치 훅·GPU 변경 범위를 분석한다. 검증 전에는 활성 포인터를 바꾸지 않는다.
-3. Manager의 원래 검색·catalog·프런트엔드 assets는 보존하고 mutation은 명시적으로 제한한다. 검증된 구조적 확장점이 부족하므로 개별 호출을 광범위하게 monkey patch하여 설치 엔진으로 재사용하지 않는다. 제한 응답에 실제 사용할 수 있는 comfyctl 명령을 안내한다.
-4. hash guard 아래 prestartup/CLI/PIPFixer 경계를 처리하고 기존 예약 작업을 실패 주입한다. UI 차단만 확인한 결과는 완료 증거가 아니다.
-5. 실제 검색·UI asset, mutation 제한, 예약 작업 차단, CLI 우회 거부, 정상 후보 설치·disable·재시작·rollback/reset을 검사한다. 모델·입력·출력 보존과 부팅 후 비활성 상태 유지도 확인한다.
+원본의 `run_script` 한 곳만 바꾸면 queue worker·즉시 enable·prestartup·PIPFixer·CLI 경로가 남는다. [고정 소스·HTTP 경로 목록](evidence/manager-boundary-audit.json)에 이 경계를 기록했다.
 
-이 순서는 계획서 §7.1의 관리 CLI 대체 경로를 따른다. 제한만 있는 Manager와 사용할 수 없는 CLI를 최종 구현으로 제공하지 않는다. 새 노드도 upstream comfy-env → 어댑터 → 일부 격리 → 검토한 host 예외의 순서로 분류한다.
+`apply_manager_adapter.py`는 전체 원본 Python 파일 hash를 확인한 뒤 legacy Python을 즉시 실패하는 guard로 교체한다. package init과 prestartup만 검토한 adapter로 바꾼다. `cm-cli.py`, manager_core/server/util, PIPFixer와 공유 모듈을 직접 실행해도 설치 엔진을 불러오지 않는다. 원본 JS의 오류 문구 수정도 hash와 anchor 개수를 검사한다.
+
+prestartup은 기존 `install-scripts.txt`와 snapshot 예약 파일을 실행하거나 삭제하지 않는다. 경로·크기·hash를 `user/comfyctl/manager/blocked-startup.json`에 남긴다. `value` query를 포함하는 설정 변경과 허용 목록에 없는 Manager 경로도 거부한다. 프로세스는 일반 서비스 UID로 실행하며 이미지 및 관리 세대 코드·환경은 root 소유다. 이 정책은 원본 `security_level` 설정에 의존하지 않는다.
+
+Manager도 다른 기본 노드처럼 disable/enable할 수 있다. 활성 상태일 때만 `/comfyctl/manager/status`를 후보 및 실제 부팅의 필수 readiness endpoint로 검사한다.
+
+## 확인한 범위
+
+[Linux API 검사](../tests/evidence/manager-cpu-probe.json)는 catalog·설치 상태·JS 응답, 감사 목록의 모든 POST와 `/api` 별칭 차단, legacy CLI/module 차단, 예약 파일 보존과 미실행, 이미지 패키지 fingerprint 보존, Manager disable/enable 후 route·readiness 전환과 네트워크 없는 재부팅을 통과했다. [실제 Chrome UI 검사](../tests/evidence/manager-browser-cpu.json)는 메뉴·검색·설치 상태와 변경 버튼의 CLI 안내를 확인했다.
+
+[같은 이미지의 CLI lifecycle](../tests/evidence/manager-image-node-install-cpu.json)은 native comfy-env fixture의 자동 lock·실제 설치·계산·재부팅·disable·rollback·손상 감지·reset을 통과했다. 공개 노드 전체 호환이나 GPU/RunPod 영속 볼륨 검증으로 확대하지 않는다. CI에서도 Manager 검사를 별도 runtime preview에 적용한다. 현재 GHCR worker 후보에는 이 runtime을 아직 게시하지 않았다.

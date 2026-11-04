@@ -347,3 +347,13 @@ CI의 별도 runtime preview에도 같은 빌더 gate를 추가했다. 아직 �
 단위 검사는 84개가 통과했다. 동일 검사를 원격 runtime preview에도 추가했다. Manager, update/GC, 동적 schema, 이미지 업데이트/rebase와 최종 두 GPU·RunPod 검증은 계속 남아 있다.
 
 사용자 설정 차단이 포함된 동일 image ID `sha256:6c585528eaffa06c99f950d258342bc4fe87d5e6721928e046174f2c90a0bfde`의 [runtime/CLI 회귀 검사](../tests/evidence/auto-resolve-image-runtime-cpu.json)도 통과했다.
+
+## P3 Manager UI/catalog와 관리 CLI 연결
+
+고정 Manager의 원본 JS/catalog를 읽기 전용 adapter에 연결했다. legacy Python은 원본 hash 확인 뒤 guard로 대체하고 queue·설정 변경·snapshot·PIPFixer·직접 CLI 설치 경로를 차단했다. 예약 파일은 실행·삭제하지 않고 별도 보고서에 기록한다. 원본 설치 엔진 전체 호환을 주장하지 않는다. [지원 범위](manager-integration.md)에 실제 사용할 `comfyctl` 명령과 제한을 기록했다.
+
+[실제 Chrome UI](../tests/evidence/manager-browser-cpu.json)에서 메뉴·6,025개 catalog·KJNodes 검색·현재 설치 상태와 변경 버튼의 CLI 안내를 확인했다. [같은 이미지의 native node 설치 lifecycle](../tests/evidence/manager-image-node-install-cpu.json)은 자동 lock·private 설치·계산·재시작·disable·rollback·파일 손상 감지·reset을 통과했다. [runtime/CLI 회귀](../tests/evidence/manager-image-runtime-cpu.json)도 통과했다. 이들은 로컬 Linux CPU 증거이며 GPU와 RunPod 영속 볼륨 검증은 별도다. 단위 검사 87개와 소스/lock 재현 검사를 통과했다.
+
+[Actions #41820449748](https://github.com/Bogyie/runpod-comfyui/actions/runs/41820449748)은 게시 후 registry 검증 도중 기존 60분 job 제한을 넘겨 취소됐다. 성공 실행으로 집계하지 않는다. 늘어난 후보 설치·복구 검사를 유지하기 위해 제한을 120분으로 변경하고 Manager gate도 별도 runtime preview에 추가했다. 시간 제한 변경은 빌드 성능 개선 수치가 아니다. Manager runtime의 GHCR 게시와 원격 검증은 아직 완료하지 않았다.
+
+[Manager API/lifecycle 검사](../tests/evidence/manager-cpu-probe.json)도 동일 이미지에서 통과했다. 감사한 모든 POST와 `/api` 별칭, 직접 legacy 진입점을 거부했고 예약 파일 보존·미실행, disable 후 route 제거·enable 후 readiness 복구, 동일 볼륨의 오프라인 부팅을 확인했다. 임시 컨테이너와 볼륨은 정리했다.

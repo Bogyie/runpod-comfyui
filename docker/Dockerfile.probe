@@ -117,6 +117,7 @@ RUN useradd --uid 1000 --user-group --no-create-home --home-dir /workspace/state
 COPY --link --from=tools-builder /opt/comfyctl/venv/ /opt/comfyctl/venv/
 COPY tools.txt /opt/locks/tools.txt
 COPY cli-source/ /opt/comfyctl/src/comfyctl/
+COPY runtime-nodes/ /opt/probe/ComfyUI/custom_nodes/
 COPY --chmod=0755 comfyctl /usr/local/bin/comfyctl
 COPY runtime/ /opt/runtime/control/
 ENV COMFYCTL_SERVICE_UID=1000 \

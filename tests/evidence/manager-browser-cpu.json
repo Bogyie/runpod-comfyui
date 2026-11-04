@@ -1,0 +1,18 @@
+{
+  "kind": "manual-native-chrome-manager-ui-check",
+  "image_id": "sha256:5f573e722fa1a5eefe31591af7dc4103d9e260c1e68c321ea2abab9463f9ece2",
+  "scope": "Local CPU runtime UI only; no GPU or remote browser certification",
+  "manager_menu": "V3.42",
+  "catalog_entries": 6025,
+  "search": "KJNodes",
+  "search_results": 5,
+  "installed_kjnodes_actions": [
+    "Try update",
+    "Disable",
+    "Uninstall"
+  ],
+  "manager_recognized_as_installed": true,
+  "disable_result": "Node changes use comfyctl in the administrator terminal. See the managed image notice for commands.",
+  "workflow_preserved": ".work/manager-ui-validation.json",
+  "status": "passed"
+}

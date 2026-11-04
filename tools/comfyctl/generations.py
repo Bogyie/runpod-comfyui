@@ -70,6 +70,10 @@ def validate(store, profile, smoke_workflow=None):
                             node = profile['nodes'][name]
                             if node['enabled'] and any(objects[item].get('python_module') != 'custom_nodes.' + node['directory'] for item in node['required_nodes']):
                                 raise SelectionError('Added node catalog was supplied by another plugin')
+                        for node in profile['nodes'].values():
+                            if node['enabled']:
+                                for path in node.get('required_endpoints', []):
+                                    read_json(base + path)
                         break
                     except (OSError, TimeoutError):
                         if time.monotonic() > deadline:

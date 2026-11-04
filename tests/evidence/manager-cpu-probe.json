@@ -1,0 +1,161 @@
+{
+  "kind": "managed-manager-cpu-gate",
+  "image_id": "sha256:5f573e722fa1a5eefe31591af7dc4103d9e260c1e68c321ea2abab9463f9ece2",
+  "scope": "Pinned original Manager frontend/catalog with read-only adapter and legacy entrypoint guards; CLI installation is a separate gate. No GPU/network-volume certification",
+  "status": "passed",
+  "manager": {
+    "mode": "managed-cli",
+    "manager_commit": "4c50a2bc8b9e684d8a85930567957470b952bebe",
+    "catalog_entries": 6025,
+    "direct_mutations": false,
+    "guidance": "This image manages node and environment changes with comfyctl.\nNode install: comfyctl node add OWNER/REPO --name NAME --commit FULL_SHA --required-node NODE_CLASS_ID --smoke-workflow graph.json --defer\nApply after queued work: comfyctl env apply --restart\nDisable: comfyctl node disable NAME --restart\nRecover: comfyctl env rollback --restart (or env reset --restart)\nModels: comfyctl model add URL --type TYPE\nRun these in the administrator terminal. Manager direct changes are disabled."
+  },
+  "ui_catalog_rows": 6025,
+  "installed": [
+    {
+      "author": "Dr.Lt.Data",
+      "title": "ComfyUI-Manager",
+      "id": "manager",
+      "reference": "https://github.com/ltdrdata/ComfyUI-Manager",
+      "files": [
+        "https://github.com/ltdrdata/ComfyUI-Manager"
+      ],
+      "install_type": "git-clone",
+      "description": "ComfyUI-Manager itself is also a custom node.",
+      "state": "enabled",
+      "version": "unknown",
+      "active_version": "4c50a2bc8b9e684d8a85930567957470b952bebe",
+      "update-state": "false",
+      "managed": true
+    },
+    {
+      "author": "Kosinkadink",
+      "title": "ComfyUI-VideoHelperSuite",
+      "id": "vhs",
+      "reference": "https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite",
+      "files": [
+        "https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite"
+      ],
+      "install_type": "git-clone",
+      "description": "Nodes related to video workflows",
+      "state": "enabled",
+      "version": "unknown",
+      "active_version": "4d907bee61e92c2e65af3bd6383a4e4d356126d1",
+      "update-state": "false",
+      "managed": true
+    },
+    {
+      "author": "kijai",
+      "title": "KJNodes for ComfyUI",
+      "id": "kjnodes",
+      "reference": "https://github.com/kijai/ComfyUI-KJNodes",
+      "files": [
+        "https://github.com/kijai/ComfyUI-KJNodes"
+      ],
+      "install_type": "git-clone",
+      "description": "Various quality of life -nodes for ComfyUI, mostly just visual stuff to improve usability.",
+      "state": "enabled",
+      "version": "unknown",
+      "active_version": "ab72eda7ffad6280422d71ab7d54d3fb87c0ba18",
+      "update-state": "false",
+      "managed": true
+    },
+    {
+      "author": "MohammadAboulEla",
+      "title": "ComfyUI-iTools",
+      "reference": "https://github.com/MohammadAboulEla/ComfyUI-iTools",
+      "files": [
+        "https://github.com/MohammadAboulEla/ComfyUI-iTools"
+      ],
+      "install_type": "git-clone",
+      "description": "The iTools are some quality of life nodes, like read a possible prompt used to create an image, save a prompt to file as a new line, read prompts from a multiline file.",
+      "state": "enabled",
+      "version": "unknown",
+      "active_version": "a8f2fef227ca5b0cb9321c39ac7b874a906b1a5b",
+      "update-state": "false",
+      "managed": true
+    },
+    {
+      "author": "pznodes",
+      "title": "ComfyUI-DepthAnythingV3",
+      "reference": "https://github.com/PozzettiAndrea/ComfyUI-DepthAnythingV3",
+      "files": [
+        "https://github.com/PozzettiAndrea/ComfyUI-DepthAnythingV3"
+      ],
+      "install_type": "git-clone",
+      "description": "ComfyUI nodes to use Depth Anything V3 - the latest depth estimation model from ByteDance. For now monocular depth, camera pose estimation and 3D point clouds/gaussians are supported. Models autodownload from HuggingFace (depth-anything org). This is a first draft, let me know if you have any feedback! :)",
+      "state": "enabled",
+      "version": "unknown",
+      "active_version": "20ef6c8ccf8d57a0ad6f6fa7031739eb8489f2a4",
+      "update-state": "false",
+      "managed": true
+    },
+    {
+      "author": "PozzettiAndrea",
+      "title": "ComfyUI-SAM3",
+      "reference": "https://github.com/PozzettiAndrea/ComfyUI-SAM3",
+      "files": [
+        "https://github.com/PozzettiAndrea/ComfyUI-SAM3"
+      ],
+      "install_type": "git-clone",
+      "description": "ComfyUI integration for Meta&#x27;s SAM3 model enabling open-vocabulary image segmentation using natural language text prompts, with automatic model download, geometric refinement, and flexible confidence thresholds.",
+      "state": "enabled",
+      "version": "unknown",
+      "active_version": "de0ff5d2c2ea435d29f800abfa568cffdfb94773",
+      "update-state": "false",
+      "managed": true
+    }
+  ],
+  "static_assets_checked": 18,
+  "denied_mutations": [
+    "/customnode/fetch_updates",
+    "/manager/queue/update_all",
+    "/snapshot/remove",
+    "/snapshot/restore",
+    "/snapshot/save",
+    "/customnode/import_fail_info",
+    "/manager/queue/reinstall",
+    "/manager/queue/reset",
+    "/manager/queue/install",
+    "/manager/queue/start",
+    "/manager/queue/fix",
+    "/customnode/install/git_url",
+    "/customnode/install/pip",
+    "/manager/queue/uninstall",
+    "/manager/queue/update",
+    "/manager/queue/update_comfyui",
+    "/comfyui_manager/comfyui_switch_version",
+    "/manager/queue/disable",
+    "/manager/queue/install_model",
+    "/manager/preview_method",
+    "/manager/db_mode",
+    "/manager/policy/component",
+    "/manager/policy/update",
+    "/manager/channel_url_list",
+    "/manager/reboot",
+    "/manager/component/save",
+    "/manager/component/loads",
+    "/manager/set_openart_auth",
+    "/manager/youml/settings",
+    "/manager/set_esheep_workflow_and_images",
+    "/manager/share"
+  ],
+  "api_aliases_denied": true,
+  "legacy_entrypoints_denied": [
+    "cm-cli.py",
+    "glob/manager_util.py",
+    "glob/manager_core.py",
+    "glob/manager_server.py",
+    "glob/share_3rdparty.py",
+    "git_helper.py"
+  ],
+  "pending_files_preserved": {
+    "restore-snapshot.json": "36973eb5adcd5ac21c9900d3a49d705a94b123efa627a9ba114401bcec778135",
+    "install-scripts.txt": "88631dca9d07566312222aa958ac05701c3fa9e34766ad8beef25b4c5c0e9901"
+  },
+  "pending_actions": "never-executed",
+  "offline_boot": "passed",
+  "image_package_fingerprint_unchanged": true,
+  "manager_disable_enable_restart": "passed",
+  "container_and_volume_removed": true
+}

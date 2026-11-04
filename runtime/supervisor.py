@@ -98,7 +98,7 @@ def main():
     while not flags['stop']:
         try:
             environment, required = selected_environment()
-            for name in ['COMFYCTL_COMFY_ROOT', 'COMFYCTL_GENERATION_ID', 'COMFYCTL_WORKER_MAP_FILE', 'COMFYCTL_HOST_PYTHON']:
+            for name in ['COMFYCTL_COMFY_ROOT', 'COMFYCTL_GENERATION_ID', 'COMFYCTL_WORKER_MAP_FILE', 'COMFYCTL_HOST_PYTHON', 'COMFYCTL_REQUIRED_ENDPOINTS']:
                 os.environ.pop(name, None)
             os.environ.update(environment)
             status('starting')
@@ -153,6 +153,8 @@ def main():
                     info = get('/comfyctl/runtime/idle')
                     if info['generation_id'] != os.environ['COMFYCTL_GENERATION_ID']:
                         raise RuntimeError('Runtime control endpoint belongs to another generation')
+                    for path in json.loads(os.environ.get('COMFYCTL_REQUIRED_ENDPOINTS', '[]')):
+                        get(path)
                 if not ready or time.monotonic() - last_ready >= 15:
                     status('ready', child_pid=child.pid)
                     last_ready = time.monotonic()

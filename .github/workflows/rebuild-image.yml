@@ -29,7 +29,8 @@ jobs:
   image:
     needs: checks
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    # Full candidate install/recovery gates now exceed the old one-hour window.
+    timeout-minutes: 120
     permissions:
       contents: read
       packages: write
@@ -129,6 +130,11 @@ jobs:
           RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
         run: |
           uv run --frozen python tools/rebuild/probe_generations.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/generations-preview.json
+      - name: Verify Manager catalog and guarded changes
+        env:
+          RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
+        run: |
+          uv run --frozen python tools/rebuild/probe_manager.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/manager-preview.json
       - name: Verify drained transitions and journal recovery in runtime preview
         env:
           RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime

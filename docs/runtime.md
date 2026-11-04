@@ -43,3 +43,7 @@ uv run --frozen python tools/rebuild/probe_runtime.py
 CI는 기존 worker 후보 외에 runtime preview를 별도로 빌드·검사한다. preview는 아직 GHCR 게시 대상이 아니며, 게시한 worker 후보 digest와 runtime preview의 검증 범위를 혼동하지 않는다. 최종 Manager·관리 CLI 통합 뒤 사용자용 target과 게시 경로를 합친다.
 
 [환경 진단](environment-diagnostics.md)은 PID namespace·이미지 identity·heartbeat와 실제 host process를 대조해 이전 컨테이너의 상태 파일을 구분한다. 공개 다운로드는 선택적인 `probe_runtime.py --live-downloads` 검사이며 기본 CI에서는 외부 모델을 받지 않는다.
+
+## Manager 읽기 전용 연결
+
+runtime preview는 5개 계산 worker 외에 Manager UI/catalog adapter를 포함한다. Manager가 켜져 있으면 `/comfyctl/manager/status`까지 응답해야 첫 readiness를 인정한다. 서비스는 원본 Manager 설치 엔진을 실행하지 않는다. 설치·복구는 관리자 `comfyctl`로 수행하며, [지원 범위와 검증](manager-integration.md)을 따른다. GHCR에 게시한 raw worker 후보와 이 runtime preview는 별도 이미지다.

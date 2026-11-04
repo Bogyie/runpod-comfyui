@@ -155,6 +155,16 @@ def main() -> None:
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
             list(pool.map(prepare_node,definitions['workers'].values()))
     if args.target == 'runtime-probe':
+        runtime_nodes = context / 'runtime-nodes'
+        if runtime_nodes.exists():
+            shutil.rmtree(runtime_nodes)
+        manager_source = lock['sources']['manager']
+        manager_data = fetch(manager_source['archive_url'])
+        if digest(manager_data) != manager_source['archive_sha256']:
+            raise ValueError('Manager source archive hash mismatch')
+        materialize(manager_data, runtime_nodes / 'ComfyUI-Manager')
+        from apply_manager_adapter import apply as apply_manager
+        apply_manager(runtime_nodes / 'ComfyUI-Manager', manager_source)
         control = context / 'runtime'
         if control.exists():
             shutil.rmtree(control)
@@ -177,6 +187,8 @@ def main() -> None:
                                         ROOT / 'locks/gpu/linux-amd64-cu128.txt', ROOT / 'locks/host/linux-amd64-cu128.txt',
                                         ROOT / 'tools/rebuild/apply_comfy_env_patch.py',
                                         ROOT / 'tools/rebuild/link_gpu_packages.py',
+                                        ROOT / 'tools/rebuild/apply_manager_adapter.py',
+                                        *sorted((ROOT / 'build/adapters/manager').glob('*.py')),
                                         *sorted(p for p in (ROOT / 'runtime').rglob('*') if p.is_file() and '__pycache__' not in p.parts),
                                         *sorted((ROOT / 'tools/comfyctl').glob('*.py'))]}
         runtime_id = digest(json.dumps(identity_inputs, sort_keys=True).encode())
@@ -194,8 +206,12 @@ def main() -> None:
                     'gpu_lock_sha256': definitions['gpu_lock_sha256'],
                     'workers': {item['environment']: '/opt/workers/' + item['environment'] for item in definitions['workers'].values()},
                     'nodes': {name: {'directory': item['plugin_directory'], 'commit': item['commit'],
+                                     'repository': lock['sources'][item['source']]['repository'],
                                      'enabled': True, 'required_nodes': required[name],
                                      'lock_sha256': item['lock_sha256']} for name, item in definitions['workers'].items()}}
+        baseline['nodes']['manager'] = {'directory':'ComfyUI-Manager','commit':manager_source['commit'],
+            'repository':manager_source['repository'],'enabled':True,'required_nodes':[],
+            'required_endpoints':['/comfyctl/manager/status'],'lock_sha256':baseline['host_lock_sha256']}
         (control / 'baseline.json').write_text(json.dumps(baseline, indent=2, sort_keys=True) + '\n')
     if args.prepare_only:
         print(context)

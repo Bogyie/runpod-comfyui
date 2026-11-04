@@ -106,8 +106,8 @@ class Store:
             raise SelectionError('Generation changed the image node catalog')
         for name, original in self.base['nodes'].items():
             node = profile['nodes'][name]
-            if not isinstance(node['enabled'], bool) or any(node[key] != self.base['nodes'][name][key]
-                    for key in ['directory', 'commit', 'required_nodes', 'lock_sha256']):
+            if not isinstance(node['enabled'], bool) or set(node) != set(original) or any(node[key] != value
+                    for key, value in original.items() if key != 'enabled'):
                 raise SelectionError('Unreviewed node definition in state-only generation')
         if managed:
             self.verify_managed(profile, verify)
@@ -359,4 +359,5 @@ def selected_environment():
     for node in profile['nodes'].values():
         if node['enabled']:
             required.update(node['required_nodes'])
+    env['COMFYCTL_REQUIRED_ENDPOINTS'] = json.dumps(sorted({path for node in profile['nodes'].values() if node['enabled'] for path in node.get('required_endpoints', [])}))
     return env, required
