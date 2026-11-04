@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "kind": "installed-cli-node-plan-linux-cpu",
+  "image_id": "sha256:1c70dcf4088f20836d46a57fbdd5bd6ed1bfab7937ecec5d414f348572c4f6f9",
+  "scope": "Installed private CLI, read-only root, no network, hash-pinned real SAM3 archive; no node installation or inference",
+  "archive_sha256": "106197891c87dc8068a24fc9f6338b74a0233ad5c15f13df25ce0ee6f8720d18",
+  "plan_sha256": "06c3dc664a6ef81ab9d86bea2f84ccbf967cac631ea231e40247be800810c345",
+  "files": 53,
+  "classification": "native-comfy-env-candidate",
+  "network": "none",
+  "containers_removed": true
+}

@@ -1,0 +1,120 @@
+{
+  "comfy_env_patch": {
+    "kind": "experimental-build-and-isolation-guards",
+    "original": {
+      "environment/cache.py": "27919a3efd7f3596187159438c8f2b829ef5736518d9fee815122c408fbd31e4",
+      "install/workspace.py": "2bee69c642922c82514dda3db83fe5553220471ffaabfbf2bc6dda1ebfed19bb",
+      "isolation/metadata.py": "d50d45626b9919cd36412c6163c2b4a0168bf863c79a65730db7d1efef320844",
+      "isolation/workers/_ipc_parent.py": "9a4e5402a8076d1d56627f03eea28d69fe465ead63da2f99173f1fc1779aabc1",
+      "isolation/workers/_persistent_worker.py": "77e86335ff3417bd2442b5db1033d78770c61d76b77c831fb38cdbe0c79460fb",
+      "isolation/wrap.py": "32ab3fd563ee08719e79765be5e21b049db6900349815b3da53e358f0c67cbb5"
+    },
+    "patched": {
+      "environment/cache.py": "0407ab55685f2be972c04332293d23190bede090b3a32b588a05420a90d91d76",
+      "install/workspace.py": "7cb0cbaf6ff60f4a6a840c90e24edf3d7f5a8e43beba86a029b5c1482100922f",
+      "isolation/metadata.py": "f1f7f86492578071060cfe6a902e09d043f152c8acd493ac400c4e43e628d560",
+      "isolation/workers/_ipc_parent.py": "97552fc4674eefcfc7b45c20edfa397f2b2de788870a0bb5fd8bbe908d93a2a7",
+      "isolation/workers/_persistent_worker.py": "2646836d01ada0588ee260762ca5084e600b6c5a52e7aa1741c6b1b67f955e33",
+      "isolation/wrap.py": "cb2858d34ab0bed95bfb0c1f801c1dd2c8e34e03b818d6d5b60c298858b952a9"
+    },
+    "upstream_version": "0.3.89"
+  },
+  "frontend": {
+    "root_http_status": 200,
+    "script": "/assets/index-CqDKM-zt.js",
+    "script_bytes": 5010,
+    "script_sha256": "baaf9d5a42ebbc507d29b31043da00242366f594fe6cb4eae09731caca26de8e"
+  },
+  "graph": {
+    "1": {
+      "class_type": "EmptyImage",
+      "inputs": {
+        "batch_size": 1,
+        "color": 0,
+        "height": 64,
+        "width": 64
+      }
+    },
+    "2": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "filename_prefix": "host-probe",
+        "images": [
+          "1",
+          0
+        ]
+      }
+    }
+  },
+  "image_id": "sha256:c78ee787097e7ed4000e62d5a54e22837ff6f1ed76a4ccafaae1b07616d111ce",
+  "image_lock_hashes": {
+    "gpu.txt": "a7471e51bd75cc8c6dd3470ba72bedb837b3de77f6f96e97f51e1b405e672549",
+    "host.txt": "9f3244bb6dd575b59fb805a1fc7a292dd9cd6d1ffa5653608e36805a6fa97243"
+  },
+  "kind": "linux-amd64-core-cpu-gate",
+  "output_png_sha256": "9f2b282550943c3df88da03258a86dc4e0561d2f7265be3bc2038cddf9ede9d1",
+  "ready_seconds": 74.341,
+  "scope": "ComfyUI core API and model-free CPU graph only; custom nodes and GPU remain unverified",
+  "system_stats": {
+    "devices": [
+      {
+        "index": null,
+        "name": "cpu",
+        "torch_vram_free": 14760173568,
+        "torch_vram_total": 16759308288,
+        "type": "cpu",
+        "vram_free": 14760173568,
+        "vram_total": 16759308288
+      }
+    ],
+    "system": {
+      "argv": [
+        "main.py",
+        "--cpu",
+        "--use-pytorch-cross-attention",
+        "--listen",
+        "0.0.0.0",
+        "--port",
+        "8188"
+      ],
+      "comfy_package_versions": [
+        {
+          "installed": "1.57.6",
+          "name": "comfyui-frontend-package",
+          "required": "1.57.6"
+        },
+        {
+          "installed": "0.11.101",
+          "name": "comfyui-workflow-templates",
+          "required": "0.11.101"
+        },
+        {
+          "installed": "0.5.16",
+          "name": "comfyui-embedded-docs",
+          "required": "0.5.16"
+        },
+        {
+          "installed": "0.6.0",
+          "name": "comfy-aimdo",
+          "required": "0.6.0"
+        },
+        {
+          "installed": "0.2.40",
+          "name": "comfy-kitchen",
+          "required": "0.2.40"
+        }
+      ],
+      "comfyui_version": "0.44.0",
+      "deploy_environment": "local-git",
+      "embedded_python": false,
+      "installed_templates_version": "0.11.101",
+      "os": "linux",
+      "python_version": "3.11.18 (main, Oct 28 2026, 02:05:49) [GCC 12.2.0]",
+      "pytorch_version": "2.10.0+cu128",
+      "ram_free": 14760173568,
+      "ram_total": 16759308288,
+      "required_frontend_version": "1.57.6",
+      "required_templates_version": "0.11.101"
+    }
+  }
+}

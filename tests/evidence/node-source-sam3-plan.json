@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "kind": "node-source-analysis",
+  "repository": "PozzettiAndrea/ComfyUI-SAM3",
+  "commit": "de0ff5d2c2ea435d29f800abfa568cffdfb94773",
+  "archive_sha256": "106197891c87dc8068a24fc9f6338b74a0233ad5c15f13df25ce0ee6f8720d18",
+  "expanded_bytes": 35338080,
+  "files": {
+    ".github/workflows/pr-gate.yml": "7555a95b75ca4c95abf166972d88f4f77312cd1ad098fafa430625792301eb4c",
+    ".github/workflows/publish.yml": "d295c4a9e854a0a4990e3f46c45fde39eb4c3aa11afbdc63289f4ec076cbdb4c",
+    ".github/workflows/run-tests.yml": "e8172719c3e8cba545130cdb8ec4e62d6207fddbc1d2ef17aaaf8227d7a487f8",
+    ".gitignore": "4f2110b1e4b4218f97fc41973ef679af53f382f7e08f238ee4515cbbb3eb6078",
+    "LICENSE": "6e3a5813d1c8e8467eeb7e8be0a9d41a4d23eb7af1fed7b56230f11adeadd0be",
+    "README.md": "9e3f22642e49bc7a3002005fb8890789ea1b2ca4576967d42ff26fd27f3ceffc",
+    "__init__.py": "5a286c773c8a66e1dfe1cfa5837f07df1d89ad25528bab02d4f6f325ea0deff0",
+    "assets/bedroom.mp4": "1be76d5d19b066e8ad7c565d88a98e11a8f8d456a707508a7aa35390def70e30",
+    "assets/example_image.jpg": "979f120edcb0050a12d5b4a1f1eaf6bc888b89f675524e7ffcf6ae5b77aa6bc4",
+    "assets/groceries.jpg": "7073dfecb5a3ecafb6152124113163a0ea1c1c70f92999ec892b519eca63e3d3",
+    "assets/icon.png": "bb31f112d4a6ec9e571f65ba7b8384b61e78959248aaf078828700a38268926e",
+    "assets/image.png": "72785412200dcb9f5c6bc4eaa3018172293f67836627708e6bce78150109af15",
+    "comfy-env-root.toml": "c459bc364ecae7418076b4a8ebb3f9a1ca28eac9d2c0719c73e89be029c80047",
+    "comfy-test.toml": "5d0d9ea5732419a16aa14f78b9c6f8755813858a884e0e934c6a858a9d9696d0",
+    "docs/bbox.png": "0409ab5b0b7d54a9c8d453a8ee242c793ee37b4e651ba32685480b2695420fbd",
+    "docs/point.png": "abaae0ffa7c1714682b1611cc67952f498e863cf8202f0cac60eb28ad88943e9",
+    "docs/text_prompt.png": "e35f346acd6647dbd3ae4546b267159f392e2cc32a5279666e63b85d53756c0c",
+    "docs/video.png": "fef951d4660c05681a824a7120a0bb3763ad35aec3a7c5497d92668627f14561",
+    "install.py": "5873ed28c081095935535b81e82d5fcfda808159f49d75202b8e4227e28de7ec",
+    "nodes/__init__.py": "3230f694adfa7d63cc97f07c17308d5f9e2f4bb63c73c25998b6da4b30e8f0dc",
+    "nodes/_model_cache.py": "f50fcc79e0b6aef68bea89dee63d04eda90a2562923be9552f21d87008ba6672",
+    "nodes/comfy-env.toml": "1b22db4bc6c7f36f39567c36d59e37fec1f30f34d318e4b3fcd4aec322439d01",
+    "nodes/image_utils.py": "025ddbc81469b67cef73cec71e13136722245ce0ae83433fe3f930d40a063999",
+    "nodes/inference_reconstructor.py": "f486c311bc01ba401b0d097ae76ee89565e02c3bec8e1f06f4607fba139f1486",
+    "nodes/load_model.py": "bdfd3bbf99a19232667dce123811b76af775afa9b23b73734fa62406e38c3f90",
+    "nodes/sam3/__init__.py": "3574318d38f957e187fab71174798f1505cf5d7dc06bf9f4953460635b40e08d",
+    "nodes/sam3/attention.py": "47aafa8850fb4120fcef151fb2972820dd955173ad195e46105b18900aa0ecef",
+    "nodes/sam3/bpe_simple_vocab_16e6.txt.gz": "924691ac288e54409236115652ad4aa250f48203de50a9e4722a6ecd48d6804a",
+    "nodes/sam3/model.py": "791c02267c2c40fc2d016279e2651970481e7e10df1c08a29669ec401e666eb9",
+    "nodes/sam3/perflib.py": "670b9e8d01a089e13119a91ca416d5347f461fe5853cc8e3a0a390c4a5d22981",
+    "nodes/sam3/predictor.py": "8b49037b188afd34769501cfe4730122e8cf520aabb02b7d2a38f41f9af543c3",
+    "nodes/sam3/text_encoder.py": "1f5945684de8d8d48a00e04ff3e8b80039112cc81a64d74f17da5d1e3d92b670",
+    "nodes/sam3/tokenizer.py": "157f6feff027e6b61f212e9ea8475b42ffd4924ca5ca484bac13fbf082fd2097",
+    "nodes/sam3/utils.py": "6cee01eed4f3408e1cf7363c3a186f80daae915b7a676b6e46429b569b44ca76",
+    "nodes/sam3_interactive.py": "d6b6c007583f23b566155e5b00d6ea1c8dc57579e782398b2252ca33eb1c02a6",
+    "nodes/sam3_model_patcher.py": "cc4474767fab0ca80147faf3449a00de7eb60f680d8bb9b941d8377a00922cf4",
+    "nodes/sam3_video_nodes.py": "32efc937afe60f23fc3901c21fc61a52f11c2427c9a0e36de5168c2e9b1e6e2b",
+    "nodes/segmentation.py": "1bf1af80d1f62fe25da7954709c9ac3a3979f1308e7c631131c62f229c2e0748",
+    "nodes/utils.py": "2c97a341680a4406e165f769596c8490b36b45b8df1f4061096e20769449851a",
+    "nodes/video_state.py": "b43bb51ff863b793585c3b6c84ff8c3580f3c4413abf0342b1032acfa42ce51b",
+    "prestartup_script.py": "32e38d8a7d70983d94d16c5786c499247656403619c2d0d3c16dca0cf4fab686",
+    "pyproject.toml": "0fba2160a3b163f1e97ec7c4978aba8412794a87bfed79cda4ec59ed6073fa52",
+    "requirements.txt": "039d8fe916d5bfc294121001cbc7808121d2892065d9cc9085351b1eae83681d",
+    "web/sam3_bbox_widget.js": "d5e90dd7b0a3c796ff0f4729956fd4d839b263e869892db0605f3988768cc7e1",
+    "web/sam3_interactive_widget.js": "f93c8bdb82a87b9a68db308e73f9df4b6bc61ac3781a5a529f71f4258c5dc94d",
+    "web/sam3_multiregion_widget.js": "c90a2a6d9d94d9dd7995a6f563930f4bd78cca5f2e753d1c9b6240f343338a1f",
+    "web/sam3_points_widget.js": "36ea834ba34e662ce9904531749677645d5222cc92d6c2e4de0af4259621f31d",
+    "web/sam3_video_dynamic.js": "ea91dbb05afc3837b0017891efceb02a56c0747ce8a790e81fe2a3ae6188aac5",
+    "workflows/image_seg_point.json": "71c61f13f6c90b49dc37f9c098c3e9cb7c766bef88adef560cb028d85177c0f2",
+    "workflows/image_seg_text.json": "f6198ca3ec8c401e2b0a7224f0f3e1ccd1b43678e4ee03442a360b90421954de",
+    "workflows/scene_seg.json": "c474cb79d5b20cc7c21bc56f59cd76607f6f7bdeeafdb4ef97a69b5ee3b2cb48",
+    "workflows/scene_seg_interactive.json": "bcad50b0c8f59681c75d13deb9d3bec000add4310d6967c1e06f949fd336f219",
+    "workflows/video_point_prompt.json": "929a74ed4645fdb165a73482196de1bc7ad45fcc234614fe7705ab970a51fb67"
+  },
+  "classification": "native-comfy-env-candidate",
+  "classification_evidence": {
+    "worker_configurations": [
+      "nodes/comfy-env.toml"
+    ],
+    "register_nodes_calls": [
+      {
+        "path": "__init__.py",
+        "line": 3
+      }
+    ]
+  },
+  "configuration": {
+    "comfy-env-root.toml": {
+      "node_reqs": {
+        "ComfyUI-VideoHelperSuite": "Kosinkadink/ComfyUI-VideoHelperSuite",
+        "ComfyUI-Multiband": "PozzettiAndrea/ComfyUI-Multiband"
+      }
+    },
+    "nodes/comfy-env.toml": {
+      "cuda": {
+        "packages": [
+          "cc_torch",
+          "torch_generic_nms",
+          "flash-attn"
+        ]
+      },
+      "dependencies": {
+        "av": "*",
+        "ffmpeg": "*"
+      },
+      "pypi-dependencies": {
+        "safetensors": ">=0.4.0",
+        "timm": "*",
+        "ftfy": "*",
+        "regex": "*",
+        "iopath": "*",
+        "huggingface_hub": "*",
+        "einops": "*",
+        "opencv-python": "*",
+        "psutil": "*",
+        "pycocotools": "*",
+        "scikit-image": "*",
+        "numpy": "*",
+        "pillow": "*",
+        "tqdm": "*",
+        "typing_extensions": "*",
+        "comfy-aimdo": "*",
+        "comfy-kitchen": "*",
+        "hf_xet": "*",
+        "requests": "*",
+        "transformers": "*"
+      },
+      "env_vars": {
+        "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+      }
+    },
+    "pyproject.toml": {
+      "project": {
+        "name": "comfyui-sam3",
+        "description": "Warning, uses experimental package `comfy-env` to attempt a one click isolated install. Will download and use pixi package manager. SAM 3 (Segment Anything Model 3) integration for ComfyUI. Image and video segmentation with text prompts, boxes, and points",
+        "version": "0.1.21",
+        "license": {
+          "file": "LICENSE"
+        },
+        "urls": {
+          "Repository": "https://github.com/PozzettiAndrea/ComfyUI-SAM3"
+        }
+      },
+      "tool": {
+        "comfy": {
+          "PublisherId": "pznodes",
+          "DisplayName": "SAM3",
+          "Icon": "https://raw.githubusercontent.com/PozzettiAndrea/ComfyUI-SAM3/main/assets/icon.png"
+        }
+      }
+    }
+  },
+  "requirements": [
+    {
+      "path": "requirements.txt",
+      "requirements": [
+        "comfy-env==0.3.89",
+        "comfy-3d-viewers==0.2.44"
+      ],
+      "review_required_lines": [],
+      "gpu_requirements": []
+    }
+  ],
+  "hooks": [
+    "install.py",
+    "prestartup_script.py"
+  ],
+  "unparsed_text": [],
+  "review_required": [
+    "Install/startup/build hooks require review; no hook was executed",
+    "GPU requirements need comparison with the immutable image GPU lock"
+  ],
+  "installation_ready": false,
+  "scope": "Static source inspection only; no import, hook, dependency resolution, installation or active selection change",
+  "plan_sha256": "06c3dc664a6ef81ab9d86bea2f84ccbf967cac631ea231e40247be800810c345"
+}

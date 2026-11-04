@@ -1,0 +1,439 @@
+{
+  "conclusion": "success",
+  "databaseId": 41807745754,
+  "headSha": "2f4c5262015e73ba755eba50f920688ba1ff1567",
+  "jobs": [
+    {
+      "completedAt": "2026-11-04T09:28:35Z",
+      "conclusion": "success",
+      "databaseId": 126498914503,
+      "name": "checks / static",
+      "startedAt": "2026-11-04T09:28:14Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-04T09:28:17Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-04T09:28:15Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:28:18Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 2,
+          "startedAt": "2026-11-04T09:28:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:28:18Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 3,
+          "startedAt": "2026-11-04T09:28:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:28:24Z",
+          "conclusion": "success",
+          "name": "Install pinned resolver",
+          "number": 4,
+          "startedAt": "2026-11-04T09:28:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:28:24Z",
+          "conclusion": "success",
+          "name": "Restore development environment from lock",
+          "number": 5,
+          "startedAt": "2026-11-04T09:28:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:28:30Z",
+          "conclusion": "success",
+          "name": "Reproduce source audit",
+          "number": 6,
+          "startedAt": "2026-11-04T09:28:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:28:31Z",
+          "conclusion": "success",
+          "name": "Unit tests",
+          "number": 7,
+          "startedAt": "2026-11-04T09:28:30Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:28:31Z",
+          "conclusion": "success",
+          "name": "Syntax checks",
+          "number": 8,
+          "startedAt": "2026-11-04T09:28:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:28:31Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 15,
+          "startedAt": "2026-11-04T09:28:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:28:31Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 16,
+          "startedAt": "2026-11-04T09:28:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:28:31Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 17,
+          "startedAt": "2026-11-04T09:28:31Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Bogyie/runpod-comfyui/actions/runs/41807745754/job/126498914503"
+    },
+    {
+      "completedAt": "2026-11-04T10:09:43Z",
+      "conclusion": "success",
+      "databaseId": 126499100863,
+      "name": "image",
+      "startedAt": "2026-11-04T09:28:38Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-04T09:28:41Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-04T09:28:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:28:42Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 2,
+          "startedAt": "2026-11-04T09:28:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:31:37Z",
+          "conclusion": "success",
+          "name": "Free disposable runner disk",
+          "number": 3,
+          "startedAt": "2026-11-04T09:28:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:31:45Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 4,
+          "startedAt": "2026-11-04T09:31:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:31:53Z",
+          "conclusion": "success",
+          "name": "Prepare locked build context",
+          "number": 5,
+          "startedAt": "2026-11-04T09:31:45Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:31:53Z",
+          "conclusion": "success",
+          "name": "Build identity",
+          "number": 6,
+          "startedAt": "2026-11-04T09:31:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:31:53Z",
+          "conclusion": "success",
+          "name": "Run docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6",
+          "number": 7,
+          "startedAt": "2026-11-04T09:31:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:32:05Z",
+          "conclusion": "success",
+          "name": "Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
+          "number": 8,
+          "startedAt": "2026-11-04T09:31:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:39:27Z",
+          "conclusion": "success",
+          "name": "Build candidate with registry cache",
+          "number": 9,
+          "startedAt": "2026-11-04T09:32:05Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:47:37Z",
+          "conclusion": "success",
+          "name": "Test candidate before publication",
+          "number": 10,
+          "startedAt": "2026-11-04T09:39:27Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:49:10Z",
+          "conclusion": "success",
+          "name": "Build runtime preview from the tested worker layers",
+          "number": 11,
+          "startedAt": "2026-11-04T09:47:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T09:54:30Z",
+          "conclusion": "success",
+          "name": "Verify nonroot runtime preview",
+          "number": 12,
+          "startedAt": "2026-11-04T09:49:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T10:00:51Z",
+          "conclusion": "success",
+          "name": "Verify deferred generation lifecycle in runtime preview",
+          "number": 13,
+          "startedAt": "2026-11-04T09:54:30Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T10:00:55Z",
+          "conclusion": "success",
+          "name": "Publish tested candidate with BuildKit",
+          "number": 14,
+          "startedAt": "2026-11-04T10:00:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T10:09:06Z",
+          "conclusion": "success",
+          "name": "Verify immutable registry image",
+          "number": 15,
+          "startedAt": "2026-11-04T10:00:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T10:09:07Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f",
+          "number": 16,
+          "startedAt": "2026-11-04T10:09:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T10:09:09Z",
+          "conclusion": "success",
+          "name": "Post Publish tested candidate with BuildKit",
+          "number": 26,
+          "startedAt": "2026-11-04T10:09:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T10:09:12Z",
+          "conclusion": "success",
+          "name": "Post Build runtime preview from the tested worker layers",
+          "number": 27,
+          "startedAt": "2026-11-04T10:09:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T10:09:14Z",
+          "conclusion": "success",
+          "name": "Post Build candidate with registry cache",
+          "number": 28,
+          "startedAt": "2026-11-04T10:09:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T10:09:40Z",
+          "conclusion": "success",
+          "name": "Post Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
+          "number": 29,
+          "startedAt": "2026-11-04T10:09:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T10:09:40Z",
+          "conclusion": "success",
+          "name": "Post Run docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6",
+          "number": 30,
+          "startedAt": "2026-11-04T10:09:40Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T10:09:41Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 31,
+          "startedAt": "2026-11-04T10:09:40Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T10:09:41Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 32,
+          "startedAt": "2026-11-04T10:09:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T10:09:41Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 33,
+          "startedAt": "2026-11-04T10:09:41Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Bogyie/runpod-comfyui/actions/runs/41807745754/job/126499100863"
+    }
+  ],
+  "status": "completed",
+  "url": "https://github.com/Bogyie/runpod-comfyui/actions/runs/41807745754",
+  "registry": {
+    "anonymous_manifest_read": true,
+    "digest": "sha256:0852e89229118ca278a1f92e05cdeebfdde773df356b1e8249ddcde0e1b74124",
+    "config_digest": "sha256:c78ee787097e7ed4000e62d5a54e22837ff6f1ed76a4ccafaae1b07616d111ce",
+    "compressed_layer_bytes": 6901601556,
+    "manifest": {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "config": {
+        "mediaType": "application/vnd.oci.image.config.v1+json",
+        "digest": "sha256:c78ee787097e7ed4000e62d5a54e22837ff6f1ed76a4ccafaae1b07616d111ce",
+        "size": 13074
+      },
+      "layers": [
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:3c5439d0ae62993af4cc4e21b8c777297e81bc40e200d4633c85a3e0f977a3bc",
+          "size": 28247437
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:7d94a600ec4db9376baf5256fe8930655328c1f5e0d170179a0180dcecf69098",
+          "size": 3341499
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:8f7c262eb376d9d177f52c91b6a03c3b4996055a9e84ca2b7e92412ddd29d5ae",
+          "size": 16031646
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:1f235d1b4734e9d629d1705e7caf2db4ffc7775086658cc46a22b6eb2c7a726f",
+          "size": 250
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:7bd3107fdaa9b704c08f3b3fe53b073c825eca6e987f771624dca1f12b545f5a",
+          "size": 23244800
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:d7ee0dd5b6dfe2c5719f887ba3e07317d144136a430ae59b6050f7ec8a901f13",
+          "size": 17832
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:144a29ab9edc9b0939c53772fbe0d2a873c07323132e2b95f81a75de2dc6915f",
+          "size": 4187209003
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:58a594c6fff96ffb51851df2e8665fc786c255d8747ee61c27323eafba2982b8",
+          "size": 200150467
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:78fbd25a1fa1516a507fa3b9f3ad07d0ca44fd7d1de7b89c64de54ac0177cb2b",
+          "size": 116916
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:f780595fdda1535b7daf6276a85a7799175f4001d305a659f4309902bdecfad4",
+          "size": 904397874
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:2131c811039bf29b0ecbc599e85d1613f17d85ad640eed3abdc0e60a746e8340",
+          "size": 4101
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:b381e012faf3e4fb4051effd585673120a289a905ca887dc5c4616cb3b11acfa",
+          "size": 56330
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:e510224513ea312890683bd40e1427b070e3b295a162f806b818501d18b5313b",
+          "size": 12804147
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1",
+          "size": 32
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:32a0017f2f4e6e19951be5a4ef51adfddffb80c92cce62cc6ca9ab6d338d4681",
+          "size": 454267
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:eb1e627ca35d980d7250e952b73563f82667e12c685944d0525301ce6f736676",
+          "size": 352631449
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:1c3af95d8b725437dc02b83cb2ec319bf9222443f219897637129597762c0522",
+          "size": 260088524
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:f9885d4fb1aeb3419644b81d85ca764c9c64345440562f3bf0f089eb724166d3",
+          "size": 257136887
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:1ba4e485fe2cf899d03c7e3e433b7417df27ccdf582af024ff2fbb3f28823176",
+          "size": 340134726
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:572f146f2721851c8d4a186f99a14a73d32f4987a3d6602936475670c85ba3c4",
+          "size": 257130563
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:8b47139fea3b95ecfcce972d565d2a28c4bb820a355f612a51df811eaba90a8f",
+          "size": 2548
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:ba1bc9225f1865eaf7f8b2b03b457ff5f968c8058d2c771fe226839d322afbfe",
+          "size": 58400258
+        }
+      ]
+    }
+  },
+  "scope": "Published worker candidate CPU gates before/after immutable registry pull. Separate runtime preview passes CLI/nonroot/deferred-generation lifecycle; preview is not the published digest. Live transitions and GPU certification are not part of this run."
+}

@@ -289,3 +289,19 @@ Root worker 후보는 이전 실행과 같은 `sha256:9f866b68b5edcc49f5e44fa2db
 동일 image ID `sha256:71ecaf4a3364a22ed4f662ddf2557578be94674136f44ae59884eebbd63efbf4`의 [기존 runtime/CLI 회귀 검사](../tests/evidence/live-image-runtime-cpu.json)도 통과했다. nonroot 경로·재기동·네트워크 없는 부팅·환경 진단과 버전 metadata가 그대로인 GPU 패키지 파일 손상 감지를 포함한다.
 
 CI runtime preview에 같은 live gate를 추가했다. 아직 이 변경의 원격 실행 결과는 없으며 preview를 GHCR에 게시하거나 최종 GPU 검증을 수행한 것은 아니다. 새 노드 설치·환경 후보 구성, Manager, 동적 schema, 이미지 업데이트 호환성과 최종 두 GPU·RunPod 검증은 계속 남아 있다.
+
+## Deferred 세대 관리의 원격 결과
+
+[성공 실행 #41807745754](https://github.com/Bogyie/runpod-comfyui/actions/runs/41807745754), 소스 `2f4c5262015e73ba755eba50f920688ba1ff1567`에서 게시 전후 worker gate와 별도 runtime/CLI·deferred lifecycle 검사가 통과했다. [원격 증거](evidence/actions-41807745754/run.json)와 [세대 관리 preview](evidence/actions-41807745754/generations-preview.json)를 보존했다.
+
+- 게시한 worker 참조는 `ghcr.io/bogyie/runpod-comfyui@sha256:0852e89229118ca278a1f92e05cdeebfdde773df356b1e8249ddcde0e1b74124`다.
+- 익명 manifest 조회·digest hash·검사한 config 일치를 확인했다. 압축 레이어 합계는 6,901,601,556바이트다.
+- 별도 runtime preview는 게시한 worker digest와 다르다. live 전환과 GPU 검증은 이 실행에 포함되지 않는다.
+
+live 전환 커밋 `be4e12fbe1ea14f24ca98d2cfc129e6d822143ef`도 push했고 [후속 실행 #41812352657](https://github.com/Bogyie/runpod-comfyui/actions/runs/41812352657)이 진행 중이다.
+
+## 추가 노드의 설치 전 분석
+
+`comfyctl node plan`을 추가해 고정 SHA archive의 전체 파일 hash·설치 훅·의존성·comfy-env 설정과 등록 호출을 실행 없이 분석한다. archive 경로·link·중복·용량 경계를 검사하고, 불완전한 분석과 GPU/직접 URL 요구는 검토 대상으로 남긴다. 분류는 격리 후보이며 실행 성공으로 표시하지 않는다. [사용법과 범위](node-installation.md)에 기록했다. 이 단계만으로 새 노드 설치와 Manager 대체 경로가 완료된 것은 아니다.
+
+[설치된 Linux CLI](../tests/evidence/node-source-linux-cli.json)에서 고정 SAM3의 53개 파일을 네트워크 없이 분석했고 [보고서](../tests/evidence/node-source-sam3-plan.json)를 보존했다. 전체 단위 검사는 74개가 통과했다. 다음 작업은 이 source identity에 GPU/host/worker lock과 hook 정책을 결합한 실제 후보 환경 설치다.

@@ -40,6 +40,11 @@ def main(argv=None) -> int:
         operation.add_argument('--startup-timeout', type=float, default=330)
     node = commands.add_parser('node')
     node_actions = node.add_subparsers(dest='action', required=True)
+    plan = node_actions.add_parser('plan', help='Inspect a pinned node source without importing or installing it')
+    plan.add_argument('repository')
+    plan.add_argument('--commit', required=True)
+    plan.add_argument('--archive-sha256')
+    plan.add_argument('--archive', type=Path, help='Inspect a local archive with a required SHA256')
     for name in ['disable', 'enable']:
         operation = node_actions.add_parser(name, help="Validate a state-only generation for the next restart")
         operation.add_argument('name')
@@ -53,7 +58,7 @@ def main(argv=None) -> int:
     apply.add_argument('--drain-timeout', type=float, default=300)
     apply.add_argument('--startup-timeout', type=float, default=330)
     args = parser.parse_args(argv)
-    mutation = args.command == 'node' or (args.command == 'env' and args.action in {'rollback', 'reset', 'apply'})
+    mutation = (args.command == 'node' and args.action != 'plan') or (args.command == 'env' and args.action in {'rollback', 'reset', 'apply'})
     if mutation:
         if os.geteuid() != 0 or not Path('/opt/runtime/control/baseline.json').is_file():
             print('comfyctl: Generation mutation requires the managed container administrator (uid 0)', file=sys.stderr)
@@ -78,6 +83,11 @@ def main(argv=None) -> int:
             raise OSError(ctypes.get_errno(), 'Cannot set no_new_privs')
     from .environments import EnvironmentError
     try:
+        if args.command == 'node':
+            from .node_sources import plan_source
+            result = plan_source(args.repository, args.commit, args.archive_sha256, args.archive)
+            print(json.dumps(result, indent=2, ensure_ascii=False))
+            return 0
         if args.command == 'env':
             from .environments import inspect_runtime
             result = inspect_runtime(args.state, doctor=args.action == 'doctor', deep=getattr(args, 'deep', False))
