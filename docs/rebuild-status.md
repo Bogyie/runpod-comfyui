@@ -207,3 +207,20 @@ VHS 원본 `BatchManager.close_inputs`는 decoder tuple의 마지막 항목인 b
 [실제 캐시 실험](../tests/evidence/independent-worker-cache.json)에서 host SDK 패치·ComfyUI·KJ 진입점 주석 변경 후 다섯 설치 RUN의 CACHED를 확인했다. 로컬 warm build는 9.175초였으며 GitHub Actions 성능 수치로 사용하지 않는다. [빌드/제약 설명](worker-environments.md#worker-설치-레이어와-앱-업데이트-분리)에 입력 경계와 prefix 보존을 기록했다. 단위 검사는 46개다. 동일 이미지 `sha256:b321d0273400a9a7c767e1b08ce61682be7cbe3834fb841063aee9a368f1db2b`의 [IPC·CPU view/empty·복구](../tests/evidence/independent-workers-ipc.json), [VHS](../tests/evidence/independent-workers-vhs.json), [코어](../tests/evidence/independent-workers-host.json), [guard](../tests/evidence/independent-workers-guards.json), [iTools](../tests/evidence/independent-workers-itools.json), [KJNodes](../tests/evidence/independent-workers-kjnodes.json) 회귀 검사도 통과했다. [전체 worker identity](../tests/evidence/independent-worker-identities.json)도 최종 파일로 대조했다. 이 캐시 분리 변경의 원격 빌드와 GPU 검증은 아직 남아 있다.
 
 Manager의 HTTP queue·즉시 enable·prestartup 예약·CLI·PIPFixer 경로도 고정 소스로 대조했다. [연결 경계](manager-integration.md)와 [정적 경로 증거](evidence/manager-boundary-audit.json)를 추가했다. 단일 subprocess hook으로 모든 변경을 후보 환경에 보낼 수 있다고 가정하지 않는다. Manager runtime 통합과 사용 가능한 관리 CLI·nonroot·영속 세대 전환은 아직 남아 있다.
+
+
+## P2 nonroot 실행·영속 경로 후보
+
+`runtime-probe` target과 `runtime/`를 추가했다. root bootstrap은 관리 디렉터리만 준비하고 UID/GID 1000·no_new_privs로 전환한다. supervisor가 ComfyUI와 native worker의 상태·로그·종료를 관리하며 실패를 무한 재시작하지 않는다. host·metadata scan·persistent worker에 같은 모델/입력/출력/user/temp 경로를 적용한다. comfy-env metadata 캐시는 immutable prefix 밖으로 옮기고 stack/base·Dockerfile·lock·SDK·runtime identity와 환경을 key에 반영했다. 자세한 범위와 제한은 [런타임 문서](runtime.md)에 있다.
+
+[최종 로컬 검사](../tests/evidence/runtime-cpu-probe.json)는 읽기 전용 rootfs에서 실제 ComfyUI API와 native worker를 실행해 다음을 통과했다.
+
+- PID 1·host·DA3 prefix의 별도 RPC와 실제 SAM3/DA3 worker UID 1000, no_new_privs.
+- host/worker의 같은 모델·데이터 경로와 checkpoint marker 조회, 업로드와 PNG 출력.
+- 기본 source/GPU/worker 환경 쓰기 거부, `/opt/workers` 내 metadata cache 0개와 volume cache 5개.
+- API SIGSTOP → recovery-required → SIGCONT → 같은 PID의 ready 회복.
+- 실제 SAM3 좌표/UI·DA3 카메라 그래프와 native worker가 살아 있는 상태의 정상 종료.
+- 네트워크 없는 재기동, cache hit와 모델 marker·입력·출력·user 파일 보존, 패키지 fingerprint 일치.
+- 잘못된 시작 옵션에서 nonzero 종료와 recovery-required 상태, 테스트 컨테이너·볼륨 정리.
+
+단위 검사는 실제 pinned ComfyUI의 경로 해석과 충돌 옵션 거부를 포함해 49개다. 초기 종료 검사의 관찰 도구가 root에서 nonroot worker의 `/proc/environ`을 읽지 못한 문제는 service UID로 관찰하도록 고친 후 통과했다. 원격 CI에도 별도 runtime preview 빌드/검사를 추가했으며, 이 preview는 게시한 worker digest와 다른 이미지다. Manager·관리/다운로드 CLI의 이미지 내 통합·세대 전환/복구·전체 동적 schema와 최종 두 GPU/RunPod/network volume 검증은 남아 있다. `stable`/`latest`는 변경하지 않았다.

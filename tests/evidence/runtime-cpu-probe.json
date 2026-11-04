@@ -1,0 +1,144 @@
+{
+  "kind": "nonroot-runtime-cpu-gate",
+  "image_id": "sha256:375c011b0a3960960122bbcd1b40953146ab426a2aaf9c1251ffc88a0cbf86cd",
+  "scope": "Disposable local Linux amd64 runtime; no Manager integration, GPU, network volume or arbitrary node installation certification",
+  "first_ready": {
+    "phase": "ready",
+    "updated_at": 1793777660.8808444,
+    "uid": 1000,
+    "runtime_id": "e8e8ac28fdc738f04b6fe0f0e7f467a6860563c7578a6b9af81735d100f7a3c2",
+    "child_pid": 19
+  },
+  "frontend": {
+    "root_http_status": 200,
+    "script": "/assets/index-CqDKM-zt.js",
+    "script_bytes": 5010,
+    "script_sha256": "baaf9d5a42ebbc507d29b31043da00242366f594fe6cb4eae09731caca26de8e"
+  },
+  "health_recovery": "hung-api-detected-and-recovered-without-restart",
+  "packages_before": {
+    "packages_sha256": "501ec9239838c5b436a4f1985f47fd320f7af8ed03253aad35e8a3f33c95792f",
+    "gpu_files": {
+      "torch/__init__.py": "51c90fe34a7cf869517d1bab4cd114498790e169ec668f1a154c35ec64117a5e",
+      "torch/version.py": "53e3fb24ceaf300de811ae08721e5ca3a0720c7ef900c8365da3fe80c7271ebc",
+      "torch/_C.cpython-311-x86_64-linux-gnu.so": "4349b125953ce9e0f7e0e94f5a78519107f15a234e1fb3703e86c12c405b09cd"
+    }
+  },
+  "paths": {
+    "host": {
+      "uid": 1000,
+      "pid": 19,
+      "base": "/workspace/storage",
+      "models": "/workspace/storage/models",
+      "input": "/workspace/storage/input",
+      "output": "/workspace/storage/output",
+      "user": "/workspace/storage/user",
+      "temp": "/workspace/storage/temp",
+      "custom_nodes": [
+        "/opt/probe/ComfyUI/custom_nodes"
+      ],
+      "checkpoint_paths": [
+        "/workspace/storage/models/checkpoints",
+        "/workspace/storage/output/checkpoints"
+      ],
+      "marker": "model-path-marker",
+      "input_files": [
+        "3d",
+        "runtime.png"
+      ]
+    },
+    "worker": {
+      "uid": 1000,
+      "pid": 521,
+      "base": "/workspace/storage",
+      "models": "/workspace/storage/models",
+      "input": "/workspace/storage/input",
+      "output": "/workspace/storage/output",
+      "user": "/workspace/storage/user",
+      "temp": "/workspace/storage/temp",
+      "custom_nodes": [
+        "/opt/probe/ComfyUI/custom_nodes"
+      ],
+      "checkpoint_paths": [
+        "/workspace/storage/models/checkpoints",
+        "/workspace/storage/output/checkpoints"
+      ],
+      "marker": "model-path-marker",
+      "input_files": [
+        "3d",
+        "runtime.png"
+      ]
+    },
+    "worker_stopped": true
+  },
+  "core_output": {
+    "filename": "runtime-output_00001_.png",
+    "subfolder": "",
+    "type": "output",
+    "metadata": {
+      "kind": "image",
+      "width": 64,
+      "height": 64
+    }
+  },
+  "permissions": {
+    "/opt/runtime/venv/lib/python3.11/site-packages/torch/version.py": "write-rejected",
+    "/opt/workers/depthanythingv3-nodes/worker-lock.json": "write-rejected",
+    "/opt/probe/ComfyUI/main.py": "write-rejected",
+    "pid1_status": [
+      "Uid:\t1000\t1000\t1000\t1000",
+      "NoNewPrivs:\t1"
+    ],
+    "metadata_cache_files": 5,
+    "prefix_metadata_cache_files": 0
+  },
+  "sam3_native": {
+    "normalized_points": {
+      "points": [
+        [
+          0.25,
+          0.5
+        ]
+      ],
+      "labels": [
+        1
+      ]
+    },
+    "ui_jpeg_sha256": "f7a580f44a671204ec76b6cc3de0ffd1b6b6fbc0d097d0048fc3d72159f3eece",
+    "ui_jpeg_bytes": 693
+  },
+  "da3_native_status": "success",
+  "native_workers_before_shutdown": {
+    "sam3-nodes": {
+      "pid": 534,
+      "uid": 1000
+    },
+    "depthanythingv3-nodes": {
+      "pid": 554,
+      "uid": 1000
+    }
+  },
+  "restart_ready_without_network": {
+    "phase": "ready",
+    "updated_at": 1793777705.554659,
+    "uid": 1000,
+    "runtime_id": "e8e8ac28fdc738f04b6fe0f0e7f467a6860563c7578a6b9af81735d100f7a3c2",
+    "child_pid": 13
+  },
+  "persisted": {
+    "user": "keep-me",
+    "model": "model-path-marker",
+    "input": true,
+    "output": 1
+  },
+  "failure_state": {
+    "phase": "recovery-required",
+    "updated_at": 1793777710.1723876,
+    "uid": 1000,
+    "runtime_id": "e8e8ac28fdc738f04b6fe0f0e7f467a6860563c7578a6b9af81735d100f7a3c2",
+    "exit_code": 2
+  },
+  "shutdown": "both-normal-runs-exited-zero",
+  "status": "passed",
+  "containers_and_volume_removed": true
+}

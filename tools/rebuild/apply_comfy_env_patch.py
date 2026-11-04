@@ -47,6 +47,31 @@ if _worker_attention:
 '''
 
 
+
+RUNTIME_PATH_POLICY = '''if os.environ.get("COMFYCTL_STORAGE_DIR"):
+    sys.path.insert(0, "/opt/runtime/control")
+    from runtime_paths import configure as _configure_runtime_paths
+    _configure_runtime_paths()
+'''
+
+METADATA_CACHE_POLICY = '''    cache_root = os.environ.get("COMFYCTL_METADATA_CACHE")
+    if cache_root:
+        import json
+        runtime_id = os.environ.get("COMFYCTL_RUNTIME_ID")
+        root = Path(cache_root)
+        if not root.is_absolute() or not runtime_id:
+            raise RuntimeError("Managed metadata cache requires an absolute root and runtime identity")
+        identity = json.dumps([str(env_dir), str(working_dir), package_name, runtime_id,
+                               env_vars, os.environ.get("COMFY_CPU"),
+                               os.environ.get("COMFYCTL_STORAGE_DIR"),
+                               os.environ.get("COMFYCTL_WORKER_ATTENTION")], sort_keys=True)
+        cache_key += ":" + hashlib.sha256(identity.encode()).hexdigest()
+        root.mkdir(parents=True, exist_ok=True)
+        cache_file = root / (hashlib.sha256(identity.encode()).hexdigest() + ".pkl")
+
+'''
+
+
 def restore_tensor_views(text: str, worker: bool = False) -> str:
     anchor = '        tensor = flat.view(tuple(data["tensor_size"]))\n'
     replacement = '        tensor = flat.as_strided(tuple(data["tensor_size"]), tuple(data["tensor_stride"]), data["tensor_offset"])\n'
@@ -90,6 +115,14 @@ def transformed(name: str, data: bytes) -> bytes:
             raise ValueError("Worker prefix patch anchor changed")
         text = text.replace(anchor, replacement)
     elif name == "isolation/metadata.py":
+        anchor = '# On Desktop app, redirect folder_paths to the user data dir (for input/output/models)\n'
+        if text.count(anchor) != 1:
+            raise ValueError("Metadata runtime paths anchor changed")
+        text = text.replace(anchor, RUNTIME_PATH_POLICY + "\n" + anchor)
+        anchor = '    if cache_file.exists():\n'
+        if text.count(anchor) != 1:
+            raise ValueError("Metadata writable cache anchor changed")
+        text = text.replace(anchor, METADATA_CACHE_POLICY + anchor)
         anchor = '# Redirect stdout to stderr so any prints from imported code (or pixi/torch\n'
         replacement = ATTENTION_POLICY + '''\n# Metadata scans honor explicit CPU smoke mode; GPU gates never set this.
 if os.environ.get("COMFY_CPU") == "1":
@@ -104,6 +137,11 @@ if os.environ.get("COMFY_CPU") == "1":
         text = restore_tensor_views(text)
     elif name == "isolation/workers/_persistent_worker.py":
         text = restore_tensor_views(text, worker=True)
+        anchor = '    # On Desktop app, folder_paths needs user data dir for input/output/models\n'
+        if text.count(anchor) != 1:
+            raise ValueError("Worker runtime paths anchor changed")
+        policy = "\n".join("    " + line if line else "" for line in RUNTIME_PATH_POLICY.splitlines()) + "\n"
+        text = text.replace(anchor, policy + anchor)
         anchor = '    if os.environ.get("COMFY_CPU") == "1":\n'
         if text.count(anchor) != 1:
             raise ValueError("Worker attention patch anchor changed")

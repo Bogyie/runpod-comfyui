@@ -6,6 +6,7 @@ on:
       - 'build/**'
       - 'locks/**'
       - 'tools/**'
+      - 'runtime/**'
       - 'tests/**'
       - 'pyproject.toml'
       - 'uv.lock'
@@ -44,4 +45,4 @@ jobs:
       - name: Unit tests
         run: uv run --frozen python -m unittest discover -s tests -v
       - name: Syntax checks
-        run: uv run --frozen python -m compileall -q tools tests
+        run: uv run --frozen python -m compileall -q runtime tools tests

@@ -97,3 +97,19 @@ ENV COMFYCTL_WORKER_ROOT=/opt/workers \
     COMFYCTL_WORKER_ATTENTION=${WORKER_ATTENTION} \
     VHS_FORCE_FFMPEG_PATH=/usr/bin/ffmpeg
 CMD ["python", "main.py", "--cpu", "--use-pytorch-cross-attention", "--listen", "0.0.0.0", "--port", "8188"]
+
+# P2 runtime candidate: no boot-time package installation, immutable /opt,
+# service uid 1000, and managed storage separated from source/environment.
+FROM worker-probe AS runtime-probe
+RUN useradd --uid 1000 --user-group --no-create-home --home-dir /workspace/state/home comfy
+COPY runtime/ /opt/runtime/control/
+ENV COMFYCTL_COMFY_ROOT=/opt/probe/ComfyUI \
+    COMFYCTL_STORAGE_DIR=/workspace/storage \
+    COMFYCTL_METADATA_CACHE=/workspace/cache/metadata \
+    COMFY_ENV_ROOT=/workspace/state/comfy-env \
+    HOME=/workspace/state/home \
+    XDG_CACHE_HOME=/workspace/cache \
+    HF_HOME=/workspace/cache/huggingface \
+    TORCH_HOME=/workspace/cache/torch
+ENTRYPOINT ["/usr/local/bin/python", "/opt/runtime/control/entrypoint.py"]
+CMD ["--use-pytorch-cross-attention", "--listen", "0.0.0.0", "--port", "8188"]

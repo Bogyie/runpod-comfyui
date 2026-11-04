@@ -81,7 +81,7 @@ def prepare_worker_install_inputs(context: Path, definitions: dict) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--target", choices=["gpu-base", "host", "worker-probe"])
+    parser.add_argument("--target", choices=["gpu-base", "host", "worker-probe", "runtime-probe"])
     parser.add_argument("--prepare-only", action="store_true")
     args = parser.parse_args()
     stack = yaml.safe_load((ROOT / "build/stack.yaml").read_text())
@@ -92,7 +92,7 @@ def main() -> None:
     for name in ("gpu", "host"):
         shutil.copyfile(ROOT / f"locks/{name}/linux-amd64-cu128.txt", context / f"{name}.txt")
     shutil.copyfile(ROOT / "tools/rebuild/apply_comfy_env_patch.py", context / "apply_comfy_env_patch.py")
-    if args.target in {"host", "worker-probe"}:
+    if args.target in {"host", "worker-probe", "runtime-probe"}:
         source = lock["sources"]["comfyui"]
         data = fetch(source["archive_url"])
         if digest(data) != source["archive_sha256"]:
@@ -101,7 +101,7 @@ def main() -> None:
         if destination.exists():
             shutil.rmtree(destination)
         materialize(data, destination)
-    if args.target == "worker-probe":
+    if args.target in {"worker-probe", "runtime-probe"}:
         import concurrent.futures
         definitions = json.loads((ROOT / "locks/workers/manifest.json").read_text())
         if definitions.get('gpu_lock_sha256') != digest((ROOT/'locks/gpu/linux-amd64-cu128.txt').read_bytes()):
@@ -154,6 +154,19 @@ def main() -> None:
                 apply(nodes_root/definition['plugin_directory'],source,ROOT/'build/adapters'/definition['adapter'])
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
             list(pool.map(prepare_node,definitions['workers'].values()))
+    if args.target == 'runtime-probe':
+        control = context / 'runtime'
+        if control.exists():
+            shutil.rmtree(control)
+        shutil.copytree(ROOT / 'runtime', control, ignore=shutil.ignore_patterns('__pycache__'))
+        identity_inputs = {str(path.relative_to(ROOT)): digest(path.read_bytes())
+                           for path in [ROOT / 'build/stack.yaml', ROOT / 'docker/Dockerfile.probe',
+                                        ROOT / 'locks/upstreams.lock.json', ROOT / 'locks/workers/manifest.json',
+                                        ROOT / 'locks/gpu/linux-amd64-cu128.txt', ROOT / 'locks/host/linux-amd64-cu128.txt',
+                                        ROOT / 'tools/rebuild/apply_comfy_env_patch.py',
+                                        *sorted((ROOT / 'runtime').glob('*.py'))]}
+        runtime_id = digest(json.dumps(identity_inputs, sort_keys=True).encode())
+        (control / 'identity.json').write_text(json.dumps({'runtime_id': runtime_id, 'inputs': identity_inputs}, indent=2, sort_keys=True) + '\n')
     if args.prepare_only:
         print(context)
         return
