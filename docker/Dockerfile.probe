@@ -85,7 +85,7 @@ RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv \
       --require-hashes --only-binary=:all: --torch-backend "${TORCH_BACKEND}" \
       --requirement /opt/locks/host.txt && \
     uv pip check --python /opt/runtime/venv/bin/python
-COPY apply_comfy_env_patch.py /opt/probe/apply_comfy_env_patch.py
+COPY apply_comfy_env_patch.py managed_metadata.py /opt/probe/
 RUN python -c 'import importlib.util, pathlib, subprocess, sys; root = pathlib.Path(importlib.util.find_spec("comfy_env").origin).parent; subprocess.run([sys.executable, "/opt/probe/apply_comfy_env_patch.py", str(root)], check=True)'
 COPY ComfyUI/ /opt/probe/ComfyUI/
 WORKDIR /opt/probe/ComfyUI
@@ -103,6 +103,7 @@ COPY --link --from=worker-itools /opt/workers/itools-workernodes/ /opt/workers/i
 COPY --link --from=worker-kjnodes /opt/workers/kjnodes-workernodes/ /opt/workers/kjnodes-workernodes/
 COPY --link --from=worker-video-helper-suite /opt/workers/videohelpersuite-workernodes/ /opt/workers/videohelpersuite-workernodes/
 COPY --link worker-identities/ /opt/workers/
+RUN for prefix in /opt/workers/*; do python /opt/probe/apply_comfy_env_patch.py "$prefix/lib/python3.11/site-packages/comfy_env"; done
 COPY worker-nodes/ /opt/probe/ComfyUI/custom_nodes/
 ENV COMFYCTL_WORKER_ROOT=/opt/workers \
     COMFY_ENV_ROOT=/opt/worker-state \

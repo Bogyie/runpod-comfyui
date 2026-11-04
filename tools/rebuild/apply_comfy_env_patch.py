@@ -18,6 +18,7 @@ ORIGINAL = {
     "isolation/metadata.py": "d50d45626b9919cd36412c6163c2b4a0168bf863c79a65730db7d1efef320844",
     "isolation/workers/_ipc_parent.py": "9a4e5402a8076d1d56627f03eea28d69fe465ead63da2f99173f1fc1779aabc1",
     "isolation/workers/_persistent_worker.py": "77e86335ff3417bd2442b5db1033d78770c61d76b77c831fb38cdbe0c79460fb",
+    "isolation/workers/subprocess.py": "643babb73e0455a63e4c8cc068ddeee3ae036880f596959535c4866c903f3f17",
 }
 CUDA_ANCHOR = "    bootstrap_cuda = get_bootstrap_torch_cuda()\n"
 CUDA_GUARD = '''
@@ -128,6 +129,21 @@ def transformed(name: str, data: bytes) -> bytes:
             raise ValueError("Worker prefix patch anchor changed")
         text = text.replace(anchor, replacement)
     elif name == "isolation/metadata.py":
+        anchor = '    python = env_dir / ("python.exe" if sys.platform == "win32" else "bin/python")\n'
+        if text.count(anchor) != 1:
+            raise ValueError('Managed metadata extraction anchor changed')
+        text = text.replace(anchor, '''    if os.environ.get("COMFYCTL_REQUIRE_ISOLATION") == "1":
+        from .managed_metadata import fetch
+        return fetch(env_dir, node_dir, package_name, working_dir, env_vars)
+''' + anchor)
+        anchor = '    # Create the class\n'
+        if text.count(anchor) != 1:
+            raise ValueError('Managed callback proxy anchor changed')
+        text = text.replace(anchor, '''    if os.environ.get("COMFYCTL_REQUIRE_ISOLATION") == "1":
+        from .managed_metadata import bind
+        bind(attrs, meta, env_dir, package_root, sys_path, env_vars)
+
+''' + anchor)
         anchor = '# On Desktop app, redirect folder_paths to the user data dir (for input/output/models)\n'
         if text.count(anchor) != 1:
             raise ValueError("Metadata runtime paths anchor changed")
@@ -148,6 +164,21 @@ if os.environ.get("COMFY_CPU") == "1":
         text = text.replace(anchor, replacement)
     elif name == "isolation/workers/_ipc_parent.py":
         text = restore_tensor_views(text)
+        anchor = '_active_worker_pool = None  # set per-call before _from_shm\n'
+        if text.count(anchor) != 1:
+            raise ValueError('Worker pool context declaration changed')
+        text = text.replace(anchor,'from contextvars import ContextVar\n_active_worker_pool = ContextVar("comfy_env_worker_pool", default=None)\n')
+        anchor = '        if _active_worker_pool is not None:\n            return _deserialize_pool_ipc(obj, _active_worker_pool)\n'
+        if text.count(anchor) != 1:
+            raise ValueError('Worker pool decode context changed')
+        text = text.replace(anchor,'        if _active_worker_pool.get() is not None:\n            return _deserialize_pool_ipc(obj, _active_worker_pool.get())\n')
+    elif name == "isolation/workers/subprocess.py":
+        anchor = '_ipc_parent._active_worker_pool = self._worker_pool'
+        reset = '_ipc_parent._active_worker_pool = None'
+        if text.count(anchor) != 2 or text.count(reset) != 2:
+            raise ValueError('Worker pool call context changed')
+        text = text.replace(anchor,'_pool_token = _ipc_parent._active_worker_pool.set(self._worker_pool)')
+        text = text.replace(reset,'_ipc_parent._active_worker_pool.reset(_pool_token)')
     elif name == "isolation/workers/_persistent_worker.py":
         text = restore_tensor_views(text, worker=True)
         anchor = '    # On Desktop app, folder_paths needs user data dir for input/output/models\n'
@@ -211,6 +242,9 @@ if os.environ.get("COMFY_CPU") == "1":
 def apply(root: Path) -> dict:
     # Validate and transform every file before writing any patch.
     replacements = {name: transformed(name, (root / name).read_bytes()) for name in ORIGINAL}
+    helper = Path(__file__).with_name('managed_metadata.py').read_bytes()
+    compile(helper, 'managed_metadata.py', 'exec')
+    replacements['isolation/managed_metadata.py'] = helper
     for name, data in replacements.items():
         (root / name).write_bytes(data)
     record = {"upstream_version": "0.3.89", "kind": "experimental-build-and-isolation-guards",

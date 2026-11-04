@@ -1,0 +1,202 @@
+{
+  "adapter_identity": {
+    "adapter_hashes": {
+      "__init__.py": "7ca1ac7d2b9b266377c2531fb19cbb1cb0e03b9b2a8ddcfcb122eee1ac69ec52",
+      "_comfyctl_adapter.py": "5a7026064855821be70ef1d0720e9b5aa3bece4078b20ff11a77a438bb519c39",
+      "worker_nodes/__init__.py": "624a5b0022b45200c1e516dd502b5977b5907cf204f4884f24b5fc1b010e9995",
+      "worker_nodes/comfy-env.toml": "f23850272958b2cdd75c55a3c21688da7c1accac9a3c70ce2e625c9ef40ca37d"
+    },
+    "original_hashes": {
+      "__init__.py": "ef2b276581173a19fce0505e896bed8e34932b7d1c562507b0b5a506379067b9",
+      "backend/iserver.py": "f247dd8d6a300193ddb423e337c0f4f4709adefd7db3dd51d7115ad0b43cbb63",
+      "backend/prompter.py": "ccd17ca0df85e70491f79d73263c7efc03d1520407bbfa136a51b5fa600d9996",
+      "backend/prompter_multi.py": "846650e18784b5b5433658b3fb2b18ba72e0c5d6438a0bcf9fd572b601162d29",
+      "backend/shared.py": "9367f2ceb50d35b367d89adb601c32d4a8d72e6549e4203a0949dd722acd8173",
+      "iTools_nodes.py": "b2f0dbb180f80778ea35b40ca2acb953e911182a87d87380bedf44764447e69f",
+      "nodes/experimental/paint_node.py": "82b734f2488a50a568ac6774e75201cc60736eca2499d87b84184dd0793b566a",
+      "nodes/prompt_loader.py": "f74f473d15237af6f9e4927e530d9e541f44a0814469128a27e9b3a9b8568cf8",
+      "nodes/prompt_saver.py": "fa527c6933ee6de2f30b92e633428fda613e4a2decd0fc0c604b930074b635e1"
+    },
+    "patched_hashes": {
+      "backend/iserver.py": "d091b24b6a0f7c1cb94e84e88d7cc3722351da0fb5e1cfd303561ace6db0b879",
+      "backend/prompter.py": "48eca209cad1c63beb24e25415028999d4d8f52ad2d7608f116a1d65ce68ba75",
+      "backend/prompter_multi.py": "38a9b890bded224d819a90953db8bbbf051862012c117aea6e7c3fa68d7d8db1",
+      "backend/shared.py": "3b9b215083efd011d47d96b76a14bac3124a72e6574709d2101acfaee29e07c4",
+      "nodes/experimental/paint_node.py": "12c14e7a8cf94343da3df0602c0abc7b1249f962608a147428861dceedecc5c9",
+      "nodes/prompt_loader.py": "943b41c944b125e56e4e3b185a23dbf9159bbee0a6d35ecad611bd89a6b54c22",
+      "nodes/prompt_saver.py": "d023d3a6b4a2f9566e20551b1e6a54278a7dcc08f494634a06c001d0ad5f83b3"
+    },
+    "upstream_commit": "a8f2fef227ca5b0cb9321c39ac7b874a906b1a5b"
+  },
+  "container_removed": true,
+  "environment": {
+    "extra_realpath": "/opt/workers/itools-workernodes/lib/python3.11/site-packages/yaml/__init__.py",
+    "prefix": "/opt/workers/itools-workernodes",
+    "sys_path": [
+      "",
+      "/usr/local/lib/python311.zip",
+      "/usr/local/lib/python3.11",
+      "/usr/local/lib/python3.11/lib-dynload",
+      "/opt/workers/itools-workernodes/lib/python3.11/site-packages"
+    ],
+    "torch_realpath": "/opt/runtime/venv/lib/python3.11/site-packages/torch/__init__.py",
+    "torch_version": "2.10.0+cu128"
+  },
+  "host": {
+    "class_modules": {
+      "iToolsKSampler": "_comfyctl_itools_host_d3fadfec9975.nodes.ksampler",
+      "iToolsPreviewImage": "comfy_env.isolation.metadata",
+      "iToolsTextReplacer": "comfy_env.isolation.metadata",
+      "iToolsVaePreview": "_comfyctl_itools_host_d3fadfec9975.nodes.vae_preview"
+    },
+    "host_compute_imports": [
+      "_comfyctl_itools_host_d3fadfec9975.nodes.ksampler",
+      "_comfyctl_itools_host_d3fadfec9975.nodes.vae_preview"
+    ],
+    "host_pid": 1,
+    "worker_catalog_imported_on_host": false
+  },
+  "host_package_fingerprint": {
+    "gpu_files": {
+      "torch/_C.cpython-311-x86_64-linux-gnu.so": "4349b125953ce9e0f7e0e94f5a78519107f15a234e1fb3703e86c12c405b09cd",
+      "torch/__init__.py": "51c90fe34a7cf869517d1bab4cd114498790e169ec668f1a154c35ec64117a5e",
+      "torch/version.py": "53e3fb24ceaf300de811ae08721e5ca3a0720c7ef900c8365da3fe80c7271ebc"
+    },
+    "packages_sha256": "501ec9239838c5b436a4f1985f47fd320f7af8ed03253aad35e8a3f33c95792f"
+  },
+  "image_id": "sha256:d0558d815493da0b3750a51740071c2097ca3fcfaf6a49a2be2a205d9676e70b",
+  "kind": "itools-mixed-isolation-cpu-gate",
+  "paint": {
+    "output": {
+      "height": 32,
+      "image": {
+        "filename": "itools-paint-gate_00001_.png",
+        "metadata": {
+          "height": 32,
+          "kind": "image",
+          "width": 32
+        },
+        "subfolder": "",
+        "type": "output"
+      },
+      "sha256": "bc9f1ed01576f092b800993115afb8b76bea580543939443a00b411c6a32eb4a",
+      "width": 32
+    },
+    "paths": {
+      "background": "/opt/probe/ComfyUI/user/comfyctl/itools/paint/iToolsPaintedImage_background.png",
+      "foreground": "/opt/probe/ComfyUI/user/comfyctl/itools/paint/iToolsPaintedImage_foreground.png"
+    },
+    "pixel": {
+      "pixel": [
+        128,
+        0,
+        127
+      ],
+      "size": [
+        32,
+        32
+      ]
+    },
+    "sha256": {
+      "background": "e5df67a569b79908323d8ea1b5fe510996c51aa27261d01156dd449879a80342",
+      "foreground": "564646784fbbfa30a0c5becfb6707fd227f0e6ec4208933147c74413d2b66ad8"
+    },
+    "status": "passed"
+  },
+  "policy": {
+    "base_node_ids": [
+      "iToolsLoadImagePlus",
+      "iToolsPromptLoader",
+      "iToolsPromptSaver",
+      "iToolsAddOverlay",
+      "iToolsLoadImages",
+      "iToolsPromptStyler",
+      "iToolsPromptStylerExtra",
+      "iToolsGridFiller",
+      "iToolsLineLoader",
+      "iToolsTextReplacer",
+      "iToolsKSampler",
+      "iToolsVaePreview",
+      "iToolsCheckerBoard",
+      "iToolsLoadRandomImage",
+      "iToolsPreviewText",
+      "iToolsRegexNode",
+      "iToolsPreviewImage",
+      "iToolsCompareImage",
+      "iToolsPromptRecord",
+      "iToolsInstructorNode",
+      "iToolsPromptBuilder",
+      "iToolsImageAdjust"
+    ],
+    "host_nodes": {
+      "iToolsKSampler": {
+        "class": "IToolsKSampler",
+        "display_name": "KSampler",
+        "module": "ksampler",
+        "reason": "Calls host common_ksampler with live MODEL/conditioning objects"
+      },
+      "iToolsVaePreview": {
+        "class": "IToolsVaePreview",
+        "display_name": "Preview Bridge \u26f3",
+        "module": "vae_preview",
+        "reason": "Calls decode on the host VAE object and returns preview UI"
+      }
+    },
+    "schema_version": 1,
+    "scope": "Candidate mixed isolation; representative API/UI and model-object tests required",
+    "source_commit": "a8f2fef227ca5b0cb9321c39ac7b874a906b1a5b"
+  },
+  "preview": {
+    "height": 256,
+    "image": {
+      "filename": "ComfyUI_temp_rslcg_00001_.png",
+      "metadata": {
+        "height": 256,
+        "kind": "image",
+        "width": 256
+      },
+      "subfolder": "",
+      "type": "temp"
+    },
+    "sha256": "a1335655561f7323990e2845911a71229a57ec6e3aa3738ed54f9c9da1700f08",
+    "width": 256
+  },
+  "prompt_default_roundtrip": "passed",
+  "scope": "CPU text/image/V3 UI, style/paint HTTP, data paths, synthetic host VAE dispatch only. No real KSampler/VAE checkpoint, GPU or browser interaction certification.",
+  "source_fingerprint": {
+    "file_count": 154,
+    "sha256": "7e8ccf7a90bf193d6c94896991c1437e1344b16bb20dd130bfeb68dd55a888e8"
+  },
+  "source_unchanged": true,
+  "status": "passed",
+  "style_file": "artist.yaml",
+  "style_template_count": 1835,
+  "synthetic_host_vae": {
+    "height": 8,
+    "image": {
+      "filename": "ComfyUI_temp_vhcxf_00001_.png",
+      "metadata": {
+        "height": 8,
+        "kind": "image",
+        "width": 8
+      },
+      "subfolder": "",
+      "type": "temp"
+    },
+    "sha256": "913ebf31a2ff2f76e0677d9883f2b006b1782aec08b5577dc2fc5088e0448b39",
+    "width": 8
+  },
+  "text_v1_to_v3_ui": "passed",
+  "ui_script_count": 43,
+  "worker": {
+    "attention_policy": "pytorch",
+    "cmd": [
+      "/opt/workers/itools-workernodes/bin/python",
+      "/tmp/comfyui_pvenv_nh9maytm/persistent_worker.py",
+      "abstract://comfy_worker_f14ea539f86d"
+    ],
+    "cpu_mode": "1",
+    "pid": 89,
+    "ppid": 1
+  }
+}

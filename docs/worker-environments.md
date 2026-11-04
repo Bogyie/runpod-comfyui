@@ -82,7 +82,7 @@ GHCR의 `8125a0f4…f9c0c3d` 후보를 미국 H100(US-GA-2)과 RTX PRO 6000 Blac
 
 `probe_itools.py`는 자신이 만든 CPU 컨테이너를 삭제한다. 텍스트 V1→V3 UI, Checkerboard→V3 preview, Paint multipart/readback→worker 합성→host PNG와 픽셀 값, 스타일 template API, 기본 prompt 저장·로드, host 모듈 import 경계를 검사한다. VAE 예외는 소유 PID를 검사하는 합성 객체로 dispatch를 확인하며 실제 checkpoint 추론으로 표시하지 않는다. UI JS asset의 HTTP 응답과 브라우저의 실제 조작도 구분한다. 선택 rembg background-removal 기능은 이번 gate 범위가 아니다.
 
-iTools 전용 lock은 GPU 기반층과 같은 torch 계열 pin을 유지한다. 다른 SAM3/DA3 venv의 임시 별칭을 사용한 초기 가능성 검사와 달리 최종 CPU gate는 별도로 구성한 frozen iTools prefix를 사용한다. 설정 변경에 따른 metadata cache 갱신, 영속 데이터 경로와 nonroot 권한은 P2/P3의 추가 시험 대상이다. comfy-env 0.3.89는 현재 metadata cache를 worker prefix에 쓰므로 운영 권한 분리 전에 cache 위치도 바꿔야 한다.
+iTools 전용 lock은 GPU 기반층과 같은 torch 계열 pin을 유지한다. 다른 SAM3/DA3 venv의 임시 별칭을 사용한 초기 가능성 검사와 달리 최종 CPU gate는 별도로 구성한 frozen iTools prefix를 사용한다. 현재 관리 runtime은 nonroot·영속 데이터 경로를 적용하고, 정적 pickle 대신 [별도 CPU metadata worker](metadata.md)로 동적 schema·변경 감지·검증 콜백을 처리한다. 원본 SDK의 worker-prefix 캐시는 관리 모드에서 사용하지 않는다.
 
 ## KJNodes 혼합 격리 후보
 

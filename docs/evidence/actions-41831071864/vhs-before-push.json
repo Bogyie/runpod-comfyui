@@ -1,0 +1,370 @@
+{
+  "container_removed": true,
+  "empty_selection": {
+    "kind": "IMAGE",
+    "means": [],
+    "shape": [
+      0,
+      32,
+      64,
+      3
+    ]
+  },
+  "environment": {
+    "extra_realpath": "/opt/workers/videohelpersuite-workernodes/lib/python3.11/site-packages/comfy_env/__init__.py",
+    "prefix": "/opt/workers/videohelpersuite-workernodes",
+    "sys_path": [
+      "",
+      "/usr/local/lib/python311.zip",
+      "/usr/local/lib/python3.11",
+      "/usr/local/lib/python3.11/lib-dynload",
+      "/opt/workers/videohelpersuite-workernodes/lib/python3.11/site-packages"
+    ],
+    "torch_realpath": "/opt/runtime/venv/lib/python3.11/site-packages/torch/__init__.py",
+    "torch_version": "2.10.0+cu128"
+  },
+  "host": {
+    "class_modules": {
+      "VHS_BatchManager": "/opt/probe/ComfyUI/custom_nodes/ComfyUI-VideoHelperSuite.videohelpersuite.nodes",
+      "VHS_LoadVideoPath": "/opt/probe/ComfyUI/custom_nodes/ComfyUI-VideoHelperSuite.videohelpersuite.load_video_nodes",
+      "VHS_SelectLatents": "comfy_env.isolation.metadata",
+      "VHS_SplitImages": "comfy_env.isolation.metadata",
+      "VHS_VideoCombine": "/opt/probe/ComfyUI/custom_nodes/ComfyUI-VideoHelperSuite.videohelpersuite.nodes"
+    },
+    "ffmpeg_path": "/usr/bin/ffmpeg",
+    "host_pid": 1,
+    "latent_hook_preserved": true,
+    "queue_is_host": true,
+    "worker_catalog_imported_on_host": false
+  },
+  "host_package_fingerprint": {
+    "gpu_files": {
+      "torch/_C.cpython-311-x86_64-linux-gnu.so": "4349b125953ce9e0f7e0e94f5a78519107f15a234e1fb3703e86c12c405b09cd",
+      "torch/__init__.py": "51c90fe34a7cf869517d1bab4cd114498790e169ec668f1a154c35ec64117a5e",
+      "torch/version.py": "53e3fb24ceaf300de811ae08721e5ca3a0720c7ef900c8365da3fe80c7271ebc"
+    },
+    "packages_sha256": "501ec9239838c5b436a4f1985f47fd320f7af8ed03253aad35e8a3f33c95792f"
+  },
+  "http": {
+    "viewaudio": {
+      "bytes": 9765,
+      "decoded": {
+        "audio_nonzero": true,
+        "audio_samples": 49360,
+        "frames": 0,
+        "means": [],
+        "sizes": [],
+        "streams": [
+          "audio"
+        ]
+      },
+      "mime": "audio/webm"
+    },
+    "viewvideo": {
+      "bytes": 10288,
+      "decoded": {
+        "audio_nonzero": true,
+        "audio_samples": 49360,
+        "frames": 6,
+        "means": [
+          0.00012254901960784314,
+          0.09810049019607843,
+          0.20006127450980393,
+          0.29822303921568627,
+          0.40006127450980394,
+          0.5019607843137255
+        ],
+        "sizes": [
+          [
+            64,
+            32
+          ],
+          [
+            64,
+            32
+          ],
+          [
+            64,
+            32
+          ],
+          [
+            64,
+            32
+          ],
+          [
+            64,
+            32
+          ],
+          [
+            64,
+            32
+          ]
+        ],
+        "streams": [
+          "video",
+          "audio"
+        ]
+      },
+      "mime": "video/webm"
+    }
+  },
+  "image": {
+    "kind": "IMAGE",
+    "means": [
+      0.0,
+      0.20000003278255463,
+      0.40000006556510925,
+      0.0,
+      0.20000003278255463,
+      0.40000006556510925
+    ],
+    "shape": [
+      6,
+      32,
+      64,
+      3
+    ]
+  },
+  "image_id": "sha256:d0558d815493da0b3750a51740071c2097ca3fcfaf6a49a2be2a205d9676e70b",
+  "kind": "vhs-mixed-isolation-cpu-gate",
+  "latent": {
+    "kind": "LATENT",
+    "means": [
+      0.0,
+      0.20000001788139343,
+      0.40000003576278687
+    ],
+    "shape": [
+      3,
+      4,
+      4,
+      8
+    ]
+  },
+  "mask": {
+    "kind": "MASK",
+    "means": [
+      0.0,
+      0.20000003278255463,
+      0.40000006556510925
+    ],
+    "shape": [
+      3,
+      32,
+      64
+    ]
+  },
+  "meta_batch": {
+    "final_state": {
+      "host_pid": 1,
+      "inputs": 0,
+      "outputs": 0,
+      "suspended_generators": 0
+    },
+    "history_count": 3,
+    "states": [
+      {
+        "host_pid": 1,
+        "inputs": 1,
+        "outputs": 1,
+        "suspended_generators": 1
+      },
+      {
+        "host_pid": 1,
+        "inputs": 1,
+        "outputs": 1,
+        "suspended_generators": 1
+      },
+      {
+        "host_pid": 1,
+        "inputs": 0,
+        "outputs": 0,
+        "suspended_generators": 0
+      }
+    ],
+    "video": {
+      "frames": 6,
+      "means": [
+        0.0,
+        0.09411764705882353,
+        0.2,
+        0.29411764705882354,
+        0.4,
+        0.5019607843137255
+      ],
+      "sizes": [
+        [
+          64,
+          32
+        ],
+        [
+          64,
+          32
+        ],
+        [
+          64,
+          32
+        ],
+        [
+          64,
+          32
+        ],
+        [
+          64,
+          32
+        ],
+        [
+          64,
+          32
+        ]
+      ],
+      "streams": [
+        "video"
+      ]
+    }
+  },
+  "partial_decoder_reset": {
+    "held_generator_closed": true,
+    "video_file_descriptors": 0
+  },
+  "policy": {
+    "host_exception": "Video/audio loaders/encoders, batch-manager generators, prompt requeue and preview/server hooks retain their upstream host implementation.",
+    "schema_version": 1,
+    "source_commit": "4d907bee61e92c2e65af3bd6383a4e4d356126d1",
+    "worker_nodes": {
+      "VHS_DuplicateImages": {
+        "class": "RepeatImages",
+        "display_name": "Repeat Images \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_DuplicateLatents": {
+        "class": "RepeatLatents",
+        "display_name": "Repeat Latents \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_DuplicateMasks": {
+        "class": "RepeatMasks",
+        "display_name": "Repeat Masks \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_GetImageCount": {
+        "class": "GetImageCount",
+        "display_name": "Get Image Count \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_GetLatentCount": {
+        "class": "GetLatentCount",
+        "display_name": "Get Latent Count \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_GetMaskCount": {
+        "class": "GetMaskCount",
+        "display_name": "Get Mask Count \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_MergeImages": {
+        "class": "MergeImages",
+        "display_name": "Merge Images \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_MergeLatents": {
+        "class": "MergeLatents",
+        "display_name": "Merge Latents \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_MergeMasks": {
+        "class": "MergeMasks",
+        "display_name": "Merge Masks \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_SelectEveryNthImage": {
+        "class": "SelectEveryNthImage",
+        "display_name": "Select Every Nth Image \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_SelectEveryNthLatent": {
+        "class": "SelectEveryNthLatent",
+        "display_name": "Select Every Nth Latent \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_SelectEveryNthMask": {
+        "class": "SelectEveryNthMask",
+        "display_name": "Select Every Nth Mask \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_SelectImages": {
+        "class": "SelectImages",
+        "display_name": "Select Images \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_SelectLatents": {
+        "class": "SelectLatents",
+        "display_name": "Select Latents \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_SelectMasks": {
+        "class": "SelectMasks",
+        "display_name": "Select Masks \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_SplitImages": {
+        "class": "SplitImages",
+        "display_name": "Split Images \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_SplitLatents": {
+        "class": "SplitLatents",
+        "display_name": "Split Latents \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      },
+      "VHS_SplitMasks": {
+        "class": "SplitMasks",
+        "display_name": "Split Masks \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+      }
+    }
+  },
+  "scope": "18 metadata registrations and representative IMAGE/MASK/LATENT values/metadata, H.264+audio, live HTTP transcoding, real host generator requeue through worker tensors and closure. No GPU, real VAE checkpoint, all format or browser interaction certification.",
+  "source_video": {
+    "audio_nonzero": true,
+    "audio_samples": 16384,
+    "frames": 6,
+    "means": [
+      0.0,
+      0.09803921568627451,
+      0.2,
+      0.2980392156862745,
+      0.4,
+      0.5019607843137255
+    ],
+    "sizes": [
+      [
+        64,
+        32
+      ],
+      [
+        64,
+        32
+      ],
+      [
+        64,
+        32
+      ],
+      [
+        64,
+        32
+      ],
+      [
+        64,
+        32
+      ],
+      [
+        64,
+        32
+      ]
+    ],
+    "streams": [
+      "video",
+      "audio"
+    ]
+  },
+  "status": "passed",
+  "ui_script_count": 2,
+  "worker": {
+    "attention_policy": "pytorch",
+    "cmd": [
+      "/opt/workers/videohelpersuite-workernodes/bin/python",
+      "/tmp/comfyui_pvenv_yrgxz59h/persistent_worker.py",
+      "abstract://comfy_worker_fd1965616dbf"
+    ],
+    "cpu_mode": "1",
+    "pid": 78,
+    "ppid": 1
+  },
+  "worker_unused_providers": {
+    "cv2": false,
+    "imageio_ffmpeg": false
+  }
+}

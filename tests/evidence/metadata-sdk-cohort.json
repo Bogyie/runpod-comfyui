@@ -1,0 +1,172 @@
+{
+  "kind": "sdk-patch-cohort",
+  "scope": "Exact installed SDK policy bytes across raw worker/runtime images; no GPU certification",
+  "images": {
+    "runpod-comfyui:probe-runtime-probe": {
+      "image_id": "sha256:38fd6db310102c34e3bac7f55144809278d75b93bc1c29ea26a957aa92cd6b5b",
+      "prefixes": {
+        "/opt/runtime/venv": {
+          "original_files": 7,
+          "patched": {
+            "environment/cache.py": "0407ab55685f2be972c04332293d23190bede090b3a32b588a05420a90d91d76",
+            "install/workspace.py": "7cb0cbaf6ff60f4a6a840c90e24edf3d7f5a8e43beba86a029b5c1482100922f",
+            "isolation/managed_metadata.py": "480f16df33d217ead106dd79f58b0cb3e7273b2c8b0c9871a567f0366e7bb01a",
+            "isolation/metadata.py": "15d52a9b7b79d844fb0da8cd85a4b0a1bf79b6a01132bc457a49c5dcf4402587",
+            "isolation/workers/_ipc_parent.py": "bde844c2e1699119f8b1955647aa6f039b2ead8304582eecb6a8d7554398be54",
+            "isolation/workers/_persistent_worker.py": "2646836d01ada0588ee260762ca5084e600b6c5a52e7aa1741c6b1b67f955e33",
+            "isolation/workers/subprocess.py": "ff3848600bc3aaa51060706f4cac5efe87454484c21985efe2913bdca61523bb",
+            "isolation/wrap.py": "cb2858d34ab0bed95bfb0c1f801c1dd2c8e34e03b818d6d5b60c298858b952a9"
+          }
+        },
+        "/opt/workers/depthanythingv3-nodes": {
+          "original_files": 7,
+          "patched": {
+            "environment/cache.py": "0407ab55685f2be972c04332293d23190bede090b3a32b588a05420a90d91d76",
+            "install/workspace.py": "7cb0cbaf6ff60f4a6a840c90e24edf3d7f5a8e43beba86a029b5c1482100922f",
+            "isolation/managed_metadata.py": "480f16df33d217ead106dd79f58b0cb3e7273b2c8b0c9871a567f0366e7bb01a",
+            "isolation/metadata.py": "15d52a9b7b79d844fb0da8cd85a4b0a1bf79b6a01132bc457a49c5dcf4402587",
+            "isolation/workers/_ipc_parent.py": "bde844c2e1699119f8b1955647aa6f039b2ead8304582eecb6a8d7554398be54",
+            "isolation/workers/_persistent_worker.py": "2646836d01ada0588ee260762ca5084e600b6c5a52e7aa1741c6b1b67f955e33",
+            "isolation/workers/subprocess.py": "ff3848600bc3aaa51060706f4cac5efe87454484c21985efe2913bdca61523bb",
+            "isolation/wrap.py": "cb2858d34ab0bed95bfb0c1f801c1dd2c8e34e03b818d6d5b60c298858b952a9"
+          }
+        },
+        "/opt/workers/itools-workernodes": {
+          "original_files": 7,
+          "patched": {
+            "environment/cache.py": "0407ab55685f2be972c04332293d23190bede090b3a32b588a05420a90d91d76",
+            "install/workspace.py": "7cb0cbaf6ff60f4a6a840c90e24edf3d7f5a8e43beba86a029b5c1482100922f",
+            "isolation/managed_metadata.py": "480f16df33d217ead106dd79f58b0cb3e7273b2c8b0c9871a567f0366e7bb01a",
+            "isolation/metadata.py": "15d52a9b7b79d844fb0da8cd85a4b0a1bf79b6a01132bc457a49c5dcf4402587",
+            "isolation/workers/_ipc_parent.py": "bde844c2e1699119f8b1955647aa6f039b2ead8304582eecb6a8d7554398be54",
+            "isolation/workers/_persistent_worker.py": "2646836d01ada0588ee260762ca5084e600b6c5a52e7aa1741c6b1b67f955e33",
+            "isolation/workers/subprocess.py": "ff3848600bc3aaa51060706f4cac5efe87454484c21985efe2913bdca61523bb",
+            "isolation/wrap.py": "cb2858d34ab0bed95bfb0c1f801c1dd2c8e34e03b818d6d5b60c298858b952a9"
+          }
+        },
+        "/opt/workers/kjnodes-workernodes": {
+          "original_files": 7,
+          "patched": {
+            "environment/cache.py": "0407ab55685f2be972c04332293d23190bede090b3a32b588a05420a90d91d76",
+            "install/workspace.py": "7cb0cbaf6ff60f4a6a840c90e24edf3d7f5a8e43beba86a029b5c1482100922f",
+            "isolation/managed_metadata.py": "480f16df33d217ead106dd79f58b0cb3e7273b2c8b0c9871a567f0366e7bb01a",
+            "isolation/metadata.py": "15d52a9b7b79d844fb0da8cd85a4b0a1bf79b6a01132bc457a49c5dcf4402587",
+            "isolation/workers/_ipc_parent.py": "bde844c2e1699119f8b1955647aa6f039b2ead8304582eecb6a8d7554398be54",
+            "isolation/workers/_persistent_worker.py": "2646836d01ada0588ee260762ca5084e600b6c5a52e7aa1741c6b1b67f955e33",
+            "isolation/workers/subprocess.py": "ff3848600bc3aaa51060706f4cac5efe87454484c21985efe2913bdca61523bb",
+            "isolation/wrap.py": "cb2858d34ab0bed95bfb0c1f801c1dd2c8e34e03b818d6d5b60c298858b952a9"
+          }
+        },
+        "/opt/workers/sam3-nodes": {
+          "original_files": 7,
+          "patched": {
+            "environment/cache.py": "0407ab55685f2be972c04332293d23190bede090b3a32b588a05420a90d91d76",
+            "install/workspace.py": "7cb0cbaf6ff60f4a6a840c90e24edf3d7f5a8e43beba86a029b5c1482100922f",
+            "isolation/managed_metadata.py": "480f16df33d217ead106dd79f58b0cb3e7273b2c8b0c9871a567f0366e7bb01a",
+            "isolation/metadata.py": "15d52a9b7b79d844fb0da8cd85a4b0a1bf79b6a01132bc457a49c5dcf4402587",
+            "isolation/workers/_ipc_parent.py": "bde844c2e1699119f8b1955647aa6f039b2ead8304582eecb6a8d7554398be54",
+            "isolation/workers/_persistent_worker.py": "2646836d01ada0588ee260762ca5084e600b6c5a52e7aa1741c6b1b67f955e33",
+            "isolation/workers/subprocess.py": "ff3848600bc3aaa51060706f4cac5efe87454484c21985efe2913bdca61523bb",
+            "isolation/wrap.py": "cb2858d34ab0bed95bfb0c1f801c1dd2c8e34e03b818d6d5b60c298858b952a9"
+          }
+        },
+        "/opt/workers/videohelpersuite-workernodes": {
+          "original_files": 7,
+          "patched": {
+            "environment/cache.py": "0407ab55685f2be972c04332293d23190bede090b3a32b588a05420a90d91d76",
+            "install/workspace.py": "7cb0cbaf6ff60f4a6a840c90e24edf3d7f5a8e43beba86a029b5c1482100922f",
+            "isolation/managed_metadata.py": "480f16df33d217ead106dd79f58b0cb3e7273b2c8b0c9871a567f0366e7bb01a",
+            "isolation/metadata.py": "15d52a9b7b79d844fb0da8cd85a4b0a1bf79b6a01132bc457a49c5dcf4402587",
+            "isolation/workers/_ipc_parent.py": "bde844c2e1699119f8b1955647aa6f039b2ead8304582eecb6a8d7554398be54",
+            "isolation/workers/_persistent_worker.py": "2646836d01ada0588ee260762ca5084e600b6c5a52e7aa1741c6b1b67f955e33",
+            "isolation/workers/subprocess.py": "ff3848600bc3aaa51060706f4cac5efe87454484c21985efe2913bdca61523bb",
+            "isolation/wrap.py": "cb2858d34ab0bed95bfb0c1f801c1dd2c8e34e03b818d6d5b60c298858b952a9"
+          }
+        }
+      }
+    },
+    "runpod-comfyui:probe-worker-probe": {
+      "image_id": "sha256:af1120330f2c565fe26bb57369b09e1f53eea91c84bf688a5eda103a9317d8e5",
+      "prefixes": {
+        "/opt/runtime/venv": {
+          "original_files": 7,
+          "patched": {
+            "environment/cache.py": "0407ab55685f2be972c04332293d23190bede090b3a32b588a05420a90d91d76",
+            "install/workspace.py": "7cb0cbaf6ff60f4a6a840c90e24edf3d7f5a8e43beba86a029b5c1482100922f",
+            "isolation/managed_metadata.py": "480f16df33d217ead106dd79f58b0cb3e7273b2c8b0c9871a567f0366e7bb01a",
+            "isolation/metadata.py": "15d52a9b7b79d844fb0da8cd85a4b0a1bf79b6a01132bc457a49c5dcf4402587",
+            "isolation/workers/_ipc_parent.py": "bde844c2e1699119f8b1955647aa6f039b2ead8304582eecb6a8d7554398be54",
+            "isolation/workers/_persistent_worker.py": "2646836d01ada0588ee260762ca5084e600b6c5a52e7aa1741c6b1b67f955e33",
+            "isolation/workers/subprocess.py": "ff3848600bc3aaa51060706f4cac5efe87454484c21985efe2913bdca61523bb",
+            "isolation/wrap.py": "cb2858d34ab0bed95bfb0c1f801c1dd2c8e34e03b818d6d5b60c298858b952a9"
+          }
+        },
+        "/opt/workers/depthanythingv3-nodes": {
+          "original_files": 7,
+          "patched": {
+            "environment/cache.py": "0407ab55685f2be972c04332293d23190bede090b3a32b588a05420a90d91d76",
+            "install/workspace.py": "7cb0cbaf6ff60f4a6a840c90e24edf3d7f5a8e43beba86a029b5c1482100922f",
+            "isolation/managed_metadata.py": "480f16df33d217ead106dd79f58b0cb3e7273b2c8b0c9871a567f0366e7bb01a",
+            "isolation/metadata.py": "15d52a9b7b79d844fb0da8cd85a4b0a1bf79b6a01132bc457a49c5dcf4402587",
+            "isolation/workers/_ipc_parent.py": "bde844c2e1699119f8b1955647aa6f039b2ead8304582eecb6a8d7554398be54",
+            "isolation/workers/_persistent_worker.py": "2646836d01ada0588ee260762ca5084e600b6c5a52e7aa1741c6b1b67f955e33",
+            "isolation/workers/subprocess.py": "ff3848600bc3aaa51060706f4cac5efe87454484c21985efe2913bdca61523bb",
+            "isolation/wrap.py": "cb2858d34ab0bed95bfb0c1f801c1dd2c8e34e03b818d6d5b60c298858b952a9"
+          }
+        },
+        "/opt/workers/itools-workernodes": {
+          "original_files": 7,
+          "patched": {
+            "environment/cache.py": "0407ab55685f2be972c04332293d23190bede090b3a32b588a05420a90d91d76",
+            "install/workspace.py": "7cb0cbaf6ff60f4a6a840c90e24edf3d7f5a8e43beba86a029b5c1482100922f",
+            "isolation/managed_metadata.py": "480f16df33d217ead106dd79f58b0cb3e7273b2c8b0c9871a567f0366e7bb01a",
+            "isolation/metadata.py": "15d52a9b7b79d844fb0da8cd85a4b0a1bf79b6a01132bc457a49c5dcf4402587",
+            "isolation/workers/_ipc_parent.py": "bde844c2e1699119f8b1955647aa6f039b2ead8304582eecb6a8d7554398be54",
+            "isolation/workers/_persistent_worker.py": "2646836d01ada0588ee260762ca5084e600b6c5a52e7aa1741c6b1b67f955e33",
+            "isolation/workers/subprocess.py": "ff3848600bc3aaa51060706f4cac5efe87454484c21985efe2913bdca61523bb",
+            "isolation/wrap.py": "cb2858d34ab0bed95bfb0c1f801c1dd2c8e34e03b818d6d5b60c298858b952a9"
+          }
+        },
+        "/opt/workers/kjnodes-workernodes": {
+          "original_files": 7,
+          "patched": {
+            "environment/cache.py": "0407ab55685f2be972c04332293d23190bede090b3a32b588a05420a90d91d76",
+            "install/workspace.py": "7cb0cbaf6ff60f4a6a840c90e24edf3d7f5a8e43beba86a029b5c1482100922f",
+            "isolation/managed_metadata.py": "480f16df33d217ead106dd79f58b0cb3e7273b2c8b0c9871a567f0366e7bb01a",
+            "isolation/metadata.py": "15d52a9b7b79d844fb0da8cd85a4b0a1bf79b6a01132bc457a49c5dcf4402587",
+            "isolation/workers/_ipc_parent.py": "bde844c2e1699119f8b1955647aa6f039b2ead8304582eecb6a8d7554398be54",
+            "isolation/workers/_persistent_worker.py": "2646836d01ada0588ee260762ca5084e600b6c5a52e7aa1741c6b1b67f955e33",
+            "isolation/workers/subprocess.py": "ff3848600bc3aaa51060706f4cac5efe87454484c21985efe2913bdca61523bb",
+            "isolation/wrap.py": "cb2858d34ab0bed95bfb0c1f801c1dd2c8e34e03b818d6d5b60c298858b952a9"
+          }
+        },
+        "/opt/workers/sam3-nodes": {
+          "original_files": 7,
+          "patched": {
+            "environment/cache.py": "0407ab55685f2be972c04332293d23190bede090b3a32b588a05420a90d91d76",
+            "install/workspace.py": "7cb0cbaf6ff60f4a6a840c90e24edf3d7f5a8e43beba86a029b5c1482100922f",
+            "isolation/managed_metadata.py": "480f16df33d217ead106dd79f58b0cb3e7273b2c8b0c9871a567f0366e7bb01a",
+            "isolation/metadata.py": "15d52a9b7b79d844fb0da8cd85a4b0a1bf79b6a01132bc457a49c5dcf4402587",
+            "isolation/workers/_ipc_parent.py": "bde844c2e1699119f8b1955647aa6f039b2ead8304582eecb6a8d7554398be54",
+            "isolation/workers/_persistent_worker.py": "2646836d01ada0588ee260762ca5084e600b6c5a52e7aa1741c6b1b67f955e33",
+            "isolation/workers/subprocess.py": "ff3848600bc3aaa51060706f4cac5efe87454484c21985efe2913bdca61523bb",
+            "isolation/wrap.py": "cb2858d34ab0bed95bfb0c1f801c1dd2c8e34e03b818d6d5b60c298858b952a9"
+          }
+        },
+        "/opt/workers/videohelpersuite-workernodes": {
+          "original_files": 7,
+          "patched": {
+            "environment/cache.py": "0407ab55685f2be972c04332293d23190bede090b3a32b588a05420a90d91d76",
+            "install/workspace.py": "7cb0cbaf6ff60f4a6a840c90e24edf3d7f5a8e43beba86a029b5c1482100922f",
+            "isolation/managed_metadata.py": "480f16df33d217ead106dd79f58b0cb3e7273b2c8b0c9871a567f0366e7bb01a",
+            "isolation/metadata.py": "15d52a9b7b79d844fb0da8cd85a4b0a1bf79b6a01132bc457a49c5dcf4402587",
+            "isolation/workers/_ipc_parent.py": "bde844c2e1699119f8b1955647aa6f039b2ead8304582eecb6a8d7554398be54",
+            "isolation/workers/_persistent_worker.py": "2646836d01ada0588ee260762ca5084e600b6c5a52e7aa1741c6b1b67f955e33",
+            "isolation/workers/subprocess.py": "ff3848600bc3aaa51060706f4cac5efe87454484c21985efe2913bdca61523bb",
+            "isolation/wrap.py": "cb2858d34ab0bed95bfb0c1f801c1dd2c8e34e03b818d6d5b60c298858b952a9"
+          }
+        }
+      }
+    }
+  }
+}

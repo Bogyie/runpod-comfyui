@@ -14,8 +14,8 @@ sys.path.insert(0, '/opt/runtime/control')
 from selection import Store, SelectionError
 
 
-def read_json(url):
-    with urllib.request.urlopen(url, timeout=5) as response:
+def read_json(url, timeout=5):
+    with urllib.request.urlopen(url, timeout=timeout) as response:
         return json.load(response)
 
 
@@ -63,7 +63,7 @@ def validate(store, profile, smoke_workflow=None):
                     if process.poll() is not None:
                         raise SelectionError('Candidate startup failed; inspect ' + str(directory / 'validation.log'))
                     try:
-                        objects = read_json(base + '/object_info')
+                        objects = read_json(base + '/object_info', timeout=120)
                         if not required.issubset(objects):
                             raise SelectionError('Candidate is missing required nodes: ' + ','.join(sorted(required - objects.keys())) + '; inspect ' + str(directory / 'validation.log'))
                         for name in profile['nodes'].keys() - store.base['nodes'].keys():
@@ -98,7 +98,7 @@ def validate(store, profile, smoke_workflow=None):
                            'environment_bindings': 'unchanged-image-prefixes', 'gpu': 'not-run', 'validated_at': time.time()}
                 if smoke_workflow:
                     request = urllib.request.Request(base + '/prompt', data=json.dumps({'prompt': smoke_workflow}).encode(), headers={'Content-Type': 'application/json'})
-                    with urllib.request.urlopen(request, timeout=10) as response:
+                    with urllib.request.urlopen(request, timeout=120) as response:
                         submitted = json.load(response)
                     if 'prompt_id' not in submitted or submitted.get('node_errors'):
                         raise SelectionError('Added-node smoke workflow failed validation')

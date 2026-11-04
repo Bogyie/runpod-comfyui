@@ -170,12 +170,18 @@ for name in ['/opt/runtime/venv/lib/python3.11/site-packages/torch/version.py','
         raise RuntimeError('Service could write protected path: '+name)
     except (PermissionError,OSError):result[name]='write-rejected'
 result['pid1_status']=[line for line in Path('/proc/1/status').read_text().splitlines() if line.startswith(('Uid:','NoNewPrivs:'))]
-result['metadata_cache_files']=len(list(Path('/workspace/cache/metadata').glob('*.pkl')))
+import psutil
+result['metadata_workers']=[{'pid':p.pid,'python':p.cmdline()[0],
+    'cpu':p.environ().get('COMFY_CPU'),'cuda_visible_devices':p.environ().get('CUDA_VISIBLE_DEVICES')}
+    for p in psutil.Process(1).children(recursive=True)
+    if any('persistent_worker.py' in arg for arg in p.cmdline()) and p.environ().get('COMFYCTL_METADATA_WORKER')=='1']
 result['prefix_metadata_cache_files']=len(list(Path('/opt/workers').glob('*/.metadata_cache.pkl')))
 print(json.dumps(result))""")
         assert any(line.split()[1:] == ['1000'] * 4 for line in result['permissions']['pid1_status'] if line.startswith('Uid:'))
         assert 'NoNewPrivs:\t1' in result['permissions']['pid1_status']
-        assert result['permissions']['metadata_cache_files'] >= 5
+        assert len(result['permissions']['metadata_workers']) == 5
+        assert all(row['cpu']=='1' and row['cuda_visible_devices']=='' and row['python'].startswith('/opt/workers/')
+                   for row in result['permissions']['metadata_workers'])
         assert result['permissions']['prefix_metadata_cache_files'] == 0
         assert result['packages_before'] == inside(first, FINGERPRINT)
         sam_graph = json.loads((ROOT / 'tests/workflows/sam3-points-cpu.json').read_text())
@@ -195,7 +201,7 @@ print(json.dumps(result))""")
         result['restart_ready_without_network'] = await_ready(second, args.timeout)
         result['persisted'] = inside(second, "import json;from pathlib import Path;r=Path('/workspace/storage');print(json.dumps({'user':(r/'user/persistence.txt').read_text(),'model':(r/'models/checkpoints/runtime-marker.safetensors').read_text(),'input':(r/'input/runtime.png').is_file(),'output':len(list((r/'output').glob('runtime-output*.png')))}))")
         assert result['persisted'] == {'user': 'keep-me', 'model': 'model-path-marker', 'input': True, 'output': 1}
-        assert 'Cache hit for' in docker('logs', second)
+        assert 'Live CPU metadata:' in docker('logs', second)
         assert result['packages_before'] == inside(second, FINGERPRINT)
         docker('stop', '--time', '25', second)
         assert json.loads(docker('inspect', second))[0]['State']['ExitCode'] == 0

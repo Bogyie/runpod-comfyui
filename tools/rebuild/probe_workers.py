@@ -27,8 +27,9 @@ packages=sorted((d.metadata['Name'],d.version) for d in importlib.metadata.distr
 files=[site/'torch/__init__.py',site/'torch/version.py',*sorted((site/'torch').glob('_C*.so'))]
 print(json.dumps({'packages_sha256':hashlib.sha256(json.dumps(packages).encode()).hexdigest(),
 'gpu_files':{str(p.relative_to(site)):hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}))'''
+# Compute worker checks are separate from the CPU metadata worker pool.
 PROCESSES = '''import json,psutil
-print(json.dumps([{'pid':p.pid,'ppid':p.ppid(),'cmd':p.cmdline(),'attention_policy':p.environ().get('COMFYCTL_WORKER_ATTENTION'),'cpu_mode':p.environ().get('COMFY_CPU')} for p in psutil.Process(1).children(recursive=True) if any('persistent_worker.py' in arg for arg in p.cmdline())]))'''
+print(json.dumps([{'pid':p.pid,'ppid':p.ppid(),'cmd':p.cmdline(),'attention_policy':p.environ().get('COMFYCTL_WORKER_ATTENTION'),'cpu_mode':p.environ().get('COMFY_CPU')} for p in psutil.Process(1).children(recursive=True) if any('persistent_worker.py' in arg for arg in p.cmdline()) and p.environ().get('COMFYCTL_METADATA_WORKER') != '1']))'''
 ENVIRONMENT = '''import importlib.util,json,pathlib,sys,torch
 extra=importlib.util.find_spec(sys.argv[1])
 print(json.dumps({'prefix':sys.prefix,'sys_path':sys.path,'extra_realpath':str(pathlib.Path(extra.origin).resolve()),

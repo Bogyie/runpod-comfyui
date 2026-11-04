@@ -92,6 +92,7 @@ def main() -> None:
     for name in ("gpu", "host"):
         shutil.copyfile(ROOT / f"locks/{name}/linux-amd64-cu128.txt", context / f"{name}.txt")
     shutil.copyfile(ROOT / "tools/rebuild/apply_comfy_env_patch.py", context / "apply_comfy_env_patch.py")
+    shutil.copyfile(ROOT / "tools/rebuild/managed_metadata.py", context / "managed_metadata.py")
     if args.target in {"host", "worker-probe", "runtime-probe"}:
         source = lock["sources"]["comfyui"]
         data = fetch(source["archive_url"])
@@ -186,6 +187,7 @@ def main() -> None:
                                         ROOT / 'locks/tools/requirements.txt', ROOT / 'uv.lock', ROOT / 'pyproject.toml',
                                         ROOT / 'locks/gpu/linux-amd64-cu128.txt', ROOT / 'locks/host/linux-amd64-cu128.txt',
                                         ROOT / 'tools/rebuild/apply_comfy_env_patch.py',
+                                        ROOT / 'tools/rebuild/managed_metadata.py',
                                         ROOT / 'tools/rebuild/link_gpu_packages.py',
                                         ROOT / 'tools/rebuild/apply_manager_adapter.py',
                                         *sorted((ROOT / 'build/adapters/manager').glob('*.py')),

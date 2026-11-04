@@ -21,7 +21,8 @@ permissions:
 
 concurrency:
   group: rebuild-image-${{ github.ref }}
-  cancel-in-progress: true
+  # Finish publication and immutable-image checks even if a newer commit queues.
+  cancel-in-progress: false
 
 jobs:
   checks:
@@ -130,6 +131,11 @@ jobs:
           RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
         run: |
           uv run --frozen python tools/rebuild/probe_generations.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/generations-preview.json
+      - name: Verify live node metadata and callback recovery
+        env:
+          RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
+        run: |
+          uv run --frozen python tools/rebuild/probe_metadata.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/dynamic-metadata-preview.json
       - name: Verify Manager catalog and guarded changes
         env:
           RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime

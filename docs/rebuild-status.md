@@ -369,3 +369,26 @@ CI의 별도 runtime preview에도 같은 빌더 gate를 추가했다. 아직 �
 단위 검사 95개는 전이 참조·최소 연령·orphan process·누락된 보존 상태·symlink·중단된 정리의 journal과 재실행을 포함한다. [같은 이미지의 runtime/CLI 회귀](../tests/evidence/update-gc-image-runtime-cpu.json)도 통과했다. 로컬 Linux CPU fixture 증거이며 공개 노드 전체 업데이트·GPU·RunPod network volume 검증으로 확대하지 않는다. CI의 native 자동 lock lifecycle에도 업데이트/GC 검사를 추가했다.
 
 동적 metadata, 이미지 업데이트 호환성/rebase와 ComfyUI 업데이트 PR, 최종 runtime 게시 및 같은 digest의 두 GPU/RunPod 검증은 계속 남아 있다.
+
+## Manager·추가 노드 설치의 원격 결과
+
+[성공 실행 #41831071864](https://github.com/Bogyie/runpod-comfyui/actions/runs/41831071864), 소스 `3e260015b1a5a1ed3d14314be7289c49c47aeed0`에서 게시 전후 worker 검사와 별도 runtime preview의 Manager·후보 설치·자동 resolver·공개 노드 검사가 통과했다. [원격 증거](evidence/actions-41831071864/run.json)와 [Manager 검사](evidence/actions-41831071864/manager-preview.json)를 보존했다.
+
+- 게시한 raw worker는 `ghcr.io/bogyie/runpod-comfyui@sha256:a62dd3a4a509c833837fb2c0401547c05a06fa4562ea35a437a10568c13525b7`다. worker 내용이 같아 이전 성공 실행과 digest도 같다.
+- 익명 manifest·digest hash·검사한 config 일치와 압축 레이어 합계 6,901,602,200바이트를 확인했다.
+- image job 전체는 73분 40초였다. 이는 설치·복구·게시 후 재검증까지의 합계이며 Docker 빌드 시간 수치로 쓰지 않는다.
+- 이 실행에는 이후 추가한 node update/GC와 동적 metadata 변경이 없다. Manager/CLI runtime preview는 여전히 게시한 worker와 다른 이미지다.
+
+이미지 workflow는 후속 push가 게시·고정 digest 검증을 중간 취소하지 않도록 `cancel-in-progress: false`로 바꿨다. 새 커밋은 대기하고 실행 중인 검증을 마친다.
+
+## P2/P3 동적 metadata와 병행 RPC
+
+정적 INPUT_TYPES snapshot을 실제 private CPU metadata worker로 바꿨다. 입력·모델 목록은 다음 HTTP 조회에서 다시 읽고, IS_CHANGED와 VALIDATE_INPUTS의 signature·결과·오류를 전달한다. HTTP 요청 안에서는 환경별 schema를 배치 조회하며 요청 사이에는 목록을 고정하지 않는다. metadata는 JSON 문자열만 전송해 계산 RPC의 tensor FD/cache 정리를 건드리지 않는다. NaN 변경 신호도 보존한다. [설계와 범위](metadata.md)를 기록했다.
+
+[최종 metadata gate](../tests/evidence/dynamic-metadata-cpu.json)는 입력 파일과 실제 DA3 모델 목록 갱신, classic cache 재사용·파일 변경·NaN 연속 재실행, 검증 거부, 계산 중 조회, metadata worker 종료 및 호출 중 종료 후 복구와 계산 PID 보존을 통과했다. [같은 runtime의 회귀](../tests/evidence/dynamic-metadata-runtime-cpu.json)는 기본 RAM cache·nonroot·경로·손상 감지·재기동·native SAM3/DA3 CPU 계산을 확인했다.
+
+[공개 Multiband 설치](../tests/evidence/metadata-image-public-node-cpu.json)도 같은 runtime image ID에서 자동 lock·실제 private 설치·대표 tensor/dict/PNG/preview·reset을 통과했다. 후보 기본 노드의 metadata는 임시 프로세스에서 실제 실행 후 종료하고, 추가 노드의 콜백 상태는 후보 private 프로세스에 유지한다. 실행 서비스와 기본 metadata pool 전체를 두 벌 유지하지 않도록 했다.
+
+[최종 raw worker의 native IPC/복구 gate](../tests/evidence/metadata-image-workers-cpu.json)와 [두 이미지의 SDK byte 검사](../tests/evidence/metadata-sdk-cohort.json)를 보존했다. host·기본 worker 모두 원본 7개 파일 hash를 검사한 동일 패치와 metadata helper를 사용한다. deep 진단에는 wheel RECORD에 없는 helper 파일도 포함했다. SDK PoolIPC 전역 handle의 경쟁 상태는 원본 코드의 CPU 단위 검사에서 재현한 뒤 ContextVar로 분리했다. GPU PoolIPC 실연산 인증은 아니다.
+
+단위 검사 101개와 소스/artifact/lock 재현 검사가 통과했다. metadata 프로세스의 RSS/PSS와 지연은 로컬 에뮬레이션 측정이며 native runner·최종 두 GPU의 자원 측정은 남아 있다. CI runtime preview에 metadata gate와 node update/GC 검사를 추가했다. 최종 runtime 게시, ComfyUI 업데이트/이미지 호환성·rebase, 같은 digest의 두 GPU/RunPod 검증과 성능·크기 비교는 계속 진행한다.

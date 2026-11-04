@@ -1,0 +1,41 @@
+{
+  "kind": "live-state-only-transitions-cpu-gate",
+  "image_id": "sha256:1913aae2e8af2dc3deb97ca33fdb336f556f6cfe4633f35176761375d9c380f2",
+  "scope": "Real queued tasks and state-only generations; no new-node installation, Manager, GPU or network volume certification",
+  "drain_and_commit": {
+    "transition": {
+      "selection": {
+        "desired": "871c7212f84447a4a8992129f93c1ef1",
+        "last_good": "871c7212f84447a4a8992129f93c1ef1",
+        "previous_good": "image-base",
+        "revision": 2,
+        "runtime_id": "7e467babb95258b663951be8e24be16076e2857bbd2ebbd8e04dbe62dbdd8c7c"
+      },
+      "restart_required": false,
+      "applied_to_running_process": true,
+      "live_transition": "committed",
+      "old_child_pid": 13,
+      "new_child_pid": 563
+    },
+    "jobs_finished": {
+      "queuedjob": {
+        "started": 1793798198.074118,
+        "finished": 1793798200.0745835
+      },
+      "firstjob": {
+        "started": 1793798191.8010004,
+        "finished": 1793798197.801465
+      }
+    },
+    "old_workers_reaped": 1,
+    "admission_status": 503
+  },
+  "drain_timeout": "work-completed-and-child-unchanged",
+  "failed_switch": "automatic-rollback-confirmed",
+  "status": "passed",
+  "interrupted_controller": "recovered-old-generation-on-boot",
+  "user_job_files_preserved": true,
+  "package_fingerprint_unchanged": true,
+  "recovered_generation": "871c7212f84447a4a8992129f93c1ef1",
+  "containers_and_volume_removed": true
+}

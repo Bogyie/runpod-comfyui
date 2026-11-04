@@ -34,6 +34,11 @@ def main():
             path = Path(dist.locate_file(entry)).resolve()
             expected = overrides.get(str(path)) or base64.urlsafe_b64decode(entry.hash.value + '===').hex()
             files.append({'path': str(path), 'sha256': expected, 'package': name})
+    if deep:
+        recorded = {item['path'] for item in files}
+        for path, expected in overrides.items():
+            if path not in recorded:
+                files.append({'path':path,'sha256':expected,'package':'comfy-env'})
     origins = {}
     for module in ['torch', 'huggingface_hub', 'numpy']:
         spec = importlib.util.find_spec(module)

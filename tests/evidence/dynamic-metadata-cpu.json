@@ -1,0 +1,142 @@
+{
+  "kind": "live-metadata-cpu-gate",
+  "image_id": "sha256:38fd6db310102c34e3bac7f55144809278d75b93bc1c29ea26a957aa92cd6b5b",
+  "cache_backend": "classic",
+  "scope": "Real SDK/private CPU processes and DA3 model choices; no model weights or GPU inference certification",
+  "status": "passed",
+  "input_list_updated": true,
+  "da3_local_model_list_updated": true,
+  "is_changed": {
+    "first": {
+      "count": 1,
+      "text": "first",
+      "pid": 408,
+      "prefix": "/opt/workers/depthanythingv3-nodes"
+    },
+    "cached": {
+      "count": 1,
+      "text": "first",
+      "pid": 408,
+      "prefix": "/opt/workers/depthanythingv3-nodes"
+    },
+    "changed": {
+      "count": 2,
+      "text": "second",
+      "pid": 408,
+      "prefix": "/opt/workers/depthanythingv3-nodes"
+    }
+  },
+  "validate_inputs": "real-rejection-and-input_types-signature-forwarded",
+  "metadata_while_compute_running_seconds": 0.0028629580046981573,
+  "cpu_metadata_workers": [
+    {
+      "pid": 102,
+      "python": "/opt/workers/depthanythingv3-nodes/bin/python",
+      "root": "/opt/probe/ComfyUI/custom_nodes/MetadataGate",
+      "cpu": "1",
+      "cuda_visible_devices": "",
+      "uid": 1000,
+      "rss_bytes": 810057728,
+      "pss_bytes": 543177728
+    },
+    {
+      "pid": 127,
+      "python": "/opt/workers/sam3-nodes/bin/python",
+      "root": "/opt/probe/ComfyUI/custom_nodes/ComfyUI-SAM3",
+      "cpu": "1",
+      "cuda_visible_devices": "",
+      "uid": 1000,
+      "rss_bytes": 923516928,
+      "pss_bytes": 663045120
+    },
+    {
+      "pid": 167,
+      "python": "/opt/workers/itools-workernodes/bin/python",
+      "root": "/opt/probe/ComfyUI/custom_nodes/ComfyUI-iTools",
+      "cpu": "1",
+      "cuda_visible_devices": "",
+      "uid": 1000,
+      "rss_bytes": 976740352,
+      "pss_bytes": 711706624
+    },
+    {
+      "pid": 219,
+      "python": "/opt/workers/kjnodes-workernodes/bin/python",
+      "root": "/opt/probe/ComfyUI/custom_nodes/ComfyUI-KJNodes",
+      "cpu": "1",
+      "cuda_visible_devices": "",
+      "uid": 1000,
+      "rss_bytes": 1039069184,
+      "pss_bytes": 773440512
+    },
+    {
+      "pid": 285,
+      "python": "/opt/workers/depthanythingv3-nodes/bin/python",
+      "root": "/opt/probe/ComfyUI/custom_nodes/ComfyUI-DepthAnythingV3",
+      "cpu": "1",
+      "cuda_visible_devices": "",
+      "uid": 1000,
+      "rss_bytes": 918245376,
+      "pss_bytes": 650690560
+    },
+    {
+      "pid": 325,
+      "python": "/opt/workers/videohelpersuite-workernodes/bin/python",
+      "root": "/opt/probe/ComfyUI/custom_nodes/ComfyUI-VideoHelperSuite",
+      "cpu": "1",
+      "cuda_visible_devices": "",
+      "uid": 1000,
+      "rss_bytes": 1021214720,
+      "pss_bytes": 755567616
+    }
+  ],
+  "metadata_worker_kill_recovery": {
+    "pid": 451,
+    "python": "/opt/workers/depthanythingv3-nodes/bin/python",
+    "root": "/opt/probe/ComfyUI/custom_nodes/MetadataGate",
+    "cpu": "1",
+    "cuda_visible_devices": "",
+    "uid": 1000,
+    "rss_bytes": 812195840,
+    "pss_bytes": 545231872
+  },
+  "metadata_recovery_seconds": 4.716700083983596,
+  "compute_preserved_after_metadata_kill": {
+    "count": 4,
+    "text": "busy",
+    "pid": 408,
+    "prefix": "/opt/workers/depthanythingv3-nodes"
+  },
+  "mid_call_metadata_crash": {
+    "request_failed_explicitly": [
+      "HTTPError"
+    ],
+    "replacement_worker": {
+      "pid": 482,
+      "python": "/opt/workers/depthanythingv3-nodes/bin/python",
+      "root": "/opt/probe/ComfyUI/custom_nodes/MetadataGate",
+      "cpu": "1",
+      "cuda_visible_devices": "",
+      "uid": 1000,
+      "rss_bytes": 814080000,
+      "pss_bytes": 547116032
+    },
+    "compute_pid_preserved": true
+  },
+  "is_changed_nan_always_invalidates": {
+    "first": {
+      "count": 5,
+      "text": "always-change",
+      "pid": 408,
+      "prefix": "/opt/workers/depthanythingv3-nodes"
+    },
+    "second": {
+      "count": 6,
+      "text": "always-change",
+      "pid": 408,
+      "prefix": "/opt/workers/depthanythingv3-nodes"
+    }
+  },
+  "image_package_fingerprint_unchanged": true,
+  "container_and_volume_removed": true
+}

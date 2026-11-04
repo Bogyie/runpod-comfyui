@@ -1,0 +1,360 @@
+{
+  "conclusion": "success",
+  "createdAt": "2026-11-04T12:38:52Z",
+  "databaseId": 41831071864,
+  "headSha": "3e260015b1a5a1ed3d14314be7289c49c47aeed0",
+  "jobs": [
+    {
+      "completedAt": "2026-11-04T12:39:13Z",
+      "conclusion": "success",
+      "databaseId": 126578101252,
+      "name": "checks / static",
+      "startedAt": "2026-11-04T12:38:56Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-04T12:38:57Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-04T12:38:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:38:59Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 2,
+          "startedAt": "2026-11-04T12:38:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:38:59Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 3,
+          "startedAt": "2026-11-04T12:38:59Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:39:03Z",
+          "conclusion": "success",
+          "name": "Install pinned resolver",
+          "number": 4,
+          "startedAt": "2026-11-04T12:38:59Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:39:03Z",
+          "conclusion": "success",
+          "name": "Restore development environment from lock",
+          "number": 5,
+          "startedAt": "2026-11-04T12:39:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:39:09Z",
+          "conclusion": "success",
+          "name": "Reproduce source audit",
+          "number": 6,
+          "startedAt": "2026-11-04T12:39:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:39:10Z",
+          "conclusion": "success",
+          "name": "Unit tests",
+          "number": 7,
+          "startedAt": "2026-11-04T12:39:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:39:10Z",
+          "conclusion": "success",
+          "name": "Syntax checks",
+          "number": 8,
+          "startedAt": "2026-11-04T12:39:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:39:10Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 15,
+          "startedAt": "2026-11-04T12:39:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:39:11Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 16,
+          "startedAt": "2026-11-04T12:39:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:39:11Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 17,
+          "startedAt": "2026-11-04T12:39:11Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Bogyie/runpod-comfyui/actions/runs/41831071864/job/126578101252"
+    },
+    {
+      "completedAt": "2026-11-04T13:52:56Z",
+      "conclusion": "success",
+      "databaseId": 126578262485,
+      "name": "image",
+      "startedAt": "2026-11-04T12:39:16Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-04T12:39:18Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-04T12:39:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:39:19Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 2,
+          "startedAt": "2026-11-04T12:39:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:41:49Z",
+          "conclusion": "success",
+          "name": "Free disposable runner disk",
+          "number": 3,
+          "startedAt": "2026-11-04T12:39:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:41:56Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 4,
+          "startedAt": "2026-11-04T12:41:49Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:42:04Z",
+          "conclusion": "success",
+          "name": "Prepare locked build context",
+          "number": 5,
+          "startedAt": "2026-11-04T12:41:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:42:04Z",
+          "conclusion": "success",
+          "name": "Build identity",
+          "number": 6,
+          "startedAt": "2026-11-04T12:42:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:42:05Z",
+          "conclusion": "success",
+          "name": "Run docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6",
+          "number": 7,
+          "startedAt": "2026-11-04T12:42:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:42:13Z",
+          "conclusion": "success",
+          "name": "Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
+          "number": 8,
+          "startedAt": "2026-11-04T12:42:05Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:45:43Z",
+          "conclusion": "success",
+          "name": "Build candidate with registry cache",
+          "number": 9,
+          "startedAt": "2026-11-04T12:42:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:53:43Z",
+          "conclusion": "success",
+          "name": "Test candidate before publication",
+          "number": 10,
+          "startedAt": "2026-11-04T12:45:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T12:56:09Z",
+          "conclusion": "success",
+          "name": "Build runtime preview from the tested worker layers",
+          "number": 11,
+          "startedAt": "2026-11-04T12:53:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:01:09Z",
+          "conclusion": "success",
+          "name": "Verify nonroot runtime preview",
+          "number": 12,
+          "startedAt": "2026-11-04T12:56:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:07:21Z",
+          "conclusion": "success",
+          "name": "Verify deferred generation lifecycle in runtime preview",
+          "number": 13,
+          "startedAt": "2026-11-04T13:01:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:14:03Z",
+          "conclusion": "success",
+          "name": "Verify Manager catalog and guarded changes",
+          "number": 14,
+          "startedAt": "2026-11-04T13:07:21Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:21:02Z",
+          "conclusion": "success",
+          "name": "Verify drained transitions and journal recovery in runtime preview",
+          "number": 15,
+          "startedAt": "2026-11-04T13:14:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:21:46Z",
+          "conclusion": "success",
+          "name": "Verify private candidate environment preparation",
+          "number": 16,
+          "startedAt": "2026-11-04T13:21:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:39:30Z",
+          "conclusion": "success",
+          "name": "Verify added node installation and lifecycle",
+          "number": 17,
+          "startedAt": "2026-11-04T13:21:46Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:44:33Z",
+          "conclusion": "success",
+          "name": "Verify constrained resolver and public node installation",
+          "number": 18,
+          "startedAt": "2026-11-04T13:39:30Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:44:36Z",
+          "conclusion": "success",
+          "name": "Publish tested candidate with BuildKit",
+          "number": 19,
+          "startedAt": "2026-11-04T13:44:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:52:35Z",
+          "conclusion": "success",
+          "name": "Verify immutable registry image",
+          "number": 20,
+          "startedAt": "2026-11-04T13:44:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:52:36Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f",
+          "number": 21,
+          "startedAt": "2026-11-04T13:52:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:52:37Z",
+          "conclusion": "success",
+          "name": "Post Publish tested candidate with BuildKit",
+          "number": 36,
+          "startedAt": "2026-11-04T13:52:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:52:39Z",
+          "conclusion": "success",
+          "name": "Post Build runtime preview from the tested worker layers",
+          "number": 37,
+          "startedAt": "2026-11-04T13:52:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:52:40Z",
+          "conclusion": "success",
+          "name": "Post Build candidate with registry cache",
+          "number": 38,
+          "startedAt": "2026-11-04T13:52:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:52:53Z",
+          "conclusion": "success",
+          "name": "Post Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
+          "number": 39,
+          "startedAt": "2026-11-04T13:52:40Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:52:53Z",
+          "conclusion": "success",
+          "name": "Post Run docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6",
+          "number": 40,
+          "startedAt": "2026-11-04T13:52:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:52:53Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 41,
+          "startedAt": "2026-11-04T13:52:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:52:53Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 42,
+          "startedAt": "2026-11-04T13:52:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T13:52:53Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 43,
+          "startedAt": "2026-11-04T13:52:53Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Bogyie/runpod-comfyui/actions/runs/41831071864/job/126578262485"
+    }
+  ],
+  "status": "completed",
+  "updatedAt": "2026-11-04T13:52:56Z",
+  "url": "https://github.com/Bogyie/runpod-comfyui/actions/runs/41831071864",
+  "registry_verification": {
+    "anonymous_pull_manifest": "passed",
+    "manifest_digest": "sha256:a62dd3a4a509c833837fb2c0401547c05a06fa4562ea35a437a10568c13525b7",
+    "config_digest": "sha256:d0558d815493da0b3750a51740071c2097ca3fcfaf6a49a2be2a205d9676e70b",
+    "compressed_layer_bytes": 6901602200,
+    "scope": "Published raw worker image; Manager/nonroot/CLI runtime is a separately tested unpublished preview"
+  }
+}
