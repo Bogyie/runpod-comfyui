@@ -33,6 +33,20 @@ host_requirements_sources:
   - manager
   - sam3
   - depth-anything-v3
+  - video-helper-suite
+runtime_env:
+  VHS_FORCE_FFMPEG_PATH: /usr/bin/ffmpeg
+host_requirements_policy:
+  video-helper-suite:
+    opencv-python:
+      replacement: opencv-python-headless
+      reason: Video decode/resize uses cv2 without GUI windows
+      evidence_files: [videohelpersuite/load_video_nodes.py, videohelpersuite/server.py]
+    imageio-ffmpeg:
+      reason: Use the preinstalled system FFmpeg instead of another binary wheel
+      evidence_files: [videohelpersuite/utils.py]
+      requires_env:
+        VHS_FORCE_FFMPEG_PATH: /usr/bin/ffmpeg
 host_extra_requirements:
   matplotlib:
     source: kjnodes
@@ -99,3 +113,22 @@ workers:
       cuda_policy: pytorch-sdpa
       optional_cuda_extensions: []
       system_dependencies: {}
+    video-helper-suite:
+      source: video-helper-suite
+      plugin_directory: ComfyUI-VideoHelperSuite
+      adapter: vhs
+      config: build/adapters/vhs/worker_nodes/comfy-env.toml
+      environment: videohelpersuite-workernodes
+      optional_pypi_omissions: {}
+      cuda_policy: pytorch-sdpa
+      optional_cuda_extensions: []
+      system_dependencies: {}
+      root_requirements_policy:
+        opencv-python:
+          reason: Tensor-only workers do not import video loaders or cv2
+          evidence_files: [videohelpersuite/image_latent_nodes.py]
+        imageio-ffmpeg:
+          reason: Use the system FFmpeg utility path; worker operators only transform tensors
+          evidence_files: [videohelpersuite/utils.py]
+          requires_env:
+            VHS_FORCE_FFMPEG_PATH: /usr/bin/ffmpeg

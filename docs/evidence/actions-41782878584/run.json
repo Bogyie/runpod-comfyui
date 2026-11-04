@@ -1,0 +1,387 @@
+{
+  "run_id": 41782878584,
+  "url": "https://github.com/Bogyie/runpod-comfyui/actions/runs/41782878584",
+  "head_sha": "bb9e9d7ddac87c100245b807f6799fa517a63deb",
+  "status": "completed",
+  "conclusion": "success",
+  "registry": {
+    "anonymous_manifest_read": true,
+    "digest": "sha256:bb89a388fac581e92d566657ad257ff9c7be90ab25bea157ea4c2333d3366763",
+    "config_digest": "sha256:781197917bdd5baeeb7ea75e08ae6ec18c5c28f506c2eb0e3237cd6f4bae5fe1",
+    "compressed_layer_bytes": 6581452744,
+    "manifest": {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "config": {
+        "mediaType": "application/vnd.oci.image.config.v1+json",
+        "digest": "sha256:781197917bdd5baeeb7ea75e08ae6ec18c5c28f506c2eb0e3237cd6f4bae5fe1",
+        "size": 12201
+      },
+      "layers": [
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:3c5439d0ae62993af4cc4e21b8c777297e81bc40e200d4633c85a3e0f977a3bc",
+          "size": 28247437
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:7d94a600ec4db9376baf5256fe8930655328c1f5e0d170179a0180dcecf69098",
+          "size": 3341499
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:8f7c262eb376d9d177f52c91b6a03c3b4996055a9e84ca2b7e92412ddd29d5ae",
+          "size": 16031646
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:1f235d1b4734e9d629d1705e7caf2db4ffc7775086658cc46a22b6eb2c7a726f",
+          "size": 250
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:7bd3107fdaa9b704c08f3b3fe53b073c825eca6e987f771624dca1f12b545f5a",
+          "size": 23244800
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:d7ee0dd5b6dfe2c5719f887ba3e07317d144136a430ae59b6050f7ec8a901f13",
+          "size": 17832
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:144a29ab9edc9b0939c53772fbe0d2a873c07323132e2b95f81a75de2dc6915f",
+          "size": 4187209003
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:58a594c6fff96ffb51851df2e8665fc786c255d8747ee61c27323eafba2982b8",
+          "size": 200150467
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:7572b99d903b6f26e46fa2f5654a858e9d8f5fe0381f0066e9242de22fa13350",
+          "size": 116564
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:34ff3824bb96dc64dd1404de5e0bd9b889af60caceb262211bfbd6a0e68695ca",
+          "size": 841382806
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:cf9afad10606f97d6957a489e0fc7616047bb5a07bcb0f434139ca5bcb8140af",
+          "size": 2822
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:1ef5ec162c283207d5b00d454b0a99a245b354ff294cff0d3f3b8c38078315d3",
+          "size": 49733
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:d41cac8ea133921e3ca15732243a14dc5a1aba9ea20f4b6a52b2ce86258852a0",
+          "size": 12804061
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1",
+          "size": 32
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:5dbb367293a69ca5126d6d814280c7b70dddb2e4f867c641928f82636542f435",
+          "size": 367153
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:b97ce53aec231839a2f25c382cd3d1a8b8aceafe08e7eaff41750bec689e66fc",
+          "size": 2895
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:14da63aa8ce71733e5a8f823d7dc23f9f3827d449fc0a6016e7a1ddcadf7a54c",
+          "size": 1210177251
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:c64dd3d1ee064b8fcf820a92e9aa359ee74097d4a14d46f6daac1a8637edd570",
+          "size": 58306493
+        }
+      ]
+    }
+  },
+  "jobs": [
+    {
+      "completedAt": "2026-11-04T06:02:24Z",
+      "conclusion": "success",
+      "databaseId": 126418249871,
+      "name": "checks / static",
+      "startedAt": "2026-11-04T06:02:09Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-04T06:02:11Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-04T06:02:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:02:12Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 2,
+          "startedAt": "2026-11-04T06:02:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:02:12Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 3,
+          "startedAt": "2026-11-04T06:02:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:02:14Z",
+          "conclusion": "success",
+          "name": "Install pinned resolver",
+          "number": 4,
+          "startedAt": "2026-11-04T06:02:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:02:15Z",
+          "conclusion": "success",
+          "name": "Restore development environment from lock",
+          "number": 5,
+          "startedAt": "2026-11-04T06:02:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:02:21Z",
+          "conclusion": "success",
+          "name": "Reproduce source audit",
+          "number": 6,
+          "startedAt": "2026-11-04T06:02:15Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:02:21Z",
+          "conclusion": "success",
+          "name": "Unit tests",
+          "number": 7,
+          "startedAt": "2026-11-04T06:02:21Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:02:21Z",
+          "conclusion": "success",
+          "name": "Syntax checks",
+          "number": 8,
+          "startedAt": "2026-11-04T06:02:21Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:02:22Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 15,
+          "startedAt": "2026-11-04T06:02:21Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:02:22Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 16,
+          "startedAt": "2026-11-04T06:02:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:02:22Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 17,
+          "startedAt": "2026-11-04T06:02:22Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Bogyie/runpod-comfyui/actions/runs/41782878584/job/126418249871"
+    },
+    {
+      "completedAt": "2026-11-04T06:24:32Z",
+      "conclusion": "success",
+      "databaseId": 126418352399,
+      "name": "image",
+      "startedAt": "2026-11-04T06:02:27Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-04T06:02:30Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-04T06:02:28Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:02:31Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 2,
+          "startedAt": "2026-11-04T06:02:30Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:05:28Z",
+          "conclusion": "success",
+          "name": "Free disposable runner disk",
+          "number": 3,
+          "startedAt": "2026-11-04T06:02:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:05:35Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 4,
+          "startedAt": "2026-11-04T06:05:28Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:05:42Z",
+          "conclusion": "success",
+          "name": "Prepare locked build context",
+          "number": 5,
+          "startedAt": "2026-11-04T06:05:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:05:42Z",
+          "conclusion": "success",
+          "name": "Build identity",
+          "number": 6,
+          "startedAt": "2026-11-04T06:05:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:05:42Z",
+          "conclusion": "success",
+          "name": "Run docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6",
+          "number": 7,
+          "startedAt": "2026-11-04T06:05:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:05:49Z",
+          "conclusion": "success",
+          "name": "Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
+          "number": 8,
+          "startedAt": "2026-11-04T06:05:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:12:58Z",
+          "conclusion": "success",
+          "name": "Build candidate with registry cache",
+          "number": 9,
+          "startedAt": "2026-11-04T06:05:49Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:18:40Z",
+          "conclusion": "success",
+          "name": "Test candidate before publication",
+          "number": 10,
+          "startedAt": "2026-11-04T06:12:58Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:18:44Z",
+          "conclusion": "success",
+          "name": "Publish tested candidate with BuildKit",
+          "number": 11,
+          "startedAt": "2026-11-04T06:18:40Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:24:09Z",
+          "conclusion": "success",
+          "name": "Verify immutable registry image",
+          "number": 12,
+          "startedAt": "2026-11-04T06:18:44Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:24:10Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f",
+          "number": 13,
+          "startedAt": "2026-11-04T06:24:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:24:12Z",
+          "conclusion": "success",
+          "name": "Post Publish tested candidate with BuildKit",
+          "number": 21,
+          "startedAt": "2026-11-04T06:24:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:24:14Z",
+          "conclusion": "success",
+          "name": "Post Build candidate with registry cache",
+          "number": 22,
+          "startedAt": "2026-11-04T06:24:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:24:29Z",
+          "conclusion": "success",
+          "name": "Post Run docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069",
+          "number": 23,
+          "startedAt": "2026-11-04T06:24:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:24:29Z",
+          "conclusion": "success",
+          "name": "Post Run docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6",
+          "number": 24,
+          "startedAt": "2026-11-04T06:24:29Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:24:29Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "number": 25,
+          "startedAt": "2026-11-04T06:24:29Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:24:30Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "number": 26,
+          "startedAt": "2026-11-04T06:24:29Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-04T06:24:30Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 27,
+          "startedAt": "2026-11-04T06:24:30Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Bogyie/runpod-comfyui/actions/runs/41782878584/job/126418352399"
+    }
+  ],
+  "scope": "Published KJ CPU representative/host websocket gates and earlier gates before/after registry pull. Does not cover CPU storage views/owned-empty tensors; those defects were discovered during subsequent VHS integration."
+}

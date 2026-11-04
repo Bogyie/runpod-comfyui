@@ -106,6 +106,48 @@
         "torch_generic_nms",
         "flash-attn"
       ]
+    },
+    "video-helper-suite": {
+      "adapter": "vhs",
+      "adapter_files_sha256": {
+        "build/adapters/vhs/__init__.py": "76939c980171fe9e974e60638f286a734b3c7fcbf191dc03d3ded04a101982a8",
+        "build/adapters/vhs/policy.json": "784e0be8eaf9650809fd429ba2ff254b1a64321b73d1f683233d2b7284f351c9",
+        "build/adapters/vhs/worker_nodes/__init__.py": "8619634206be2273d1c4de880f9b97484ba83e8272c2678d27ebcc924849135b",
+        "build/adapters/vhs/worker_nodes/comfy-env.toml": "b6736638aadfd52114403464f9997303fc43867a95c4f77bf02e5a5f8cb3b81a",
+        "tools/rebuild/apply_vhs_adapter.py": "9755b399e8f04d0965b56c0f3d632cd18ee6be10605059251ccbaa125c58b77a"
+      },
+      "commit": "4d907bee61e92c2e65af3bd6383a4e4d356126d1",
+      "config": "build/adapters/vhs/worker_nodes/comfy-env.toml",
+      "config_sha256": "b6736638aadfd52114403464f9997303fc43867a95c4f77bf02e5a5f8cb3b81a",
+      "cuda_policy": "pytorch-sdpa",
+      "environment": "videohelpersuite-workernodes",
+      "lock_file": "video-helper-suite-linux-amd64-cu128.txt",
+      "lock_sha256": "5de398faf59e560a3c5b8202575a722cd5f13e43e5cbee7e3b960005afd610c0",
+      "optional_cuda_extensions": [],
+      "optional_pypi_omissions": {},
+      "plugin_directory": "ComfyUI-VideoHelperSuite",
+      "requirements_sha256": "c4572699c71ea959cb123bdce3376836011afdbc5558031d02281374c5b74677",
+      "root_requirements_policy": {
+        "imageio-ffmpeg": {
+          "evidence_files": [
+            "videohelpersuite/utils.py"
+          ],
+          "reason": "Use the system FFmpeg utility path; worker operators only transform tensors",
+          "requires_env": {
+            "VHS_FORCE_FFMPEG_PATH": "/usr/bin/ffmpeg"
+          }
+        },
+        "opencv-python": {
+          "evidence_files": [
+            "videohelpersuite/image_latent_nodes.py"
+          ],
+          "reason": "Tensor-only workers do not import video loaders or cv2"
+        }
+      },
+      "scope": "Candidate requirements only; no node execution or GPU certification",
+      "source": "video-helper-suite",
+      "system_dependencies": {},
+      "upstream_cuda_extensions_not_selected": []
     }
   }
 }

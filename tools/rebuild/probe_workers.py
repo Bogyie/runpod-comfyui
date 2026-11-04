@@ -75,6 +75,35 @@ def worker_processes(container: str) -> dict:
     return workers
 
 
+
+def tensor_views(container: str) -> dict:
+    source=(ROOT/'tests/fixtures/worker_view_case.py').read_text()
+    program = """import json,tempfile,sys,torch
+from pathlib import Path
+sys.path.insert(0,'/opt/probe/ComfyUI')
+from comfy.cli_args import args
+args.cpu=True
+from comfy_env.isolation.workers.subprocess import SubprocessWorker
+with tempfile.TemporaryDirectory() as tmp:
+    Path(tmp,'worker_view_case.py').write_text(CASE_SOURCE)
+    worker=SubprocessWorker(python=Path('/opt/workers/depthanythingv3-nodes/bin/python'),working_dir=Path('/opt/probe/ComfyUI'),sys_path=[tmp],env={'COMFY_CPU':'1','COMFYCTL_WORKER_ATTENTION':'pytorch'},name='cpu-view-gate',health_check_timeout=30)
+    x=torch.arange(60,dtype=torch.float32).reshape(3,4,5)[1:]
+    expected={'slice':x[1:],'offset':x[:,:,1:],'transpose':x.transpose(1,2),'broadcast':x[:1].expand(4,-1,-1),'empty_view':x[:0],'owned_empty':x.new_empty((0,4,5))}
+    try:
+        result=worker.call_method(module_name='worker_view_case',class_name='Views',method_name='run',kwargs={'x':x})
+        for name,value in expected.items():
+            if not torch.equal(result[name],value):raise RuntimeError('Native CPU view IPC changed values: '+name)
+        echo=worker.call_method(module_name='worker_view_case',class_name='Views',method_name='echo',kwargs={'x':torch.empty((0,4,5),dtype=torch.float32)})
+        if list(echo.shape)!=[0,4,5] or echo.dtype!=torch.float32 or echo.device.type!='cpu':raise RuntimeError('Empty parent-to-worker CPU tensor changed')
+    finally:worker.shutdown()
+    if worker.is_alive():raise RuntimeError('CPU view worker remained alive')
+    for name,value in expected.items():
+        if not torch.equal(result[name],value):raise RuntimeError('CPU view storage expired after shutdown')
+    print(json.dumps({'status':'passed','input_storage_offset':x.storage_offset(),'empty_parent_to_worker':'passed','cases':{name:{'shape':list(t.shape),'stride':list(t.stride()),'storage_offset':t.storage_offset()} for name,t in result.items()},'shutdown':'passed'}))
+"""
+    return json.loads(docker('exec',container,'python','-c','CASE_SOURCE='+repr(source)+'\n'+program).splitlines()[-1])
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image',default='runpod-comfyui:probe-worker-probe')
@@ -146,12 +175,13 @@ def main() -> None:
             raise RuntimeError('Dead worker was not replaced')
         if restarted['depthanythingv3-nodes']['pid']!=original['depthanythingv3-nodes']['pid']:
             raise RuntimeError('Unrelated DA3 worker restarted')
+        views=tensor_views(container)
         after=json.loads(docker('exec',container,'python','-c',FINGERPRINT))
         if before!=after:raise RuntimeError('Worker execution changed host package metadata or sampled GPU files')
         result={'kind':'comfy-env-native-workers-cpu-gate','image_id':image['Id'],
                 'ready_seconds':round(ready_seconds,3),'worker_manifest':worker_manifest,'sam3_points_and_ui':sam,'da3_camera_matrices':matrices,
                 'worker_environments':environments,'processes_before':original,'processes_after_restart':restarted,
-                'ordinary_exception':'propagated-with-worker-alive','error_events':failure['status']['messages'],
+                'cpu_storage_views':views,'ordinary_exception':'propagated-with-worker-alive','error_events':failure['status']['messages'],
                 'sam3_after_crash':sam_after_restart,'host_fingerprint_before':before,'host_fingerprint_after':after,
                 'scope':'CPU worker registration/tensor/UI IPC, exception and crash recovery only; no segmentation/depth model inference or GPU worker certification'}
     except BaseException:

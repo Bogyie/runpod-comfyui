@@ -52,5 +52,6 @@ RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv \
 COPY worker-nodes/ /opt/probe/ComfyUI/custom_nodes/
 ENV COMFYCTL_WORKER_ROOT=/opt/workers \
     COMFY_ENV_ROOT=/opt/worker-state \
-    COMFYCTL_WORKER_ATTENTION=${WORKER_ATTENTION}
+    COMFYCTL_WORKER_ATTENTION=${WORKER_ATTENTION} \
+    VHS_FORCE_FFMPEG_PATH=/usr/bin/ffmpeg
 CMD ["python", "main.py", "--cpu", "--use-pytorch-cross-attention", "--listen", "0.0.0.0", "--port", "8188"]

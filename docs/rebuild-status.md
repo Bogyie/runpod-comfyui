@@ -175,4 +175,26 @@ SAM3·DepthAnythingV3는 upstream의 `register_nodes`와 `SubprocessWorker`를 �
 
 [대표 CPU 검사](../tests/evidence/kjnodes-cpu-probe.json)에서 ColorMatchV2의 실제 픽셀 변경, MASK/bbox/정수 전달, KJ 오류 전파 후 동일 worker 재호출, worker SIGMAS→host matplotlib, FastPreview의 실제 WebSocket PNG와 host HTTP/JS를 확인했다. 합성 타입 제공·관찰 노드는 테스트 컨테이너에만 연결했고 이미지에 포함하지 않았다. 실제 checkpoint/GPU 및 108개 알고리즘 전체 성공으로 확대하지 않는다.
 
-같은 이미지의 [코어/프런트엔드](../tests/evidence/kjnodes-image-host.json), [설치 guard](../tests/evidence/kjnodes-image-guards.json), [기존 SAM3/DA3 IPC·복구](../tests/evidence/kjnodes-image-workers.json), [iTools](../tests/evidence/kjnodes-image-itools.json)도 통과했다. 단위 검사는 37개다. 원격 CI에 KJ gate를 게시 전후 추가했으며 새 원격 실행 결과는 확인 중이다. Manager·VHS 통합, 동적 schema/파일 변경 감지, 운영 데이터·권한·복구와 업데이트/승격은 남아 있다.
+같은 이미지의 [코어/프런트엔드](../tests/evidence/kjnodes-image-host.json), [설치 guard](../tests/evidence/kjnodes-image-guards.json), [기존 SAM3/DA3 IPC·복구](../tests/evidence/kjnodes-image-workers.json), [iTools](../tests/evidence/kjnodes-image-itools.json)도 통과했다. 이 시점의 단위 검사는 37개다. 원격 CI의 KJ gate도 게시 전후 통과했다(아래 기록). Manager 통합, 동적 schema/파일 변경 감지, 운영 데이터·권한·복구와 업데이트/승격은 남아 있다.
+
+
+## KJNodes 원격 게시 결과
+
+[성공 실행 #41782878584](https://github.com/Bogyie/runpod-comfyui/actions/runs/41782878584), 소스 `bb9e9d7ddac87c100245b807f6799fa517a63deb`에서 빌드·게시 전 검사·GHCR 게시·immutable pull 후 같은 검사를 모두 통과했다.
+
+- 고정 참조: `ghcr.io/bogyie/runpod-comfyui@sha256:bb89a388fac581e92d566657ad257ff9c7be90ab25bea157ea4c2333d3366763`.
+- local/registry config `sha256:781197917bdd5baeeb7ea75e08ae6ec18c5c28f506c2eb0e3237cd6f4bae5fe1` 일치, 익명 manifest 조회 성공.
+- 압축 레이어 합계 6,581,452,744바이트(약 6.58GB). 모델 weight는 제외한다.
+- [원격 증거](evidence/actions-41782878584/run.json)에 각 gate 결과를 보존했다. 이 후보에는 아래 VHS 시험에서 발견한 CPU TensorRef view·빈 storage 수정이 없다. 당시 대표 CPU 검사 통과를 모든 텐서 형태의 지원으로 확대하지 않는다.
+
+## VHS 혼합 격리와 CPU IPC 수정
+
+고정 VHS `4d907bee…6126d1`의 전체 catalog, 영상·오디오 loader/combine, streaming route, VAE batching과 BatchManager·latent preview hook을 host에 보존했다. stateless IMAGE/MASK/LATENT 연산 18개는 실제 comfy-env worker로 실행한다. host OpenCV는 headless wheel로 제공하고, 중복 ffmpeg 바이너리를 가진 `imageio-ffmpeg`는 제외했다. host·worker 모두 시스템 `/usr/bin/ffmpeg`를 명시하며 tensor worker에는 OpenCV도 설치하지 않는다. requirements와 pyproject 양쪽 선언에 동일 정책을 적용하고 원본 근거를 검증한다.
+
+실제 메타 배치에서 comfy-env 0.3.89가 CPU TensorRef의 storage offset/stride를 무시하여 shape 오류가 발생했다. parent와 persistent worker의 reader를 전송된 storage metadata로 복원하도록 고쳤다. 자체 storage가 빈 CPU tensor의 RPC 실패도 재현했고, FD 없는 명시적 empty 전략으로 양방향 처리했다. SDK 패치는 정확한 원본 hash 6개를 검사한 뒤 적용한다. upstream의 non-contiguous 정규화는 유지하며 임의 stride의 zero-copy, CUDA empty, sparse/autograd 지원을 보장하지 않는다.
+
+VHS 원본 `BatchManager.close_inputs`는 decoder tuple의 마지막 항목인 bool을 generator로 취급했다. 실제 generator는 첫 항목이므로 hash guard 아래 두 접근을 수정했다. 실제 OpenCV decoder를 외부에서 붙잡은 채 다음 prompt로 manager를 reset하여 generator 종료와 영상 FD 부재를 확인했다.
+
+[최종 로컬 VHS 검사](../tests/evidence/vhs-cpu-probe.json)는 H.264/AAC 6프레임 저장·디코딩, VP9/Opus HTTP 스트리밍, IMAGE/MASK/LATENT 전달, 빈 선택 결과, host queue·preview hook 유지, 3회 재실행하는 메타 배치와 decoder 명시적 종료를 통과했다. 합성 영상·오디오를 사용했으며 실제 VAE checkpoint나 모든 영상 포맷·GPU·브라우저 조작 검증은 아니다.
+
+동일 이미지 `sha256:2e39549024559a99616e583503b9d0d73dd6a685f712f118313ff419989246ac`의 [코어](../tests/evidence/vhs-image-host.json), [guard](../tests/evidence/vhs-image-guards.json), [SAM3/DA3 IPC·CPU view/empty·복구](../tests/evidence/vhs-image-workers.json), [iTools](../tests/evidence/vhs-image-itools.json), [KJNodes](../tests/evidence/vhs-image-kjnodes.json) 회귀 검사도 통과했다. 단위 검사는 43개다. 로컬 Docker Linux amd64 에뮬레이션 결과이며 원격 빌드 시간이나 새 GPU 이미지 성공으로 간주하지 않는다. CI에는 VHS gate를 게시 전후 추가했다. 새 원격 결과와 Manager·운영 환경 통합 검증은 남아 있다.

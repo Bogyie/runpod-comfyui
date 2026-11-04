@@ -107,6 +107,8 @@ def main() -> None:
                     from apply_itools_adapter import apply
                 elif definition['adapter'] == 'kjnodes':
                     from apply_kjnodes_adapter import apply
+                elif definition['adapter'] == 'vhs':
+                    from apply_vhs_adapter import apply
                 else:
                     raise ValueError('Unknown worker source adapter')
                 apply(nodes_root/definition['plugin_directory'],source,ROOT/'build/adapters'/definition['adapter'])

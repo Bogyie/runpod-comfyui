@@ -45,11 +45,33 @@
           "source": "kjnodes"
         }
       },
+      "host_requirements_policy": {
+        "video-helper-suite": {
+          "imageio-ffmpeg": {
+            "evidence_files": [
+              "videohelpersuite/utils.py"
+            ],
+            "reason": "Use the preinstalled system FFmpeg instead of another binary wheel",
+            "requires_env": {
+              "VHS_FORCE_FFMPEG_PATH": "/usr/bin/ffmpeg"
+            }
+          },
+          "opencv-python": {
+            "evidence_files": [
+              "videohelpersuite/load_video_nodes.py",
+              "videohelpersuite/server.py"
+            ],
+            "reason": "Video decode/resize uses cv2 without GUI windows",
+            "replacement": "opencv-python-headless"
+          }
+        }
+      },
       "host_requirements_sources": [
         "comfyui",
         "manager",
         "sam3",
-        "depth-anything-v3"
+        "depth-anything-v3",
+        "video-helper-suite"
       ],
       "isolation": {
         "gpu_verified": false,
@@ -71,6 +93,9 @@
       "resolver": {
         "python_platform": "x86_64-manylinux_2_36",
         "uv": "0.10.8"
+      },
+      "runtime_env": {
+        "VHS_FORCE_FFMPEG_PATH": "/usr/bin/ffmpeg"
       },
       "schema_version": 1,
       "status": "experimental-p0",
@@ -134,6 +159,34 @@
               "av": "pypi",
               "ffmpeg": "system"
             }
+          },
+          "video-helper-suite": {
+            "adapter": "vhs",
+            "config": "build/adapters/vhs/worker_nodes/comfy-env.toml",
+            "cuda_policy": "pytorch-sdpa",
+            "environment": "videohelpersuite-workernodes",
+            "optional_cuda_extensions": [],
+            "optional_pypi_omissions": {},
+            "plugin_directory": "ComfyUI-VideoHelperSuite",
+            "root_requirements_policy": {
+              "imageio-ffmpeg": {
+                "evidence_files": [
+                  "videohelpersuite/utils.py"
+                ],
+                "reason": "Use the system FFmpeg utility path; worker operators only transform tensors",
+                "requires_env": {
+                  "VHS_FORCE_FFMPEG_PATH": "/usr/bin/ffmpeg"
+                }
+              },
+              "opencv-python": {
+                "evidence_files": [
+                  "videohelpersuite/image_latent_nodes.py"
+                ],
+                "reason": "Tensor-only workers do not import video loaders or cv2"
+              }
+            },
+            "source": "video-helper-suite",
+            "system_dependencies": {}
           }
         },
         "provider": "uv-frozen-venv",
@@ -146,5 +199,5 @@
     }
   },
   "kind": "candidate-input-identity",
-  "sha256": "99fb0790a764011924857d8ff40428c3f0518c0748e0b4b43642ca4c6084a07a"
+  "sha256": "74e26565e0ced5681aa8d6dba0c29a8c641860d35b5849c2a19b36fa1ace5ee3"
 }

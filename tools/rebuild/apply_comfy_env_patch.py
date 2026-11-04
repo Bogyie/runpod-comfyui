@@ -16,6 +16,7 @@ ORIGINAL = {
     "isolation/wrap.py": "32ab3fd563ee08719e79765be5e21b049db6900349815b3da53e358f0c67cbb5",
     "environment/cache.py": "27919a3efd7f3596187159438c8f2b829ef5736518d9fee815122c408fbd31e4",
     "isolation/metadata.py": "d50d45626b9919cd36412c6163c2b4a0168bf863c79a65730db7d1efef320844",
+    "isolation/workers/_ipc_parent.py": "9a4e5402a8076d1d56627f03eea28d69fe465ead63da2f99173f1fc1779aabc1",
     "isolation/workers/_persistent_worker.py": "77e86335ff3417bd2442b5db1033d78770c61d76b77c831fb38cdbe0c79460fb",
 }
 CUDA_ANCHOR = "    bootstrap_cuda = get_bootstrap_torch_cuda()\n"
@@ -44,6 +45,25 @@ if _worker_attention:
     _worker_args.use_sage_attention = False
     _worker_args.use_flash_attention = False
 '''
+
+
+def restore_tensor_views(text: str, worker: bool = False) -> str:
+    anchor = '        tensor = flat.view(tuple(data["tensor_size"]))\n'
+    replacement = '        tensor = flat.as_strided(tuple(data["tensor_size"]), tuple(data["tensor_stride"]), data["tensor_offset"])\n'
+    if text.count(anchor) != 1:
+        raise ValueError('CPU TensorRef view restoration anchor changed')
+    text = text.replace(anchor, replacement)
+    strategy = '    strategy = data.get("strategy", "file_system")\n'
+    empty_reader = strategy + '    if strategy == "empty":\n        return torch.empty(0, dtype=dtype, device="cpu").as_strided(tuple(data["tensor_size"]), tuple(data["tensor_stride"]), data["tensor_offset"])\n'
+    if text.count(strategy) != 1:
+        raise ValueError('CPU TensorRef strategy anchor changed')
+    text = text.replace(strategy, empty_reader)
+    keeper = ('    # Keep tensor alive until parent reads it\n' if worker
+              else '    # Keep tensor alive until worker finishes reading\n')
+    empty_writer = '    if t.untyped_storage().nbytes() == 0:\n        return {"__type__": "TensorRef", "strategy": "empty", "dtype": str(t.dtype),\n                "tensor_size": list(t.size()), "tensor_stride": list(t.stride()),\n                "tensor_offset": t.storage_offset(), "requires_grad": t.requires_grad}\n\n'
+    if text.count(keeper) != 1:
+        raise ValueError('CPU empty tensor serializer anchor changed')
+    return text.replace(keeper, empty_writer + keeper)
 
 
 def transformed(name: str, data: bytes) -> bytes:
@@ -80,7 +100,10 @@ if os.environ.get("COMFY_CPU") == "1":
         if text.count(anchor) != 1:
             raise ValueError("Metadata CPU patch anchor changed")
         text = text.replace(anchor, replacement)
+    elif name == "isolation/workers/_ipc_parent.py":
+        text = restore_tensor_views(text)
     elif name == "isolation/workers/_persistent_worker.py":
+        text = restore_tensor_views(text, worker=True)
         anchor = '    if os.environ.get("COMFY_CPU") == "1":\n'
         if text.count(anchor) != 1:
             raise ValueError("Worker attention patch anchor changed")

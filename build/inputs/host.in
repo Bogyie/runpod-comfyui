@@ -61,6 +61,9 @@ comfy-3d-viewers==0.2.44
 comfy-env==0.3.89
 comfy-3d-viewers==0.2.44
 
+# Kosinkadink/ComfyUI-VideoHelperSuite@4d907bee61e92c2e65af3bd6383a4e4d356126d1
+opencv-python-headless
+
 # Host exception: Host model/debug nodes render CUDA-memory and sigma plots; kijai/ComfyUI-KJNodes@ab72eda7ffad6280422d71ab7d54d3fb87c0ba18
 matplotlib
 

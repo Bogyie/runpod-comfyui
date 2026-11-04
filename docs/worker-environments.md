@@ -1,6 +1,6 @@
 # comfy-env worker 환경
 
-현재 구현은 SAM3·DepthAnythingV3의 native worker와 iTools·KJNodes 혼합 격리 P0 후보다. H100·RTX PRO 6000에서 실제 분할·깊이 모델 추론과 GPU worker 연결을 확인했다. Manager·VHS와 운영 계정 보호는 아직 남아 있다.
+현재 구현은 SAM3·DepthAnythingV3의 native worker와 iTools·KJNodes·VHS 혼합 격리 P0 후보다. H100·RTX PRO 6000에서 실제 분할·깊이 모델 추론과 GPU worker 연결을 확인했다. Manager와 운영 계정 보호는 아직 남아 있다.
 
 ## 실행과 설치를 분리한다
 
@@ -18,7 +18,7 @@
 
 별도 venv에서 `--system-site-packages`를 사용하지 않으며 host site-packages를 worker의 `sys.path`에 넣지 않는다. NumPy·변환기·영상·기타 노드 패키지는 worker 안에 설치한다.
 
-현재 같은 Python ABI와 GPU 스택을 쓰는 두 worker는 torch 계열·Triton·xformers·CUDA 제공 패키지의 본체 파일만 기반 환경에서 symlink로 참조한다. 작은 dist-info는 각 worker에 복사한다. uv가 symlink dist-info를 설치된 패키지로 인식하지 않는 동작을 실제로 확인했기 때문이다. 다른 ABI/torch가 필요한 후보는 이 공유 경로를 쓰면 안 된다.
+현재 같은 Python ABI와 GPU 스택을 쓰는 다섯 worker는 torch 계열·Triton·xformers·CUDA 제공 패키지의 본체 파일만 기반 환경에서 symlink로 참조한다. 작은 dist-info는 각 worker에 복사한다. uv가 symlink dist-info를 설치된 패키지로 인식하지 않는 동작을 실제로 확인했기 때문이다. 다른 ABI/torch가 필요한 후보는 이 공유 경로를 쓰면 안 된다.
 
 이 방식의 운영 전제는 서비스 계정이 기반 패키지를 수정할 수 없다는 것이다. 현재 root로 실행하는 P0 검증 이미지는 이 계정 경계까지 완성한 운영 이미지가 아니다. P2/P3에서 계정·권한과 후보 설치를 구성한 뒤 손상·복구 시험을 추가한다.
 
@@ -101,3 +101,18 @@ FastPreview·ImageResizeKJv2의 PromptServer callback, 모델/CLIP/GLIGEN 객체
 - 모델 시간 조회 HTTP와 web/추가 async JS asset 응답, host 패키지 불변, private worker 패키지 경로 및 컨테이너 삭제.
 
 이는 108개 등록과 대표 CPU 워크플로에 대한 증거다. 모든 알고리즘, 실제 모델 패치·checkpoint 추론, GPU 계산과 브라우저 조작을 인증하지 않는다. 전체 노드의 새 입력 이미지 목록, `IS_CHANGED`·validation callback, 설정에 따른 metadata 갱신과 데이터 경로는 P2에서 추가 검증한다. 현재 comfy-env 0.3.89의 정적 proxy metadata를 동적 파일 목록/변경 감지의 성공 근거로 사용하지 않는다.
+
+
+## VHS 혼합 격리 후보
+
+`build/adapters/vhs`는 IMAGE/MASK/LATENT의 split·merge·count·repeat·every-Nth·select 18개를 `videohelpersuite-workernodes`에 격리한다. 필수 worker 등록 후 원본 host catalog를 불러와 해당 실행 클래스만 대체한다. 원본 입력 schema·UI 속성·선언된 변경 감지/validation callback은 host 원본에서 보존한다. 열린 generator, prompt queue, BatchManager, video/audio IO와 latent preview hook은 host 소유다.
+
+host는 `opencv-python-headless`와 시스템 ffmpeg를 쓰며, tensor worker는 OpenCV와 imageio-ffmpeg 없이 순수 tensor helper만 import한다. `COMFYCTL_VHS_WORKER=1`일 때만 utils의 전역 prompt queue 접근을 생략한다. 실제 host의 queue identity는 검사한다. 원본 `close_inputs`의 decoder tuple 접근 오류도 hash guard 아래 수정하여 부분 decode 후 reset에서 실제 generator 종료를 검사했다.
+
+`probe_vhs.py`는 실제 H.264/AAC 출력과 디코딩, WebM 영상/오디오 streaming, 3개 prompt history로 이어지는 메타 배치, CPU tensor view와 빈 결과를 검사한다. [증거](../tests/evidence/vhs-cpu-probe.json)에 범위·이미지 ID·출력 수치를 기록했다. worker에 열린 decoder나 live VAE를 직렬화하지 않는다. 실제 VAE encode/decode와 장시간/GPU 영상은 후속 검증 대상이다.
+
+## CPU TensorRef view와 빈 storage
+
+VHS의 split 결과를 실제로 전달하면서 comfy-env 0.3.89 CPU FD decoder가 storage 전체에 `.view(shape)`를 적용하는 오류를 재현했다. 양쪽 decoder에서 size/stride/offset으로 복원하고, 자체 storage가 비어 FD 전달을 쓸 수 없는 CPU tensor에는 명시적 empty 전략을 추가했다. parent reader를 포함한 SDK 원본 파일 6개의 hash를 검증한다.
+
+`probe_workers.py`는 실제 native RPC에서 offset이 있는 입력, slice·crop·transpose·broadcast·빈 view·자체 빈 storage를 검사한다. 빈 CPU tensor의 parent→worker→parent 왕복과 shutdown 후 값 유지도 확인한다. [최종 CPU 증거](../tests/evidence/vhs-image-workers.json)를 참고한다. upstream이 non-contiguous tensor를 contiguous로 만드는 동작은 유지했다. 전달 후 임의 stride identity, zero-copy, CUDA empty·sparse·autograd 지원은 이 결과로 판정하지 않는다.

@@ -29,7 +29,8 @@ def prepare(stack: dict, source_lock: dict, cache: Path, output: Path) -> None:
     for name in stack["host_requirements_sources"]:
         source = inspected["sources"][name]
         lines.append(f"\n# {source['repository']}@{source['commit']}")
-        lines.extend(source["requirements"])
+        from requirements_policy import select
+        lines.extend(select(source['requirements'],source_lock['sources'][name]['files'],stack.get('host_requirements_policy',{}).get(name,{}),stack.get('runtime_env',{})))
     for name, exception in stack.get('host_extra_requirements', {}).items():
         source=inspected['sources'][exception['source']]
         requirement=exception['requirement']

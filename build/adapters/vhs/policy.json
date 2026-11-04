@@ -1,0 +1,79 @@
+{
+  "host_exception": "Video/audio loaders/encoders, batch-manager generators, prompt requeue and preview/server hooks retain their upstream host implementation.",
+  "schema_version": 1,
+  "source_commit": "4d907bee61e92c2e65af3bd6383a4e4d356126d1",
+  "worker_nodes": {
+    "VHS_DuplicateImages": {
+      "class": "RepeatImages",
+      "display_name": "Repeat Images \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_DuplicateLatents": {
+      "class": "RepeatLatents",
+      "display_name": "Repeat Latents \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_DuplicateMasks": {
+      "class": "RepeatMasks",
+      "display_name": "Repeat Masks \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_GetImageCount": {
+      "class": "GetImageCount",
+      "display_name": "Get Image Count \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_GetLatentCount": {
+      "class": "GetLatentCount",
+      "display_name": "Get Latent Count \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_GetMaskCount": {
+      "class": "GetMaskCount",
+      "display_name": "Get Mask Count \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_MergeImages": {
+      "class": "MergeImages",
+      "display_name": "Merge Images \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_MergeLatents": {
+      "class": "MergeLatents",
+      "display_name": "Merge Latents \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_MergeMasks": {
+      "class": "MergeMasks",
+      "display_name": "Merge Masks \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_SelectEveryNthImage": {
+      "class": "SelectEveryNthImage",
+      "display_name": "Select Every Nth Image \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_SelectEveryNthLatent": {
+      "class": "SelectEveryNthLatent",
+      "display_name": "Select Every Nth Latent \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_SelectEveryNthMask": {
+      "class": "SelectEveryNthMask",
+      "display_name": "Select Every Nth Mask \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_SelectImages": {
+      "class": "SelectImages",
+      "display_name": "Select Images \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_SelectLatents": {
+      "class": "SelectLatents",
+      "display_name": "Select Latents \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_SelectMasks": {
+      "class": "SelectMasks",
+      "display_name": "Select Masks \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_SplitImages": {
+      "class": "SplitImages",
+      "display_name": "Split Images \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_SplitLatents": {
+      "class": "SplitLatents",
+      "display_name": "Split Latents \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    },
+    "VHS_SplitMasks": {
+      "class": "SplitMasks",
+      "display_name": "Split Masks \ud83c\udfa5\ud83c\udd65\ud83c\udd57\ud83c\udd62"
+    }
+  }
+}
