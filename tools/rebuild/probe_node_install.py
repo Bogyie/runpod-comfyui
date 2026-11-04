@@ -20,6 +20,7 @@ def main():
     parser.add_argument('--image', default='runpod-comfyui:probe-runtime-probe')
     parser.add_argument('--native', action='store_true', help='Exercise upstream register_nodes/configuration instead of the generic adapter')
     parser.add_argument('--auto-lock', action='store_true', help='Resolve node dependencies instead of passing the image lock')
+    parser.add_argument('--update-gc', action='store_true', help='Also exercise version updates, disabled-state preservation and generation cleanup')
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
     if args.output is None:
@@ -95,6 +96,65 @@ def main():
             assert restored['live_transition']=='committed'
             after = json.loads(execute(base,graph,180)['outputs']['2']['text'][0])
             assert after['value']==14 and after['prefix']==prefix and after['pid']!=value['pid']
+            if args.update_gc:
+                def revision(filename, multiplier, broken=False):
+                    stream=io.BytesIO()
+                    with tarfile.open(fileobj=io.BytesIO(data),mode='r:gz') as original, tarfile.open(fileobj=stream,mode='w:gz') as updated:
+                        for member in original:
+                            content=original.extractfile(member).read()
+                            if member.name.endswith('/nodes/__init__.py') or (not args.native and member.name=='fixture/__init__.py'):
+                                content=content.replace(b'np.array(value) * 2', ('np.array(value) * '+str(multiplier)).encode())
+                                if broken:
+                                    content=content.replace(b'        import numpy as np', b'        raise RuntimeError("injected update failure")\n        import numpy as np')
+                            member.size=len(content)
+                            updated.addfile(member,io.BytesIO(content))
+                    payload=stream.getvalue();(fixture/filename).write_bytes(payload)
+                    return hashlib.sha256(payload).hexdigest()
+
+                def update(filename, sha, commit, expected=0):
+                    command=['node','update','fixture','--commit',commit,'--archive','/opt/node-fixture/'+filename,
+                             '--archive-sha256',sha,'--required-node','ComfyctlAddedEnvironment',
+                             '--smoke-workflow','/opt/node-fixture/smoke.json','--skip-hooks','--defer']
+                    if not args.auto_lock:command+=['--lock','/opt/locks/host.txt']
+                    if expected:
+                        process=subprocess.run(['docker','exec',container,'comfyctl',*command],capture_output=True,text=True,timeout=600)
+                        assert process.returncode==expected and 'smoke workflow failed' in process.stderr
+                        return
+                    return cli(container,*command)
+
+                updated=update('v2.tar.gz',revision('v2.tar.gz',3),'e'*40)
+                update_generation=updated['selection']['desired']
+                assert json.loads(execute(base,graph,180)['outputs']['2']['text'][0])['value']==14
+                cli(container,'env','apply','--restart')
+                v2=json.loads(execute(base,graph,180)['outputs']['2']['text'][0])
+                assert v2['value']==21 and v2['prefix']!=prefix
+                cli(container,'env','rollback','--restart')
+                assert json.loads(execute(base,graph,180)['outputs']['2']['text'][0])['value']==14
+                cli(container,'env','rollback','--restart')
+                assert json.loads(execute(base,graph,180)['outputs']['2']['text'][0])['value']==21
+                selection=cli(container,'env','status')['generation']['desired']
+                update('broken.tar.gz',revision('broken.tar.gz',5,broken=True),'d'*40,expected=1)
+                assert cli(container,'env','status')['generation']['desired']==selection
+                assert json.loads(execute(base,graph,180)['outputs']['2']['text'][0])['value']==21
+                cli(container,'node','disable','fixture','--restart')
+                disabled_update=update('v3.tar.gz',revision('v3.tar.gz',4),'c'*40)
+                assert 'ComfyctlAddedEnvironment' not in request(base,'/object_info')
+                cli(container,'env','apply','--restart')
+                assert 'ComfyctlAddedEnvironment' not in request(base,'/object_info')
+                cli(container,'node','enable','fixture','--restart')
+                v3=json.loads(execute(base,graph,180)['outputs']['2']['text'][0])
+                assert v3['value']==28 and v3['prefix']!=v2['prefix']
+                before_gc=cli(container,'env','gc','--min-age-hours','0')
+                owner=Path(v3['prefix']).parents[1].name
+                assert owner in before_gc['retained'] and before_gc['candidates'] and not before_gc['applied']
+                removed=cli(container,'env','gc','--apply','--min-age-hours','0')
+                assert removed['removed'] and owner not in removed['removed']
+                assert json.loads(execute(base,graph,180)['outputs']['2']['text'][0])['value']==28
+                prefix=v3['prefix']
+                result['update_gc']={'v2':v2,'v3':v3,'disabled_update_generation':disabled_update['selection']['desired'],
+                    'update_generation':update_generation,'failed_update_selection_unchanged':True,
+                    'code_environment_rollback':'passed','disabled_state_preserved':True,'cleanup':removed}
+                print('Version updates, failed update, disabled update and transitive GC passed',flush=True)
             # Drift in a private CPU file must invalidate the managed generation.
             docker('exec',container,'python','-c',"from pathlib import Path;p=Path("+repr(prefix+'/lib/python3.11/site-packages/numpy/__init__.py')+");p.write_text(p.read_text()+'\\n# injected drift\\n')")
             report = cli(container,'env','doctor',expected=2)

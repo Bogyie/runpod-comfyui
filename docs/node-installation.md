@@ -82,3 +82,34 @@ ComfyUI의 필수 worker 요구사항과 노드의 정규화된 requirements/PyP
 [실제 resolver 검사](../tests/evidence/candidate-resolve-linux.json)는 잘못된 사용자 `uv.toml`을 무시하고 105개 패키지를 해석했다. 충돌하는 torch 요구는 설치 전에 거부됐고 선택은 생기지 않았다. [공개 Multiband 검사](../tests/evidence/public-node-install-config-guard-cpu.json)는 고정 GitHub SHA/archive hash를 직접 받아 106개 패키지 lock을 만들고 private tifffile을 설치했다. IMAGE→MULTIBAND→채널 재배열→PNG의 크기·픽셀, worker 미리보기 파일·JS asset, 별도 worker 및 `no_new_privs`, 이미지 fingerprint 보존과 reset을 통과했다. CPU 대표 경로이며 전체 UI/모든 노드/GPU 모델 검증을 뜻하지 않는다.
 
 [Native fixture의 자동 lock lifecycle](../tests/evidence/node-install-native-auto-cpu.json)도 통과했다. 이 결과는 user uv 설정 차단 추가 전 이미지이며, 위 공개 검사와 resolver 검사는 차단이 포함된 최신 이미지에서 수행했다. 각 artifact에 image ID를 구분해 기록했다.
+
+## 추가한 노드의 업데이트
+
+```bash
+comfyctl node update NAME --commit FULL_SHA \
+  --required-node NODE_CLASS_ID --smoke-workflow graph.json --defer
+comfyctl env apply --restart
+```
+
+`update`는 기존에 추가한 노드의 저장소를 유지하고 새 SHA를 분석한다. 설치와 같은 hook·의존성·GPU pin 정책을 적용한다. 새 세대의 최종 경로에 코드와 private worker를 만들며, 기존 worker에 패키지를 덮어쓰지 않는다. 새 코드가 대표 workflow를 실행한 뒤에만 desired 상태를 바꾼다. 실패하면 기존 선택을 유지한다. 코드와 worker prefix를 함께 rollback한다.
+
+기존 노드가 비활성 상태라면 후보에서 먼저 새 노드의 계산을 검사한 뒤 비활성 상태로 돌리고 최종 catalog를 다시 검사한다. 사용자가 `enable`할 때까지 실제 서비스에서는 비활성 상태를 유지한다. `--required-node`와 smoke workflow는 새 버전에 맞게 명시해야 한다. 이미지 기본 노드는 기존 adapter·host lock·readiness 정의와 함께 이미지 빌드로 업데이트한다. 이 명령으로 기본 정의를 우회하지 않는다.
+
+## 보존 세대와 용량 정리
+
+```bash
+# 기본: 24시간 이상 지난 미참조 세대의 삭제 계획만 출력
+comfyctl env gc
+# 계획을 확인한 뒤 실제 정리
+comfyctl env gc --apply
+# 실패 후보를 바로 정리할 필요가 있을 때만 연령 제한을 낮춘다
+comfyctl env gc --min-age-hours 0
+```
+
+정리도 관리자 권한과 설치·전환에 사용하는 동일한 lock을 요구한다. 현재 실행 세대, desired, 마지막 정상/직전 정상 세대와 프로세스가 사용하는 prefix를 보존한다. 이들이 참조하는 private worker가 과거 코드 세대에 있으면 해당 소유 세대도 재귀적으로 보존한다. 단순한 parent 이력은 실행 의존성이 아니므로 모든 과거 코드를 무기한 보존하지는 않는다.
+
+끝나지 않은 전환, 손상되거나 누락된 보존 상태, 식별할 수 없는 관리 host가 있으면 정리를 거부한다. symlink·이름이 다른 디렉터리는 삭제 대상으로 삼지 않는다. 모델·입출력·워크플로·패키지 캐시는 이 정리 범위에 포함하지 않는다. 삭제 전후 목록은 root control의 `gc/` journal에 기록한다. 중단된 정리는 아직 남아 있는 미참조 세대를 다음 실행에서 다시 계획할 수 있다. 삭제된 후보의 lock만으로 네트워크 없는 재설치를 보장하지 않는다.
+
+현재 로컬 검증은 하나의 관리 컨테이너가 볼륨을 사용하는 범위다. RunPod network volume을 여러 Pod에서 동시에 사용하는 운영은 별도 검증 전까지 지원한다고 보지 않는다.
+
+[Linux CPU 증거](../tests/evidence/node-update-gc-cpu.json)는 실제 private 환경 설치, 버전별 계산·rollback, 실패 후보의 선택 유지, 비활성 업데이트, 미참조 세대 삭제 후 계산과 손상/reset을 포함한다. [runtime 회귀](../tests/evidence/update-gc-image-runtime-cpu.json)는 같은 이미지에서 별도로 실행했다. 단위 검사는 중단된 정리의 journal과 다음 실행 복구도 검사한다. 공개 노드 전체 조합·GPU·network volume의 성공 증거는 아니다.

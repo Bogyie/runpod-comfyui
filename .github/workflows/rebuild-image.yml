@@ -150,7 +150,7 @@ jobs:
           RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
         run: |
           uv run --frozen python tools/rebuild/probe_node_install.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/node-install-adapter-preview.json
-          uv run --frozen python tools/rebuild/probe_node_install.py --native --auto-lock --image "$RUNTIME_IMAGE" --output .work/ci-evidence/node-install-native-preview.json
+          uv run --frozen python tools/rebuild/probe_node_install.py --native --auto-lock --update-gc --image "$RUNTIME_IMAGE" --output .work/ci-evidence/node-install-native-preview.json
       - name: Verify constrained resolver and public node installation
         env:
           RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime

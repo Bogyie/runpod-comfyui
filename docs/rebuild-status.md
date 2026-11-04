@@ -357,3 +357,15 @@ CI의 별도 runtime preview에도 같은 빌더 gate를 추가했다. 아직 �
 [Actions #41820449748](https://github.com/Bogyie/runpod-comfyui/actions/runs/41820449748)은 게시 후 registry 검증 도중 기존 60분 job 제한을 넘겨 취소됐다. 성공 실행으로 집계하지 않는다. 늘어난 후보 설치·복구 검사를 유지하기 위해 제한을 120분으로 변경하고 Manager gate도 별도 runtime preview에 추가했다. 시간 제한 변경은 빌드 성능 개선 수치가 아니다. Manager runtime의 GHCR 게시와 원격 검증은 아직 완료하지 않았다.
 
 [Manager API/lifecycle 검사](../tests/evidence/manager-cpu-probe.json)도 동일 이미지에서 통과했다. 감사한 모든 POST와 `/api` 별칭, 직접 legacy 진입점을 거부했고 예약 파일 보존·미실행, disable 후 route 제거·enable 후 readiness 복구, 동일 볼륨의 오프라인 부팅을 확인했다. 임시 컨테이너와 볼륨은 정리했다.
+
+## P3 추가 노드 업데이트와 세대 정리
+
+`comfyctl node update NAME --commit FULL_SHA`는 기존 저장소의 새 코드와 private worker를 새 세대에 설치한다. 대표 계산을 통과하기 전에는 desired를 바꾸지 않는다. 비활성 노드는 새 코드의 계산을 검사한 뒤 비활성 상태로 복원하고 최종 catalog를 다시 검증한다. 이미지 기본 노드 변경은 이미지 빌드로 남겨 baseline 정의를 우회하지 않는다.
+
+`comfyctl env gc`는 기본적으로 삭제 계획만 출력한다. `--apply`에서 현재·desired·마지막/직전 정상 세대와 프로세스가 사용하는 prefix, 이들이 참조하는 과거 private 환경 소유 세대를 보존한다. 설치·전환과 동일한 lock을 사용하고, 미완료 전환·불명확한 보존 상태는 정리를 거부한다. 24시간 연령 제한과 삭제 journal을 두며 모델·입출력·사용자 파일과 패키지 캐시는 범위에서 제외했다. [명령과 보존 정책](node-installation.md)에 기록했다.
+
+[실제 Linux lifecycle](../tests/evidence/node-update-gc-cpu.json)은 자동 lock 설치 후 버전별 결과 14→21, 코드/환경 동시 rollback으로 14 복귀 및 재선택 21, 실행 실패 후보의 선택 유지, 비활성 업데이트 후 명시적 enable에서 28을 확인했다. 실제 미참조 세대 5개를 삭제하고 현재 private 환경의 소유 세대는 보존했으며, 정리 후에도 28이 나왔다. 이어 private CPU 파일 손상 감지·이미지 reset·이미지 패키지 fingerprint 보존도 통과했다. 임시 컨테이너와 볼륨은 정리했다.
+
+단위 검사 95개는 전이 참조·최소 연령·orphan process·누락된 보존 상태·symlink·중단된 정리의 journal과 재실행을 포함한다. [같은 이미지의 runtime/CLI 회귀](../tests/evidence/update-gc-image-runtime-cpu.json)도 통과했다. 로컬 Linux CPU fixture 증거이며 공개 노드 전체 업데이트·GPU·RunPod network volume 검증으로 확대하지 않는다. CI의 native 자동 lock lifecycle에도 업데이트/GC 검사를 추가했다.
+
+동적 metadata, 이미지 업데이트 호환성/rebase와 ComfyUI 업데이트 PR, 최종 runtime 게시 및 같은 digest의 두 GPU/RunPod 검증은 계속 남아 있다.

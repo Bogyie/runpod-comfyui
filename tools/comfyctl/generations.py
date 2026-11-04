@@ -205,11 +205,20 @@ def operate(args):
         healthy = live_status(record, store.base['runtime_id'])['healthy']
         if args.action != 'reset' and healthy:
             store.acknowledge(record, os.readlink('/proc/self/ns/pid'))
+        if args.command == 'env' and args.action == 'gc':
+            from .generation_gc import collect
+            return collect(store, record, apply=args.apply, min_age_hours=args.min_age_hours)
         if args.command == 'node':
-            if args.action == 'add':
-                from .node_install import stage_node
+            if args.action in {'add', 'update'}:
+                from .node_install import stage_node, restore_disabled
+                was_disabled = args.action == 'update' and not store.desired()['nodes'].get(args.name, {}).get('enabled', True)
                 profile, workflow = stage_node(store, args)
                 profile = validate(store, profile, workflow)
+                if was_disabled:
+                    profile, smoke_receipt = restore_disabled(store, profile, args.name)
+                    profile = validate(store, profile)
+                    profile['validation']['updated_node_smoke'] = smoke_receipt
+                    profile = store.validated(profile, profile['validation'])
             else:
                 profile, changed = store.stage_node_state(args.name, args.action == 'enable')
                 if changed:

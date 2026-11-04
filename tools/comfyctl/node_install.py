@@ -4,6 +4,7 @@ import io
 import json
 from pathlib import Path
 import re
+import shutil
 import tarfile
 
 from packaging.requirements import Requirement
@@ -92,9 +93,13 @@ def stage_node(store, args):
     if not re.fullmatch(r'[a-z][a-z0-9-]{0,63}', args.name):
         raise NodeSourceError('Node name must be lowercase letters/digits/dashes, beginning with a letter')
     parent = store.desired()
-    if args.name in parent['nodes']:
+    updating = getattr(args, 'action', 'add') == 'update'
+    previous = parent['nodes'].get(args.name)
+    if updating and (not previous or args.name in store.base['nodes']):
+        raise NodeSourceError('Only previously added nodes can be updated here; update image nodes through a reviewed image build')
+    if not updating and previous:
         raise NodeSourceError('Managed node already exists; use disable/enable or a reviewed update')
-    repository, commit = source_identity(args.repository, args.commit)
+    repository, commit = source_identity(previous['repository'] if updating else args.repository, args.commit)
     if args.archive:
         if not args.archive_sha256:
             raise NodeSourceError('Offline node installation requires --archive-sha256')
@@ -126,6 +131,16 @@ def stage_node(store, args):
         raise NodeSourceError('Smoke workflow must contain at least one required added node')
     profile = store.fork_code()
     generation = store.generations / profile['id']
+    if updating:
+        # The clone is private. Existing code and prefixes remain available to
+        # the running process and rollback; no installed venv is overwritten.
+        old_directory = Path(profile['comfy_root']) / 'custom_nodes' / (previous['directory'] + ('' if previous['enabled'] else '.disabled'))
+        shutil.rmtree(old_directory)
+        for key in previous['environment_keys']:
+            if any(key in item.get('environment_keys', []) for name, item in parent['nodes'].items() if name != args.name):
+                raise NodeSourceError('Shared node environment requires a reviewed image update')
+            del profile['workers'][key]
+            del profile['environment_bindings'][key]
     if lock_data is None:
         from .candidate_resolve import resolve_environment
         lock_data = resolve_environment(generation, requirements)
@@ -163,3 +178,14 @@ def stage_node(store, args):
         'install_mode': mode, 'hooks_skipped': plan['hooks'], 'environment_keys': keys,
         'required_nodes': args.required_node, 'lock_sha256': receipt['lock_sha256']}
     return store.save_candidate(profile), workflow
+
+
+def restore_disabled(store, profile, name):
+    """After the updated node's smoke test, restore its previous disabled state."""
+    smoke_receipt = profile['validation']
+    root = Path(profile['comfy_root']) / 'custom_nodes'
+    node = profile['nodes'][name]
+    (root / node['directory']).rename(root / (node['directory'] + '.disabled'))
+    node['enabled'] = False
+    profile['validation'] = None
+    return store.save_candidate(profile), smoke_receipt

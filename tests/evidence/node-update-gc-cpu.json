@@ -1,0 +1,92 @@
+{
+  "kind": "added-node-managed-worker-cpu-gate",
+  "image_id": "sha256:44b6c31f0f6b6e5c2d4a1eac7ea0f5019f1f18947ae9cceb8920e9d06de9ce7b",
+  "mode": "native",
+  "scope": "Offline asserted fixture source, real frozen wheel installation, CPU node execution and lifecycle; no public repo/Manager/GPU/network-volume certification",
+  "update_gc": {
+    "v2": {
+      "value": 21,
+      "prefix": "/workspace/runtime/generations/17fec5f38d8744739b33061fa5d2fafd/environment-fixture/venv",
+      "pid": 1248,
+      "uid": 1000,
+      "torch": "2.10.0+cu128"
+    },
+    "v3": {
+      "value": 28,
+      "prefix": "/workspace/runtime/generations/c5f8d6e79fd241faabac774bfd102a57/environment-fixture/venv",
+      "pid": 2737,
+      "uid": 1000,
+      "torch": "2.10.0+cu128"
+    },
+    "disabled_update_generation": "c5f8d6e79fd241faabac774bfd102a57",
+    "update_generation": "17fec5f38d8744739b33061fa5d2fafd",
+    "failed_update_selection_unchanged": true,
+    "code_environment_rollback": "passed",
+    "disabled_state_preserved": true,
+    "cleanup": {
+      "retained": [
+        "423be40f916b4415a05be60a4da10a09",
+        "c5f8d6e79fd241faabac774bfd102a57"
+      ],
+      "candidates": [
+        {
+          "id": "17fec5f38d8744739b33061fa5d2fafd",
+          "allocated_bytes": 983416832
+        },
+        {
+          "id": "1c177f049c1f4769a00638f0895dc0ae",
+          "allocated_bytes": 130740224
+        },
+        {
+          "id": "34d251fc337e4411af78b0b09c611459",
+          "allocated_bytes": 130740224
+        },
+        {
+          "id": "9186cf9f101d422ab123a59fee42e661",
+          "allocated_bytes": 983416832
+        },
+        {
+          "id": "e3988417c50d40e3af4e8fb43a073ded",
+          "allocated_bytes": 983416832
+        }
+      ],
+      "skipped": [],
+      "minimum_age_hours": 0.0,
+      "estimated_allocated_bytes": 3211730944,
+      "applied": true,
+      "removed": [
+        "17fec5f38d8744739b33061fa5d2fafd",
+        "1c177f049c1f4769a00638f0895dc0ae",
+        "34d251fc337e4411af78b0b09c611459",
+        "9186cf9f101d422ab123a59fee42e661",
+        "e3988417c50d40e3af4e8fb43a073ded"
+      ],
+      "scope": "Managed generations only; storage and package caches are excluded",
+      "journal": "/workspace/runtime/control/gc/c830b2ba06134175ba1bdee621db9837.json"
+    }
+  },
+  "status": "passed",
+  "installed_generation": "9186cf9f101d422ab123a59fee42e661",
+  "worker": {
+    "value": 14,
+    "prefix": "/workspace/runtime/generations/9186cf9f101d422ab123a59fee42e661/environment-fixture/venv",
+    "pid": 465,
+    "uid": 1000,
+    "torch": "2.10.0+cu128"
+  },
+  "restored_worker": {
+    "value": 14,
+    "prefix": "/workspace/runtime/generations/9186cf9f101d422ab123a59fee42e661/environment-fixture/venv",
+    "pid": 830,
+    "uid": 1000,
+    "torch": "2.10.0+cu128"
+  },
+  "skipped_hooks": "rejected-without-opt-in-and-never-executed",
+  "deferred_active_unchanged": true,
+  "doctor_includes_added_prefix": true,
+  "disable_and_rollback": "passed",
+  "cpu_file_drift": "detected",
+  "image_reset": "passed",
+  "image_package_fingerprint_unchanged": true,
+  "containers_and_volume_removed": true
+}
