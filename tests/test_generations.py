@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'runtime'))
@@ -100,6 +101,29 @@ class GenerationTests(unittest.TestCase):
             (Path(profile['comfy_root']) / 'main.py').write_text('corrupted-last-good')
             self.store.rollback()
             self.assertEqual(self.store.state()['desired'], 'image-base')
+
+    def test_interrupted_live_transition_recovers_old_selection_and_unblocks_admission(self):
+        with self.store.locked():
+            profile = self.store.validated(self.stage(), {'kind': 'unit-protocol-test'})
+            with patch('selection.os.readlink', return_value='test-namespace'):
+                transaction = self.store.begin_live(profile['id'], 'image-base')
+            self.store.select(profile['id'])
+            self.store.transition_phase(transaction, 'switched')
+            self.assertTrue((self.store.control / 'maintenance.json').exists())
+            self.store.recover_interrupted()
+            self.assertEqual(self.store.state()['desired'], 'image-base')
+            self.assertEqual(self.store.transition()['phase'], 'recovered-on-boot')
+            self.assertFalse((self.store.control / 'maintenance.json').exists())
+
+    def test_committed_live_transition_is_not_rolled_back_on_boot(self):
+        with self.store.locked():
+            profile = self.store.validated(self.stage(), {'kind': 'unit-protocol-test'})
+            with patch('selection.os.readlink', return_value='test-namespace'):
+                transaction = self.store.begin_live(profile['id'], 'image-base')
+            self.store.select(profile['id'])
+            self.store.finish_live(transaction, 'committed')
+            self.store.recover_interrupted()
+            self.assertEqual(self.store.state()['desired'], profile['id'])
 
     def test_other_image_requires_explicit_reset(self):
         with self.store.locked():

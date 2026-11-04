@@ -109,7 +109,7 @@ def inspect_runtime(state, doctor=False, deep=False):
         selection = store.state()
         generation = {'active': record.get('generation_id'), 'desired': selection['desired'],
                       'last_known_good': selection['last_good'], 'previous_good': selection['previous_good'],
-                      'candidate_switching_implemented': 'deferred-state-only',
+                      'candidate_switching_implemented': 'state-only-deferred-or-drained-restart',
                       'restart_required': record.get('generation_id') != selection['desired']}
     except (SelectionError, OSError, ValueError, KeyError) as exc:
         generation = {'error': str(exc), 'restart_required': True}
@@ -123,6 +123,9 @@ def inspect_runtime(state, doctor=False, deep=False):
             result['problems'].append('active-generation-drift')
     if 'error' in generation:
         result['problems'].append('generation-selection-error')
+    result['maintenance'] = (Path('/workspace/runtime/control/maintenance.json')).exists()
+    if result['maintenance']:
+        result['problems'].append('maintenance-active')
     if not result['runtime']['healthy']:
         result['problems'].append('runtime-not-healthy')
     definitions = {'host': (Path('/opt/runtime/venv'), Path('/opt/locks/host.txt')),

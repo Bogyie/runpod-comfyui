@@ -129,6 +129,11 @@ jobs:
           RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
         run: |
           uv run --frozen python tools/rebuild/probe_generations.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/generations-preview.json
+      - name: Verify drained transitions and journal recovery in runtime preview
+        env:
+          RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
+        run: |
+          uv run --frozen python tools/rebuild/probe_live_transitions.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/live-transitions-preview.json
       - name: Publish tested candidate with BuildKit
         id: publish
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7

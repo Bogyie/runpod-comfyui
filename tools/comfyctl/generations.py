@@ -36,7 +36,7 @@ def validate(store, profile):
             reservation.bind(('127.0.0.1', 0))
             port = reservation.getsockname()[1]
         env = dict(os.environ, COMFYCTL_COMFY_ROOT=profile['comfy_root'], COMFYCTL_GENERATION_ID=profile['id'],
-                   COMFYCTL_WORKER_MAP_FILE=str(directory / 'workers.json'), COMFYCTL_STORAGE_DIR=str(root),
+                   COMFYCTL_WORKER_MAP_FILE=str(directory / 'workers.json'), COMFYCTL_STORAGE_DIR=str(root), COMFYCTL_VALIDATING='1',
                    COMFYCTL_METADATA_CACHE=str(root / 'cache'), COMFY_ENV_ROOT=str(root / 'cache/workspace'),
                    HOME=str(root / 'home'), XDG_CACHE_HOME=str(root / 'cache'), HF_HOME=str(root / 'cache/hf'),
                    TORCH_HOME=str(root / 'cache/torch'), TMPDIR=str(root / 'worker-tmp'), COMFYCTL_RUNTIME_ID=profile['runtime_id'])
@@ -89,11 +89,79 @@ def validate(store, profile):
     return store.validated(profile, receipt)
 
 
+def await_generation(target, runtime_id, port, timeout):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            record = json.loads(Path('/workspace/state/runtime-status.json').read_text())
+            if record.get('runtime_id') != runtime_id:
+                raise SelectionError('Runtime identity changed during transition')
+            if record.get('generation_id') == target and record.get('phase') == 'ready':
+                info = read_json(f'http://127.0.0.1:{port}/comfyctl/runtime/idle')
+                if info['generation_id'] == target:
+                    return record
+            if record.get('phase') in {'recovery-required', 'stopped'} and (record.get('failed_generation') or record.get('generation_id')) == target:
+                raise SelectionError('Selected generation failed to start')
+        except (OSError, json.JSONDecodeError):
+            pass
+        time.sleep(0.5)
+    raise SelectionError('Timed out waiting for selected generation readiness')
+
+
+def live_select(store, target, record, args):
+    from .environments import live_status
+    if not live_status(record, store.base['runtime_id'])['healthy']:
+        raise SelectionError('Live transition requires a healthy managed supervisor; use deferred recovery otherwise')
+    if args.drain_timeout <= 0 or args.startup_timeout <= 0:
+        raise SelectionError('Transition timeouts must be positive')
+    if record['generation_id'] == target:
+        state = store.select(target)
+        return {'selection': state, 'restart_required': False, 'applied_to_running_process': False, 'live_transition': 'already-running'}
+    transaction = store.begin_live(target, record['generation_id'])
+    port = int(record['port'])
+    switched = False
+    try:
+        deadline = time.monotonic() + args.drain_timeout
+        while True:
+            idle = read_json(f'http://127.0.0.1:{port}/comfyctl/runtime/idle')
+            if idle['generation_id'] != record['generation_id']:
+                raise SelectionError('Running generation changed during drain')
+            if idle['running'] == idle['pending'] == idle['inflight'] == 0:
+                break
+            if time.monotonic() > deadline:
+                raise SelectionError('Drain timed out; running work was left intact')
+            time.sleep(0.25)
+        store.select(target)
+        switched = True
+        transaction = store.transition_phase(transaction, 'switched')
+        os.kill(1, signal.SIGUSR1)
+        ready = await_generation(target, store.base['runtime_id'], port, args.startup_timeout)
+        state = store.acknowledge(ready, os.readlink('/proc/self/ns/pid'))
+        store.finish_live(transaction, 'committed')
+        return {'selection': state, 'restart_required': False, 'applied_to_running_process': True,
+                'live_transition': 'committed', 'old_child_pid': record['child_pid'], 'new_child_pid': ready['child_pid']}
+    except Exception as error:
+        if not switched:
+            store.finish_live(transaction, 'cancelled')
+            raise
+        old = store.restore_transition(transaction)
+        transaction = store.transition_phase(transaction, 'rollback-requested')
+        os.kill(1, signal.SIGUSR1)
+        try:
+            await_generation(old, store.base['runtime_id'], port, args.startup_timeout)
+        except SelectionError as rollback_error:
+            raise SelectionError('Switch failed and rollback is unconfirmed; restart for journal recovery') from rollback_error
+        store.finish_live(transaction, 'rolled-back')
+        raise SelectionError('Switch failed; preserved generation restored: ' + str(error)) from error
+
+
 def operate(args):
     if os.geteuid() != 0:
         raise SelectionError('Generation mutation requires the container administrator (uid 0)')
     store = Store()
     with store.locked():
+        if store.pending_transition():
+            raise SelectionError('Unfinished live transition; restart the container for journal recovery')
         from .environments import live_status
         try:
             record = json.loads(Path('/workspace/state/runtime-status.json').read_text())
@@ -106,10 +174,15 @@ def operate(args):
             profile, changed = store.stage_node_state(args.name, args.action == 'enable')
             if changed:
                 profile = validate(store, profile)
-            state = store.select(profile['id'])
+            target = profile['id']
         elif args.action == 'rollback':
-            state = store.rollback()
+            target = store.rollback_target()
+        elif args.action == 'apply':
+            target = store.state()['desired']
         else:
-            state = store.reset()
-        return {'selection': state, 'restart_required': not (healthy and record.get('generation_id') == state['desired']), 'applied_to_running_process': False,
-                'scope': 'Deferred state-only generation; GPU/host/worker packages unchanged'}
+            target = 'image-base'
+        if getattr(args, 'restart', False):
+            return live_select(store, target, record, args)
+        state = store.reset() if args.action == 'reset' else store.select(target)
+        return {'selection': state, 'restart_required': not (healthy and record.get('generation_id') == state['desired']),
+                'applied_to_running_process': False, 'scope': 'Deferred state-only generation; GPU/host/worker packages unchanged'}

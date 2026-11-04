@@ -1,6 +1,6 @@
 # 런타임 후보
 
-`docker/Dockerfile.probe`의 `runtime-probe`는 P2 실험 target이다. Manager·설치/세대 복구 CLI와 최종 두 GPU/RunPod 검증은 아직 남아 있다. 모델 다운로드·환경 진단 CLI는 별도 venv로 포함했다. 운영용 stable 이미지로 간주하지 않는다.
+`docker/Dockerfile.probe`의 `runtime-probe`는 실험 target이다. Manager·새 노드 설치와 최종 두 GPU/RunPod 검증은 아직 남아 있다. 모델 다운로드·환경 진단·기본 노드 상태 전환 CLI는 별도 venv로 포함했다. 운영용 stable 이미지로 간주하지 않는다.
 
 ## 실행과 경로
 
@@ -12,12 +12,14 @@
 | `/workspace/storage/models` | 모델과 하위 유형 디렉터리 |
 | `/workspace/storage/input`, `output`, `user` | 업로드·출력·워크플로/사용자 데이터 |
 | `/workspace/storage/temp`, `previews`, `datasets` | ComfyUI 데이터 경로 |
-| `/workspace/state/runtime-status.json` | starting / ready / recovery-required / stopping / stopped 상태 |
+| `/workspace/state/runtime-status.json` | starting / ready / restarting / recovery-required / stopped 상태 |
+| `/workspace/runtime/control` | root 관리 선택·전환 journal·새 작업 접수 차단 파일 |
+| `/workspace/runtime/generations` | 검증된 세대별 코드와 환경 경로표 |
 | `/workspace/state/logs/comfyui.log` | 로그, 파일당 16 MiB와 백업 2개 |
 | `/workspace/cache/metadata` | comfy-env 메타데이터 캐시 |
 | `/workspace/cache/huggingface`, `torch` | 다운로드·모델 라이브러리 캐시 |
 
-root bootstrap은 위 관리 디렉터리 항목만 준비하며 사용자 파일을 재귀 chown하지 않는다. symlink 경로는 거부한다. 기존 볼륨 파일이 다른 UID 소유라면 별도 권한 이전이 필요하다. `/workspace` 전체 데이터를 덮거나 기본 노드를 볼륨에 재복사하지 않는다. 기본 노드의 상태 변경은 세대별 코드 view로 준비해 다음 부팅에 선택한다. 추가 노드/변경된 환경과 live 전환은 아직 남아 있다. [세대 관리](generations.md)를 참고한다.
+root bootstrap은 위 관리 디렉터리 항목만 준비하며 사용자 파일을 재귀 chown하지 않는다. symlink 경로는 거부한다. 기존 볼륨 파일이 다른 UID 소유라면 별도 권한 이전이 필요하다. `/workspace` 전체 데이터를 덮거나 기본 노드를 볼륨에 재복사하지 않는다. 기본 노드의 상태 변경은 세대별 코드 view로 준비하고, 다음 부팅 또는 기존 작업 완료 후 명시적 재시작으로 적용한다. 추가 노드/변경된 환경은 아직 남아 있다. [세대 관리](generations.md)를 참고한다.
 
 `runtime_paths.py`는 host·메타데이터 스캔·persistent worker에서 `folder_paths`를 import하기 전에 같은 모델/데이터 설정을 적용한다. 기존 SDK의 input/output/user 재지정만으로 모델 경로까지 바뀌었다고 가정하지 않는다. 서로 다른 경로 플래그와 아직 worker에 전달하지 못하는 extra-model-paths 설정은 명시적으로 거부한다. 세대별 커스텀 모델 설정과 전체 동적 INPUT_TYPES/파일 변경 감지는 후속 작업이다.
 

@@ -279,3 +279,13 @@ CLI 커밋 `fa2b520ce9ca4e6c3d1f701b79d1fa43fdc403eb`도 push했고 [실행 #417
 Root worker 후보는 이전 실행과 같은 `sha256:9f866b68b5edcc49f5e44fa2db460408b8a713265fd1574cfd43ca565568abdf`다. 익명 manifest와 config 일치도 확인했다. CLI/runtime만 바뀌었으므로 worker 이미지가 재사용된 것이며, 새 CLI runtime 이미지를 GHCR에 게시했다고 해석하지 않는다. [첫 설치 단계의 로그](evidence/actions-41799830820/worker-install-cache.log)에서 다섯 worker의 RUN이 모두 CACHED였음을 확인했다. [검사 결과](evidence/actions-41799830820/worker-install-cache.json)에 전체 로그 hash와 범위를 기록했다.
 
 이 원격 실행에는 현재 작업 중인 deferred 세대 관리가 포함되지 않았다. 새 세대 관리와 SDK 환경 경계 변경은 별도 후속 CI로 검증한다.
+
+## P3 기존 작업 완료 후 전환·실패 복구
+
+기본 노드 상태 변경에 `--restart`와 `env apply --restart`를 추가했다. root 관리 파일이 새 prompt 요청만 503으로 막고, 실행·대기·접수 중 작업이 모두 끝나면 host와 worker를 교체한다. 대기 시간이 초과되면 기존 작업과 프로세스를 유지한다. 새 세대가 준비되지 않으면 이전 정상 세대로 복귀한다. 관리 프로세스가 중간에 종료되면 다음 컨테이너 부팅이 미확정 journal을 복구한다. HTTP 관리 변경 endpoint는 추가하지 않았다.
+
+[실제 live CPU 검사](../tests/evidence/live-transitions-cpu-probe.json)는 실행·대기 작업 완료, 두 prompt 경로의 503, 기존 host/native worker 회수, 대기 시간 초과, 선택 후 코드 손상 자동 롤백, 관리 프로세스 SIGKILL과 같은 볼륨 재기동 복구, 작업 파일·패키지 fingerprint 보존을 통과했다. 검사 자원은 삭제했다. [같은 이미지의 deferred lifecycle](../tests/evidence/live-image-generations-cpu.json)도 통과했고 단위 검사는 65개다. 상세 사용법과 복구 범위는 [세대 관리](generations.md)에 기록했다.
+
+동일 image ID `sha256:71ecaf4a3364a22ed4f662ddf2557578be94674136f44ae59884eebbd63efbf4`의 [기존 runtime/CLI 회귀 검사](../tests/evidence/live-image-runtime-cpu.json)도 통과했다. nonroot 경로·재기동·네트워크 없는 부팅·환경 진단과 버전 metadata가 그대로인 GPU 패키지 파일 손상 감지를 포함한다.
+
+CI runtime preview에 같은 live gate를 추가했다. 아직 이 변경의 원격 실행 결과는 없으며 preview를 GHCR에 게시하거나 최종 GPU 검증을 수행한 것은 아니다. 새 노드 설치·환경 후보 구성, Manager, 동적 schema, 이미지 업데이트 호환성과 최종 두 GPU·RunPod 검증은 계속 남아 있다.

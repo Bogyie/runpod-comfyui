@@ -1,6 +1,6 @@
 # 기본 노드의 세대 관리
 
-현재는 **이미 검증된 이미지 환경을 그대로 사용하는 노드 상태 변경**을 지원한다. 새 노드 설치·의존성 변경과 실행 중 작업을 드레인하는 live 전환은 후속 작업이다. 이 문서의 `--defer`는 현재 프로세스를 바꾸지 않고 다음 컨테이너 재기동에 적용한다.
+현재는 **이미 검증된 이미지 환경을 그대로 사용하는 노드 상태 변경**을 지원한다. 새 노드 설치·의존성 변경은 후속 작업이다. `--defer`는 다음 컨테이너 재기동에 적용하고, `--restart`는 기존 큐의 작업이 끝나면 host와 worker 프로세스를 교체한다.
 
 ## 명령
 
@@ -13,6 +13,11 @@ comfyctl env status
 comfyctl node enable itools --defer
 comfyctl env rollback --defer
 comfyctl env reset --defer
+# 이미 검증해 둔 desired를 실행 중인 서비스에 적용한다.
+comfyctl env apply --restart
+# 후보 검사부터 작업 대기·전환까지 수행한다.
+comfyctl node disable itools --restart
+comfyctl env rollback --restart
 ```
 
 현재 관리 식별자는 `sam3`, `depth-anything-v3`, `itools`, `kjnodes`, `video-helper-suite`다. 고정 plugin 디렉터리 이름으로도 지정할 수 있다. Manager와 새 노드의 관리 항목은 실제 통합 단계에서 추가한다.
@@ -37,6 +42,12 @@ root bootstrap은 `/workspace` 최상위와 `runtime/control`, `runtime/generati
 
 ## 부팅 실패 복구
 
+`--restart`는 root 관리 파일로 새 `/prompt`·`/api/prompt` 요청을 HTTP 503으로 거부한 뒤, 실행 중·대기 중 작업과 접수 중 요청이 모두 끝날 때까지 기다린다. 내부 메타 배치 재등록을 포함한 기존 큐는 계속 실행한다. 기본 대기 시간은 300초이며 `--drain-timeout`으로 조절한다. 대기 시간이 지나면 현재 프로세스와 미적용 선택을 유지하고 요청 접수를 다시 연다.
+
+큐가 비면 원하는 세대를 선택하고 PID 1에 명시적으로 재시작을 요청한다. 새 프로세스의 노드 등록·세대 identity·API 준비가 확인된 뒤 전환을 확정한다. `--startup-timeout` 기본값은 330초다. 시작 실패 시 보존한 정상 세대로 되돌려 재기동하고, 복구가 확인된 뒤 요청 접수를 연다. 복구 확인도 실패하면 접수를 닫아 둔 채 컨테이너 재기동을 요구한다.
+
+전환 중에는 `control/transition.json`과 `control/transitions/<id>.json`에 이전 선택·대상·단계를 남긴다. 관리 프로세스가 중간에 종료되면 다음 정상 entrypoint 부팅에서 미확정 전환을 이전의 온전한 세대로 복구한다. 확정된 전환은 되돌리지 않는다. 미확정 기록이 있으면 추가 관리 변경은 거부한다. 별도 컨테이너의 offline CLI 호출은 자동 journal 복구를 수행하지 않으므로 먼저 정상 entrypoint로 복구해야 한다.
+
 정상 서비스가 없어도 이미지 entrypoint에 CLI 인수를 전달할 수 있다. 아래는 실제 검사에 사용한 Docker 방식이다.
 
 ```bash
@@ -47,4 +58,6 @@ docker run --rm -v YOUR_VOLUME:/workspace YOUR_IMAGE comfyctl env reset --defer
 
 그 뒤 정상 CMD로 재기동한다. RunPod의 Container Start Command 전달 방식과 network volume에서는 최종 Pod 검증을 별도로 수행한다. root가 이미지 기본 `/opt` 파일 자체를 직접 바꾼 경우는 새 원본 이미지로 재배포하는 범위와 구분한다.
 
-[실제 lifecycle 결과](../tests/evidence/generations-cpu-probe.json)는 후보 검증, 비활성 상태의 재기동 유지, 선택된 코드에서의 native SAM3/DA3 실행, enable 후보, pending rollback·reset·이전 정상 rollback, 손상된 코드 부팅 거부와 offline 복구, 데이터·패키지 불변과 서비스 계정의 관리 파일 변경/rename 거부를 기록한다. 새 패키지 설치나 live queue 전환의 성공 증거로 확대하지 않는다.
+[기존 lifecycle 결과](../tests/evidence/generations-cpu-probe.json)는 후보 검증, 비활성 상태의 재기동 유지, 선택된 코드에서의 native SAM3/DA3 실행, enable 후보, pending rollback·reset·이전 정상 rollback, 손상된 코드 부팅 거부와 offline 복구, 데이터·패키지 불변과 서비스 계정의 관리 파일 변경/rename 거부를 기록한다.
+
+[Live 전환 결과](../tests/evidence/live-transitions-cpu-probe.json)는 실제 실행·대기 작업의 완료, 두 prompt 경로의 503, 이전 host/native worker 회수, 대기 시간 초과 시 작업 유지, 선택 후 코드 손상에 대한 자동 롤백, 관리 프로세스 SIGKILL 후 다음 부팅의 journal 복구를 통과했다. 같은 이미지의 [deferred 회귀 검사](../tests/evidence/live-image-generations-cpu.json)도 통과했다. CPU 상태 전환 검사이며 새 패키지 설치·GPU·RunPod network volume 성공 증거로 확대하지 않는다.

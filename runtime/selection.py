@@ -175,17 +175,81 @@ class Store:
         durable_json(self.state_file, state)
         return state
 
-    def rollback(self):
+    def rollback_target(self):
         state = self.state()
         targets = ([state['last_good'], state['previous_good']] if state['desired'] != state['last_good']
                    else [state['previous_good']])
         for target in targets:
             if target:
                 try:
-                    return self.select(target)
+                    profile = self.profile(target)
+                    if profile.get('validation'):
+                        return target
                 except (SelectionError, OSError, ValueError, KeyError):
                     continue
         raise SelectionError('No intact preserved good generation is available; use env reset')
+
+    def rollback(self):
+        return self.select(self.rollback_target())
+
+    def transition(self):
+        path = self.control / 'transition.json'
+        return json.loads(path.read_text()) if path.exists() else None
+
+    def pending_transition(self):
+        item = self.transition()
+        return item if item and item['phase'] not in {'committed', 'rolled-back', 'cancelled', 'recovered-on-boot'} else None
+
+    def begin_live(self, target, old_generation):
+        if self.pending_transition():
+            raise SelectionError('Unfinished live transition; restart the container to recover it')
+        profile = self.profile(target)
+        if not profile.get('validation'):
+            raise SelectionError('Live target has not passed validation')
+        transaction = {'id': uuid.uuid4().hex, 'phase': 'draining', 'target': target,
+                       'old_generation': old_generation, 'before_state': self.state(),
+                       'runtime_id': self.base['runtime_id'], 'pid_namespace': os.readlink('/proc/self/ns/pid'), 'controller_pid': os.getpid()}
+        durable_json(self.control / 'transition.json', transaction)
+        durable_json(self.control / 'maintenance.json', {'transaction_id': transaction['id']})
+        return transaction
+
+    def transition_phase(self, transaction, phase):
+        transaction = dict(transaction, phase=phase)
+        durable_json(self.control / 'transitions' / (transaction['id'] + '.json'), transaction)
+        durable_json(self.control / 'transition.json', transaction)
+        return transaction
+
+    def restore_transition(self, transaction):
+        if transaction['runtime_id'] != self.base['runtime_id']:
+            raise SelectionError('Interrupted transition belongs to another image')
+        before = transaction['before_state']
+        for target in [transaction['old_generation'], before['last_good'], before['previous_good'], 'image-base']:
+            if target:
+                try:
+                    profile = self.profile(target)
+                    if profile.get('validation'):
+                        state = dict(before, desired=target, revision=before['revision'] + 2)
+                        durable_json(self.state_file, state)
+                        return target
+                except (SelectionError, OSError, ValueError, KeyError):
+                    pass
+        raise SelectionError('No intact environment available for interrupted transition recovery')
+
+    def finish_live(self, transaction, phase):
+        self.transition_phase(transaction, phase)
+        flag = self.control / 'maintenance.json'
+        if flag.exists() and json.loads(flag.read_text()).get('transaction_id') == transaction['id']:
+            flag.unlink()
+
+    def recover_interrupted(self):
+        transaction = self.transition()
+        if not transaction:
+            return
+        if self.pending_transition():
+            self.restore_transition(transaction)
+            self.finish_live(transaction, 'recovered-on-boot')
+        else:
+            self.finish_live(transaction, transaction['phase'])
 
     def reset(self):
         if self.state_file.exists():
@@ -203,7 +267,7 @@ class Store:
 def selected_environment():
     store = Store()
     profile = store.desired()
-    env = {'COMFYCTL_COMFY_ROOT': profile['comfy_root'], 'COMFYCTL_GENERATION_ID': profile['id']}
+    env = {'COMFYCTL_COMFY_ROOT': profile['comfy_root'], 'COMFYCTL_GENERATION_ID': profile['id'], 'COMFYCTL_HOST_PYTHON': profile['host_python']}
     if profile['id'] != 'image-base':
         env['COMFYCTL_WORKER_MAP_FILE'] = str(store.generations / profile['id'] / 'workers.json')
     required = {'SaveImage'}

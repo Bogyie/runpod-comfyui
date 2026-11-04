@@ -1,0 +1,113 @@
+{
+  "image_id": "sha256:71ecaf4a3364a22ed4f662ddf2557578be94674136f44ae59884eebbd63efbf4",
+  "kind": "deferred-generation-lifecycle-cpu-gate",
+  "scope": "Known default node enable/disable and unchanged image environments; no new-node installation, live queue switching, Manager, GPU or network-volume certification",
+  "sam3_in_generation": {
+    "normalized_points": {
+      "points": [
+        [
+          0.25,
+          0.5
+        ]
+      ],
+      "labels": [
+        1
+      ]
+    },
+    "ui_jpeg_sha256": "f7a580f44a671204ec76b6cc3de0ffd1b6b6fbc0d097d0048fc3d72159f3eece",
+    "ui_jpeg_bytes": 693
+  },
+  "worker_processes": [
+    {
+      "pid": 397,
+      "ppid": 13,
+      "cmd": [
+        "/opt/workers/sam3-nodes/bin/python",
+        "/tmp/comfyui_pvenv_oax_gemm/persistent_worker.py",
+        "abstract://comfy_worker_d6751058d67c"
+      ],
+      "attention_policy": "pytorch",
+      "cpu_mode": "1"
+    },
+    {
+      "pid": 417,
+      "ppid": 13,
+      "cmd": [
+        "/opt/workers/depthanythingv3-nodes/bin/python",
+        "/tmp/comfyui_pvenv_8drg4n33/persistent_worker.py",
+        "abstract://comfy_worker_d308e60f8949"
+      ],
+      "attention_policy": "pytorch",
+      "cpu_mode": "1"
+    }
+  ],
+  "status": "passed",
+  "disabled_generation": "010ed141be004d9bb1bb17e34a38c471",
+  "permissions": {
+    "control_write": "rejected",
+    "control_rename": "rejected"
+  },
+  "disabled_boot_persisted": true,
+  "unchanged_environment_bindings": {
+    "depthanythingv3-nodes": "/opt/workers/depthanythingv3-nodes",
+    "itools-workernodes": "/opt/workers/itools-workernodes",
+    "kjnodes-workernodes": "/opt/workers/kjnodes-workernodes",
+    "sam3-nodes": "/opt/workers/sam3-nodes",
+    "videohelpersuite-workernodes": "/opt/workers/videohelpersuite-workernodes"
+  },
+  "validation": {
+    "core_graph": "passed",
+    "environment_bindings": "unchanged-image-prefixes",
+    "gpu": "not-run",
+    "kind": "state-only-candidate-cpu-validation",
+    "node_catalog": "passed",
+    "required_nodes": [
+      "ColorMatchV2",
+      "DepthAnything_V3",
+      "SAM3PointCollector",
+      "SaveImage",
+      "VHS_VideoCombine"
+    ],
+    "validated_at": 1793786417.6572895
+  },
+  "enable_candidate_validated": "603e677395ce474c94ac6ac49db38bb6",
+  "pending_rollback": {
+    "desired": "010ed141be004d9bb1bb17e34a38c471",
+    "last_good": "010ed141be004d9bb1bb17e34a38c471",
+    "previous_good": "image-base",
+    "revision": 4,
+    "runtime_id": "3a8cd4bbd947c9f75dcdaf0a2d5ba4e7664adb0f4252abbbd2d75530094adb66"
+  },
+  "reset": {
+    "desired": "image-base",
+    "last_good": "010ed141be004d9bb1bb17e34a38c471",
+    "previous_good": "image-base",
+    "revision": 5,
+    "runtime_id": "3a8cd4bbd947c9f75dcdaf0a2d5ba4e7664adb0f4252abbbd2d75530094adb66"
+  },
+  "previous_good_rollback": {
+    "desired": "010ed141be004d9bb1bb17e34a38c471",
+    "last_good": "image-base",
+    "previous_good": "010ed141be004d9bb1bb17e34a38c471",
+    "revision": 6,
+    "runtime_id": "3a8cd4bbd947c9f75dcdaf0a2d5ba4e7664adb0f4252abbbd2d75530094adb66"
+  },
+  "corruption_rejected_before_boot": true,
+  "offline_recovery": {
+    "desired": "image-base",
+    "last_good": "010ed141be004d9bb1bb17e34a38c471",
+    "previous_good": "image-base",
+    "revision": 8,
+    "runtime_id": "3a8cd4bbd947c9f75dcdaf0a2d5ba4e7664adb0f4252abbbd2d75530094adb66"
+  },
+  "user_data_preserved": true,
+  "package_fingerprint": {
+    "packages_sha256": "501ec9239838c5b436a4f1985f47fd320f7af8ed03253aad35e8a3f33c95792f",
+    "gpu_files": {
+      "torch/__init__.py": "51c90fe34a7cf869517d1bab4cd114498790e169ec668f1a154c35ec64117a5e",
+      "torch/version.py": "53e3fb24ceaf300de811ae08721e5ca3a0720c7ef900c8365da3fe80c7271ebc",
+      "torch/_C.cpython-311-x86_64-linux-gnu.so": "4349b125953ce9e0f7e0e94f5a78519107f15a234e1fb3703e86c12c405b09cd"
+    }
+  },
+  "containers_and_volume_removed": true
+}

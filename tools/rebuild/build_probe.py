@@ -179,6 +179,9 @@ def main() -> None:
                                         *sorted((ROOT / 'tools/comfyctl').glob('*.py'))]}
         runtime_id = digest(json.dumps(identity_inputs, sort_keys=True).encode())
         (control / 'identity.json').write_text(json.dumps({'runtime_id': runtime_id, 'inputs': identity_inputs}, indent=2, sort_keys=True) + '\n')
+        internal_plugin = context / 'worker-nodes/ComfyctlRuntimeControl'
+        internal_plugin.mkdir(exist_ok=True)
+        shutil.copyfile(ROOT / 'runtime/control_plugin.py', internal_plugin / '__init__.py')
         required = stack['runtime_required_nodes']
         if set(required) != set(definitions['workers']):
             raise ValueError('Runtime required-node catalog disagrees with bundled workers')

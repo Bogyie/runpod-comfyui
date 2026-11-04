@@ -35,6 +35,10 @@ def main():
     os.environ['COMFYCTL_RUNTIME_ID'] = json.loads(Path('/opt/runtime/control/identity.json').read_text())['runtime_id']
     if sys.argv[1:2] == ['comfyctl']:
         os.execv('/usr/local/bin/comfyctl', ['comfyctl', *sys.argv[2:]])
+    sys.path.insert(0, str(Path(__file__).parent))
+    from selection import Store
+    with Store().locked():
+        Store().recover_interrupted()
     os.umask(0o027)
     if os.getuid() == 0:
         os.setgroups([])
