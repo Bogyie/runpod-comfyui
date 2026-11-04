@@ -76,4 +76,17 @@ uv run python tools/rebuild/smoke_downloads.py
 
 ## 새 CI 배포 경로
 
-`rebuild-image.yml`은 `codex/rebuild-*` 브랜치 push와 수동 실행을 지원한다. 고정 소스 검사 후 Linux amd64 후보를 빌드하고 CPU 그래프·격리 guard 검사를 통과하면 고유 `candidate-p0-host-*` 태그로 GHCR에 게시한다. 게시한 digest를 다시 pull하여 같은 검사를 반복하며 증거는 Actions artifact에 저장한다. GPU/노드 검증 전까지 stable 승격은 하지 않는다. 실제 Actions 실행 결과는 확인 후 별도로 기록한다.
+`rebuild-image.yml`은 `codex/rebuild-*` 브랜치 push와 수동 실행을 지원한다. 고정 소스 검사 후 Linux amd64 후보를 빌드하고 CPU 그래프·격리 guard 검사를 통과하면 고유 `candidate-p0-host-*` 태그로 GHCR에 게시한다. 게시한 digest를 다시 pull하여 같은 검사를 반복하며 증거는 Actions artifact에 저장한다. GPU/노드 검증 전까지 stable 승격은 하지 않는다. 실제 실행은 아래 기록과 artifact에서 확인할 수 있다.
+
+## GitHub Actions / GHCR 실검증 (2026-11-04)
+
+- [성공 실행 #41767056659](https://github.com/Bogyie/runpod-comfyui/actions/runs/41767056659), 소스 SHA `714722c816476b8a914ff77a3522ca184d1c04e8`.
+- 이미지: `ghcr.io/bogyie/runpod-comfyui:candidate-p0-host-714722c81647-41767056659-1`
+- 고정 참조: `ghcr.io/bogyie/runpod-comfyui@sha256:414962d4872aaff44e96767dd74f7f046561b52dc9664a8164e80afc15bf2c23`
+- 빌드 → CPU 그래프·격리 guard → push → digest pull → 동일 검사 전부 성공. 외부 익명 manifest 조회도 성공했다.
+- [검증 증거](evidence/actions-41767056659/run.json): registry 조회, 원격 단계 시간, 게시 전후 API/PNG 검사와 guard 결과를 보존했다.
+- 압축 레이어 합계 5,296,162,019바이트(약 5.30GB). 실제 전송량·디스크 사용량과는 다르다.
+- 최초 빌드 단계 약 6분 52초, registry 캐시 적용 빌드 4분 5초. 두 번의 단일 측정이며 CUDA·host 설치 레이어의 CACHED를 로그에서 확인했다. 캐시 다운로드·이미지 로딩 비용은 여전히 남는다.
+- 성공 image job 전체 12분 28초. push와 digest pull·재검증 단계가 5분 16초여서 빌드 시간 단축만으로 전체 배포 시간이 줄어들지는 않는다.
+- 첫 실행은 GitHub runner Docker CLI의 `image inspect --platform` 미지원 때문에 게시 전 검사에서 실패했다. 해당 옵션을 제거하고 실제 Architecture 검사와 `docker run --platform linux/amd64`는 유지한 뒤 성공했다.
+- `latest`/`stable`은 변경하지 않았다. 실행용 이미지는 P0 핵심 환경 후보이며 커스텀 노드 6종, SSH/영속 저장소 등 RunPod 운영 환경은 아직 통합하지 않았다.
