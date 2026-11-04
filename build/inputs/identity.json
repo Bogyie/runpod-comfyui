@@ -89,6 +89,17 @@
               "c-compiler": "build-only"
             }
           },
+          "itools": {
+            "adapter": "itools",
+            "config": "build/adapters/itools/worker_nodes/comfy-env.toml",
+            "cuda_policy": "pytorch-sdpa",
+            "environment": "itools-workernodes",
+            "optional_cuda_extensions": [],
+            "optional_pypi_omissions": {},
+            "plugin_directory": "ComfyUI-iTools",
+            "source": "itools",
+            "system_dependencies": {}
+          },
           "sam3": {
             "config": "nodes/comfy-env.toml",
             "cuda_policy": "pytorch-sdpa",
@@ -117,5 +128,5 @@
     }
   },
   "kind": "candidate-input-identity",
-  "sha256": "f729b25850790c686b09f1f47fd276662ec8ef8c6476c04c1da3d8ddb1cf595f"
+  "sha256": "8105040a9bd0f3c95babc41b8f22a5c339c91dbec181019ccb33dfcb345b449d"
 }
