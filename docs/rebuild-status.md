@@ -337,3 +337,13 @@ CI의 별도 runtime preview에도 같은 빌더 gate를 추가했다. 아직 �
 아직 자동 dependency 해석, 공개 추가 노드 조합, update·GC, Manager 연결, 동적 schema, 이미지 호환성/rebase, 최종 GPU·RunPod 검증은 남아 있다. 이 관리 runtime은 별도 preview이며 stable/latest나 main을 교체하지 않았다.
 
 동일 이미지의 [기존 deferred lifecycle](../tests/evidence/node-install-image-generations-cpu.json)과 [runtime/CLI 회귀](../tests/evidence/node-install-image-runtime-cpu.json)도 통과했다. 새 설치 및 기존 동작 검사를 CI runtime preview에 함께 추가했다.
+
+## P3 자동 worker lock과 공개 upstream 설치
+
+`node add`의 `--lock`을 선택 사항으로 바꾸고 별도 UID 1001 resolver를 연결했다. ComfyUI worker base와 노드 요구를 합치고 GPU lock·SDK·uv·핵심 kernel package를 고정한다. 호환되는 이미지 CPU 버전은 우선 유지하며 새 요구는 private worker에만 반영한다. wheel hash lock·입력·해석 receipt를 보존하고 실패 시 설치/선택을 진행하지 않는다. 사용자 uv 설정과 interpreter 다운로드·source build를 차단한다. 후보 검증 ComfyUI도 service UID와 `no_new_privs`를 요구한다.
+
+[실제 resolver](../tests/evidence/candidate-resolve-linux.json)는 잘못된 사용자 설정을 무시한 해석과 실제 GPU 요구 충돌 거부를 통과했다. [공개 Multiband](../tests/evidence/public-node-install-config-guard-cpu.json)는 지정 SHA/archive hash에서 직접 설치하고 106개 패키지 lock, private tifffile, 텐서/dict 왕복·채널 재배열 PNG·worker preview·JS asset·별도 worker의 `no_new_privs`, 이미지 보존과 reset을 통과했다. 공개 CPU 대표 검사이며 GPU/전체 UI 성공으로 확대하지 않는다. `--no-config` 추가 전의 [native 자동 lock lifecycle](../tests/evidence/node-install-native-auto-cpu.json)과 이미지 ID도 구분했다.
+
+단위 검사는 84개가 통과했다. 동일 검사를 원격 runtime preview에도 추가했다. Manager, update/GC, 동적 schema, 이미지 업데이트/rebase와 최종 두 GPU·RunPod 검증은 계속 남아 있다.
+
+사용자 설정 차단이 포함된 동일 image ID `sha256:6c585528eaffa06c99f950d258342bc4fe87d5e6721928e046174f2c90a0bfde`의 [runtime/CLI 회귀 검사](../tests/evidence/auto-resolve-image-runtime-cpu.json)도 통과했다.

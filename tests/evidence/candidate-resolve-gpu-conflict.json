@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "kind": "actual-gpu-constraint-resolution-failure",
+  "selected": false,
+  "environment_installed": false,
+  "scratch_removed": true,
+  "image_id": "sha256:21c1aaa6c72adec3a59da0a09928813fae160039dd79be9ac2ee08a8fd0855ea",
+  "container_removed": true
+}

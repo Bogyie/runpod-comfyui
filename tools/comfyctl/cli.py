@@ -51,7 +51,7 @@ def main(argv=None) -> int:
     node_add.add_argument('--commit', required=True)
     node_add.add_argument('--archive-sha256')
     node_add.add_argument('--archive', type=Path)
-    node_add.add_argument('--lock', type=Path, required=True)
+    node_add.add_argument('--lock', type=Path, help='Use a reviewed complete wheel lock; otherwise resolve in an isolated candidate')
     node_add.add_argument('--mode', choices=['auto', 'native', 'adapter'], default='auto')
     node_add.add_argument('--skip-hooks', action='store_true')
     node_add.add_argument('--required-node', action='append', required=True)

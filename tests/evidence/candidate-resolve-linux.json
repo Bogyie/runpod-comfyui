@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "kind": "candidate-resolution-linux-cpu",
+  "resolved_packages": 105,
+  "malformed_user_uv_config": "ignored",
+  "gpu_conflict": "rejected-before-install",
+  "selected": false,
+  "environment_installed": false,
+  "scratch_removed": true,
+  "image_id": "sha256:6c585528eaffa06c99f950d258342bc4fe87d5e6721928e046174f2c90a0bfde",
+  "container_and_volume_removed": true
+}

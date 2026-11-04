@@ -1,6 +1,6 @@
 # 추가 노드의 소스 분석
 
-`comfyctl node plan`은 후보 설치에 사용할 소스 정보를 만든다. `node add`는 고정 소스와 검토한 전체 worker lock을 묶어 별도 환경에 설치하고, 노드 등록·CPU 대표 workflow를 확인한 뒤 세대로 선택한다. 자동 의존성 해석과 복잡한 host 예외 처리는 아직 후속 작업이다. 기본/추가 노드의 enable/disable과 전환은 [세대 관리](generations.md)를 따른다.
+`comfyctl node plan`은 후보 설치에 사용할 소스 정보를 만든다. `node add`는 고정 소스의 의존성을 별도 UID에서 해석해 전체 worker lock을 만들거나 검토한 lock을 받아 별도 환경에 설치한다. 노드 등록·CPU 대표 workflow를 확인한 뒤 세대로 선택한다. 복잡한 host 예외는 전용 어댑터가 필요하다. 기본/추가 노드의 enable/disable과 전환은 [세대 관리](generations.md)를 따른다.
 
 ```bash
 comfyctl node plan PozzettiAndrea/ComfyUI-SAM3 \
@@ -44,14 +44,13 @@ comfyctl node plan owner/repository --commit COMMIT_SHA \
 
 ## 고정 소스의 추가·전환
 
-관리 이미지의 root 터미널에서 실행한다. `--lock`은 전체 exact-version/SHA256 worker lock이어야 한다. 이미지 GPU pin·SDK 버전을 유지하고 노드의 명시된 requirements를 만족해야 한다. 이미지 의존성만으로 충분한 노드는 `/opt/locks/host.txt`를 사용할 수 있으며, 다른 의존성이 필요하면 검토한 빌드에서 생성한 전체 lock을 제공한다. 현재 명령은 새 의존성을 자동 해석하지 않는다.
+관리 이미지의 root 터미널에서 실행한다. 기본값은 자동 해석이며 `--lock FILE`로 검토한 전체 exact-version/SHA256 lock을 다시 사용할 수 있다. 이미지 GPU pin·SDK 버전을 유지하고 노드의 명시된 requirements를 만족해야 한다. 이미지 의존성만으로 충분한 노드는 `/opt/locks/host.txt`도 사용할 수 있다.
 
 대상은 현재 소스에서 빌드한 `runtime-probe`다. 별도로 GHCR에 게시한 worker 후보 digest에는 이 관리 CLI가 포함되지 않는다.
 
 ```bash
 comfyctl node plan OWNER/REPOSITORY --commit FULL_COMMIT_SHA > node-plan.json
 comfyctl node add OWNER/REPOSITORY --name my-node --commit FULL_COMMIT_SHA \
-  --lock /workspace/state/my-node.lock \
   --required-node NODE_CLASS_ID \
   --smoke-workflow /workspace/state/my-node-smoke.json --defer
 # 기존 큐가 끝난 뒤 검증된 desired를 적용한다.
@@ -73,3 +72,13 @@ CUDA 확장, 처리할 수 없는 Conda/system 요구, 관리 환경 변수 덮�
 [범용 어댑터 검사](../tests/evidence/node-install-cpu.json)와 [native comfy-env 검사](../tests/evidence/node-install-native-cpu.json)는 각각 실제 새 worker 설치, 후보 workflow, deferred 재기동 뒤 계산 결과·별도 prefix/PID/UID, disable·rollback, CPU 파일 손상 감지와 이미지 기본값 reset을 통과했다. 설치/startup hook은 opt-in 없이 거부됐고 skip 후에도 실행되지 않았다. 입력은 오프라인 fixture archive이며 공개 upstream 설치나 GPU 모델 검증으로 표시하지 않는다. 두 검사 모두 같은 image ID `sha256:a2b556b66dad65d5ca3bab43d7c4a3e9434796a12992bba015792d38f38398be`를 사용했고 자원을 삭제했다.
 
 추가 worker를 포함한 [deep 진단 결과](../tests/evidence/node-install-added-worker-deep.json)도 문제 없이 통과했다. 전체 165,688개 고유 파일을 hash했고 추가 prefix의 RECORD 49,638개 항목에 mismatch가 없었다.
+
+## 자동 dependency 해석
+
+ComfyUI의 필수 worker 요구사항과 노드의 정규화된 requirements/PyPI 설정을 합친다. host UI 패키지 생략 목록은 stack에서 생성한 이미지 baseline을 따른다. GPU lock 전체와 comfy-env·uv·comfy-kitchen·comfy-aimdo는 이미지 버전에 고정한다. 호환되는 CPU 버전은 기존 host lock을 우선하되 새 요구가 있으면 private worker 안에서 해석한다.
+
+해석은 UID 1001·보조 그룹 없음·`no_new_privs`에서 `uv pip compile --only-binary`로 실행한다. 프로젝트/사용자 uv 설정을 읽지 않고 PyPI와 명시한 torch backend를 사용한다. source build/hook을 실행하지 않으며 interpreter 다운로드도 금지한다. `resolution/requirements.in`, `requirements.txt`, `receipt.json`, `resolve.log`를 세대에 보존한다. 설치 전 전체 hash lock과 보호 pin을 다시 확인한다. 해석 실패/timeout이면 설치와 선택으로 진행하지 않고 임시 cache를 정리한다. 반환된 lock은 이후 `--lock` 입력으로 사용할 수 있다.
+
+[실제 resolver 검사](../tests/evidence/candidate-resolve-linux.json)는 잘못된 사용자 `uv.toml`을 무시하고 105개 패키지를 해석했다. 충돌하는 torch 요구는 설치 전에 거부됐고 선택은 생기지 않았다. [공개 Multiband 검사](../tests/evidence/public-node-install-config-guard-cpu.json)는 고정 GitHub SHA/archive hash를 직접 받아 106개 패키지 lock을 만들고 private tifffile을 설치했다. IMAGE→MULTIBAND→채널 재배열→PNG의 크기·픽셀, worker 미리보기 파일·JS asset, 별도 worker 및 `no_new_privs`, 이미지 fingerprint 보존과 reset을 통과했다. CPU 대표 경로이며 전체 UI/모든 노드/GPU 모델 검증을 뜻하지 않는다.
+
+[Native fixture의 자동 lock lifecycle](../tests/evidence/node-install-native-auto-cpu.json)도 통과했다. 이 결과는 user uv 설정 차단 추가 전 이미지이며, 위 공개 검사와 resolver 검사는 차단이 포함된 최신 이미지에서 수행했다. 각 artifact에 image ID를 구분해 기록했다.

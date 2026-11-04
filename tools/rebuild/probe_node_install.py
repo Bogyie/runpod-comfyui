@@ -19,6 +19,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image', default='runpod-comfyui:probe-runtime-probe')
     parser.add_argument('--native', action='store_true', help='Exercise upstream register_nodes/configuration instead of the generic adapter')
+    parser.add_argument('--auto-lock', action='store_true', help='Resolve node dependencies instead of passing the image lock')
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
     if args.output is None:
@@ -66,8 +67,9 @@ def main():
             container,state,base = launch('-base')
             fingerprint = inside(container,FINGERPRINT)
             command = ['node','add','fixtures/added-node','--name','fixture','--commit','f'*40,'--archive','/opt/node-fixture/node.tar.gz',
-                       '--archive-sha256',hashlib.sha256(data).hexdigest(),'--lock','/opt/locks/host.txt',
+                       '--archive-sha256',hashlib.sha256(data).hexdigest(),
                        '--required-node','ComfyctlAddedEnvironment','--smoke-workflow','/opt/node-fixture/smoke.json','--defer']
+            if not args.auto_lock:command += ['--lock','/opt/locks/host.txt']
             denied = subprocess.run(['docker','exec',container,'comfyctl',*command],capture_output=True,text=True)
             assert denied.returncode==1 and '--skip-hooks' in denied.stderr
             added = cli(container,*command,'--skip-hooks')

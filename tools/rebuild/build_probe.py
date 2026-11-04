@@ -188,6 +188,7 @@ def main() -> None:
         if set(required) != set(definitions['workers']):
             raise ValueError('Runtime required-node catalog disagrees with bundled workers')
         baseline = {'runtime_id': runtime_id, 'comfy_root': '/opt/probe/ComfyUI',
+                    'worker_ui_packages_omitted': stack['workers']['skip_host_ui_packages'],
                     'host_python': '/opt/runtime/venv/bin/python',
                     'host_lock_sha256': digest((ROOT / 'locks/host/linux-amd64-cu128.txt').read_bytes()),
                     'gpu_lock_sha256': definitions['gpu_lock_sha256'],

@@ -24,7 +24,7 @@ def environment_name(plugin, config):
     return name + ('-' + suffix if suffix else '')
 
 
-def inspect_requirements(plan, pins):
+def declared_requirements(plan):
     requirements = []
     for item in plan['requirements']:
         if item['review_required_lines']:
@@ -33,6 +33,8 @@ def inspect_requirements(plan, pins):
     for path, config in plan['configuration'].items():
         if Path(path).name != 'comfy-env.toml':
             continue
+        if any(not isinstance(config.get(field, {}), dict) for field in ['cuda', 'dependencies', 'pypi-dependencies', 'env_vars']):
+            raise NodeSourceError('Node comfy-env configuration has an unsupported table shape')
         if config.get('cuda', {}).get('packages'):
             raise NodeSourceError('Node CUDA extensions require an image build and GPU validation')
         for name, spec in config.get('dependencies', {}).items():
@@ -45,12 +47,22 @@ def inspect_requirements(plan, pins):
         for name in config.get('env_vars', {}):
             if name.startswith(('PYTHON', 'LD_', 'COMFYCTL', 'COMFYUI_')) or name in {'PATH', 'HOME', 'TMPDIR', 'CUDA_VISIBLE_DEVICES'}:
                 raise NodeSourceError('Node configuration overrides a managed environment variable: ' + name)
+    result = []
     for value in requirements:
         requirement = Requirement(value)
         if requirement.url:
             raise NodeSourceError('Direct dependency URLs need normalization into the reviewed wheel lock')
         if requirement.marker and not requirement.marker.evaluate({'sys_platform': 'linux', 'platform_machine': 'x86_64', 'platform_system': 'Linux', 'os_name': 'posix', 'python_version': '3.11'}):
             continue
+        # Resolve for this one Linux image, not a universal/moving platform set.
+        requirement.marker = None
+        result.append(str(requirement))
+    return sorted(set(result))
+
+
+def inspect_requirements(plan, pins):
+    for value in declared_requirements(plan):
+        requirement = Requirement(value)
         name = canonicalize_name(requirement.name)
         if name not in pins or not requirement.specifier.contains(pins[name], prereleases=True):
             raise NodeSourceError('Candidate lock does not satisfy declared node dependency: ' + value)
@@ -101,9 +113,10 @@ def stage_node(store, args):
         raise NodeSourceError('Native mode requires upstream comfy-env configuration and registration')
     if mode == 'adapter' and configs:
         raise NodeSourceError('Existing comfy-env configuration needs native mode or a reviewed custom adapter')
-    lock_data = args.lock.read_bytes()
-    pins = frozen_pins(lock_data)
-    inspect_requirements(plan, pins)
+    requirements = declared_requirements(plan)
+    lock_data = args.lock.read_bytes() if args.lock else None
+    if lock_data:
+        inspect_requirements(plan, frozen_pins(lock_data))
     if mode == 'adapter':
         _, texts, _, _ = archive_files(data)
         if any('PromptServer' in value or 'from server import' in value for path, value in texts.items() if path.endswith('.py')):
@@ -113,6 +126,10 @@ def stage_node(store, args):
         raise NodeSourceError('Smoke workflow must contain at least one required added node')
     profile = store.fork_code()
     generation = store.generations / profile['id']
+    if lock_data is None:
+        from .candidate_resolve import resolve_environment
+        lock_data = resolve_environment(generation, requirements)
+        inspect_requirements(plan, frozen_pins(lock_data))
     directory = 'ComfyUI-' + args.name
     destination = Path(profile['comfy_root']) / 'custom_nodes' / directory
     if destination.exists():

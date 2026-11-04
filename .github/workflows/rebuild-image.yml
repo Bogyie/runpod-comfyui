@@ -144,7 +144,13 @@ jobs:
           RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
         run: |
           uv run --frozen python tools/rebuild/probe_node_install.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/node-install-adapter-preview.json
-          uv run --frozen python tools/rebuild/probe_node_install.py --native --image "$RUNTIME_IMAGE" --output .work/ci-evidence/node-install-native-preview.json
+          uv run --frozen python tools/rebuild/probe_node_install.py --native --auto-lock --image "$RUNTIME_IMAGE" --output .work/ci-evidence/node-install-native-preview.json
+      - name: Verify constrained resolver and public node installation
+        env:
+          RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
+        run: |
+          uv run --frozen python tools/rebuild/probe_candidate_resolve.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/candidate-resolve-preview.json
+          uv run --frozen python tools/rebuild/probe_public_node_install.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/public-node-install-preview.json
       - name: Publish tested candidate with BuildKit
         id: publish
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7

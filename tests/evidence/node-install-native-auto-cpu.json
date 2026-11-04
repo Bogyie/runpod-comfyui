@@ -1,0 +1,30 @@
+{
+  "kind": "added-node-managed-worker-cpu-gate",
+  "image_id": "sha256:21c1aaa6c72adec3a59da0a09928813fae160039dd79be9ac2ee08a8fd0855ea",
+  "mode": "native",
+  "scope": "Offline asserted fixture source, real frozen wheel installation, CPU node execution and lifecycle; no public repo/Manager/GPU/network-volume certification",
+  "status": "passed",
+  "installed_generation": "0c98b0b34fa4454282243a621e4c7b5c",
+  "worker": {
+    "value": 14,
+    "prefix": "/workspace/runtime/generations/0c98b0b34fa4454282243a621e4c7b5c/environment-fixture/venv",
+    "pid": 437,
+    "uid": 1000,
+    "torch": "2.10.0+cu128"
+  },
+  "restored_worker": {
+    "value": 14,
+    "prefix": "/workspace/runtime/generations/0c98b0b34fa4454282243a621e4c7b5c/environment-fixture/venv",
+    "pid": 802,
+    "uid": 1000,
+    "torch": "2.10.0+cu128"
+  },
+  "skipped_hooks": "rejected-without-opt-in-and-never-executed",
+  "deferred_active_unchanged": true,
+  "doctor_includes_added_prefix": true,
+  "disable_and_rollback": "passed",
+  "cpu_file_drift": "detected",
+  "image_reset": "passed",
+  "image_package_fingerprint_unchanged": true,
+  "containers_and_volume_removed": true
+}
