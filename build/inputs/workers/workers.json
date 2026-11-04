@@ -26,6 +26,29 @@
         "sageattention"
       ]
     },
+    "itools": {
+      "adapter": "itools",
+      "adapter_files_sha256": {
+        "build/adapters/itools/__init__.py": "7ca1ac7d2b9b266377c2531fb19cbb1cb0e03b9b2a8ddcfcb122eee1ac69ec52",
+        "build/adapters/itools/_comfyctl_adapter.py": "5a7026064855821be70ef1d0720e9b5aa3bece4078b20ff11a77a438bb519c39",
+        "build/adapters/itools/worker_nodes/__init__.py": "624a5b0022b45200c1e516dd502b5977b5907cf204f4884f24b5fc1b010e9995",
+        "build/adapters/itools/worker_nodes/comfy-env.toml": "f23850272958b2cdd75c55a3c21688da7c1accac9a3c70ce2e625c9ef40ca37d",
+        "tools/rebuild/apply_itools_adapter.py": "bef70ee88a815ca3bf76b4976e57f48331eb35443328ae9564e368c000309f29"
+      },
+      "commit": "a8f2fef227ca5b0cb9321c39ac7b874a906b1a5b",
+      "config": "build/adapters/itools/worker_nodes/comfy-env.toml",
+      "config_sha256": "f23850272958b2cdd75c55a3c21688da7c1accac9a3c70ce2e625c9ef40ca37d",
+      "cuda_policy": "pytorch-sdpa",
+      "environment": "itools-workernodes",
+      "optional_cuda_extensions": [],
+      "optional_pypi_omissions": {},
+      "plugin_directory": "ComfyUI-iTools",
+      "requirements_sha256": "6028cba743476f8b1ee7dafa651e2d70e79b544e92cc304bdff3ebeebcc785b9",
+      "scope": "Candidate requirements only; no node execution or GPU certification",
+      "source": "itools",
+      "system_dependencies": {},
+      "upstream_cuda_extensions_not_selected": []
+    },
     "sam3": {
       "commit": "de0ff5d2c2ea435d29f800abfa568cffdfb94773",
       "config": "nodes/comfy-env.toml",

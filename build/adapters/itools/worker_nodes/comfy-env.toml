@@ -1,0 +1,2 @@
+[env_vars]
+COMFYCTL_ITOOLS_WORKER = "1"

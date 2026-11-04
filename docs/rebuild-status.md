@@ -148,3 +148,13 @@ SAM3·DepthAnythingV3는 upstream의 `register_nodes`와 `SubprocessWorker`를 �
 같은 `8125…f9c0c3d` 이미지로 미국 H100(US-GA-2)과 RTX PRO 6000 Blackwell(US-NC-2)에서 CUDA 텐서 왕복과 실제 SAM3 이미지 분할·3프레임 추적, DA3 단일·3프레임 깊이 추론을 통과했다. [H100 결과](evidence/native-h100-models.json)와 [Blackwell 결과](evidence/native-blackwell-models.json)에 모델 SHA256/크기, worker CUDA·attention, 그래프 성공 상태와 출력 통계를 보존했다. 시험 Pod는 삭제 후 목록 부재까지 확인했다. 상세 범위와 재실행 방법은 [worker 문서](worker-environments.md)에 있다. 나머지 노드·운영 권한·복구·장시간 작업의 검증은 남아 있다.
 
 두 Pod 모두 종료했으며 최종 목록이 비어 있음을 확인했다. 두 모델 검사 Pod의 생성~삭제 확인 시간으로 계산한 GPU 임대료 상한 추정치는 H100 약 $0.49, Blackwell 약 $0.14다(종료 확인 시각을 사용한 대략값, 디스크 요금·실제 청구와 구분). 승인받은 전체 검증 예산 $10 범위 안에서 진행했다.
+
+## iTools 어댑터와 frozen worker 후보
+
+`build/adapters/itools`와 hash guard를 적용하는 도구를 추가했다. KSampler·VAE Preview는 host 모델 객체를 사용하는 예외로 남기고, 기본 노드 20개와 선택 beta Paint/Crop은 실제 comfy-env worker로 등록한다. 원본 HTTP route와 web/style/font assets는 유지한다. Paint·기본 prompt 저장은 사용자 데이터 경로로 분리했다. worker 입력과 lock manifest에는 adapter/config/패치 도구의 hash를 포함한다.
+
+로컬 Linux amd64 새 이미지에서 iTools 텍스트→V3 UI·이미지 프리뷰, 스타일 API, Paint multipart 업로드·바이트 readback·worker 합성의 정확한 픽셀 값, 기본 prompt 저장·로드, host 계산 모듈 두 개만 import되는 경계와 별도 worker PID를 확인했다. [검사 결과](../tests/evidence/itools-cpu-probe.json)에 범위와 이미지 ID를 남겼다. 합성 VAE 객체 dispatch는 실제 VAE/KSampler checkpoint 추론과 구분한다. [worker 문서](worker-environments.md)에 남은 cache·운영 권한 검증도 기록했다.
+
+이 새 iTools 이미지의 전체 GPU 검증은 아직 하지 않았다. 앞의 H100·Blackwell SAM3/DA3 모델 증거는 실제로 실행한 `8125…` digest에 대한 기록이다. CI에는 iTools gate를 게시 전후 모두 추가했으며 새 원격 실행 결과는 별도 기록으로 확인한다.
+
+같은 iTools 후보에서 [코어/프런트엔드](../tests/evidence/itools-image-host.json), [설치 guard](../tests/evidence/itools-image-guards.json), [SAM3/DA3 IPC·강제 종료 복구](../tests/evidence/itools-image-workers.json)도 통과했다. iTools 검사에서는 전용 venv 패키지 경로와 소스·assets/host 패키지의 실행 전후 hash 불변, 테스트 컨테이너 삭제까지 확인했다.

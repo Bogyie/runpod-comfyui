@@ -82,6 +82,10 @@ def main() -> None:
                     raise ValueError(f'Unsafe worker {field}: {value}')
             if definition['commit'] != lock['sources'][definition['source']]['commit']:
                 raise ValueError(f'Worker source changed without re-locking: {name}')
+            if definition.get('adapter'):
+                from prepare_workers import adapter_identity
+                if adapter_identity(definition['adapter']) != definition.get('adapter_files_sha256'):
+                    raise ValueError('Worker adapter changed without re-locking')
             raw_lock = (ROOT / 'locks/workers' / definition['lock_file']).read_bytes()
             if digest(raw_lock) != definition['lock_sha256']:
                 raise ValueError(f'Worker lock file changed: {name}')
@@ -98,6 +102,11 @@ def main() -> None:
             if digest(data) != source['archive_sha256']:
                 raise ValueError(f"Node source archive hash mismatch: {definition['source']}")
             materialize(data,nodes_root/definition['plugin_directory'])
+            if definition.get('adapter'):
+                if definition['adapter'] != 'itools':
+                    raise ValueError('Unknown worker source adapter')
+                from apply_itools_adapter import apply
+                apply(nodes_root/definition['plugin_directory'],source,ROOT/'build/adapters/itools')
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
             list(pool.map(prepare_node,definitions['workers'].values()))
     if args.prepare_only:

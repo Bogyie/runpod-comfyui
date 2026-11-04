@@ -74,3 +74,13 @@ workers:
       system_dependencies:
         av: pypi
         c-compiler: build-only
+    itools:
+      source: itools
+      plugin_directory: ComfyUI-iTools
+      adapter: itools
+      config: build/adapters/itools/worker_nodes/comfy-env.toml
+      environment: itools-workernodes
+      optional_pypi_omissions: {}
+      cuda_policy: pytorch-sdpa
+      optional_cuda_extensions: []
+      system_dependencies: {}

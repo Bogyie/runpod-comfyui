@@ -1,6 +1,6 @@
 # comfy-env worker 환경
 
-현재 구현은 SAM3와 DepthAnythingV3의 P0 후보다. H100·RTX PRO 6000에서 실제 분할·깊이 모델 추론과 GPU worker 연결을 확인했다. 나머지 네 노드와 운영 계정 보호는 아직 남아 있다.
+현재 구현은 SAM3·DepthAnythingV3의 native worker와 iTools 혼합 격리 P0 후보다. H100·RTX PRO 6000에서 실제 분할·깊이 모델 추론과 GPU worker 연결을 확인했다. Manager·KJNodes·VHS와 운영 계정 보호는 아직 남아 있다.
 
 ## 실행과 설치를 분리한다
 
@@ -70,3 +70,16 @@ GHCR의 `8125a0f4…f9c0c3d` 후보를 미국 H100(US-GA-2)과 RTX PRO 6000 Blac
 입력은 256×256 합성 이미지다. 정확도·장시간 영상·성능 벤치마크나 6종 노드 전체 인증으로 해석하지 않는다. host의 할당 메모리 수치는 기록하지만 zero-copy나 GPU 전체 메모리 회수를 보장하는 시험은 아니다. 모델·관찰 노드는 일회용 Pod에만 추가했고 SAM3/DA3 소스·고정 패키지는 변경하지 않았다.
 
 `tools/rebuild/verify_worker_gpu.py`는 CUDA 연결 검사, `verify_worker_models.py`는 실제 모델 그래프 검사다. 둘을 같은 디렉터리에 넣고 일회용 후보 컨테이너에서 `GATE_IMAGE_DIGEST=sha256:… GATE_EXPECTED_CC=9.0 python verify_worker_models.py`로 실행한다(Blackwell은 `12.0`). 모델 다운로드와 테스트 파일을 생성하므로 사용 중인 Pod에서 실행하지 않는다. CPU에서는 실패하며 성공 결과를 만들지 않는다. 당시 RunPod payload의 [정확한 suite 소스와 hash](evidence/native-worker-suite-source.json)도 보존했다. 독립 실행 스크립트는 같은 그래프를 사용하며, 인접한 CUDA 검사 파일을 읽고 결과 후 종료하도록 정리했다.
+
+## iTools 혼합 격리 후보
+
+고정한 iTools `a8f2fef2…a906b1a5b`에 `build/adapters/itools`를 적용한다. `apply_itools_adapter.py`는 원본 파일 hash, revision, HTTP decorator 수와 생성 파일 경로를 검증한 뒤 패치한다. adapter 파일과 패치 도구 hash도 worker manifest에 기록하며, 변경 후 lock identity를 갱신하지 않으면 빌드가 거부된다. 전체 archive를 사용하므로 스타일·폰트·web asset을 유지한다.
+
+- upstream 기본 계산 노드 22개 중 KSampler·VAE Preview는 host 예외다. 각각 host의 live MODEL과 VAE를 직접 사용한다. host가 나머지 계산 모듈을 import하지 않도록 별도 namespace에서 두 모듈만 로드한다.
+- 나머지 20개와 설정으로 켜지는 Paint/Crop beta 노드는 `itools-workernodes`의 실제 comfy-env worker로 등록한다. worker는 원래 catalog를 가져오며, 실제로 재-import할 수 있는 `worker_nodes.nodes.*` 모듈 이름을 유지한다.
+- `nodes`라는 plugin 폴더가 ComfyUI의 top-level `nodes.py`를 가리는 충돌을 피하도록 worker의 ComfyUI source 경로를 우선한다. worker에서는 PromptServer를 import하거나 host HTTP route를 등록하지 않는다. multipart/file 응답과 스타일 HTTP route는 host에 유지한다.
+- Paint 파일은 `<ComfyUI user directory>/comfyctl/itools/paint`, 기본 `prompts.txt`는 그 상위 데이터 폴더에 저장한다. `COMFYCTL_ITOOLS_DATA`를 지정하면 절대 경로만 허용한다. 기존 사용자 프롬프트를 덮어쓰지 않으며, 원본 examples의 내용을 최초 파일로 사용한다. 사용자가 명시한 다른 prompt 파일 경로는 원래 동작을 유지한다.
+
+`probe_itools.py`는 자신이 만든 CPU 컨테이너를 삭제한다. 텍스트 V1→V3 UI, Checkerboard→V3 preview, Paint multipart/readback→worker 합성→host PNG와 픽셀 값, 스타일 template API, 기본 prompt 저장·로드, host 모듈 import 경계를 검사한다. VAE 예외는 소유 PID를 검사하는 합성 객체로 dispatch를 확인하며 실제 checkpoint 추론으로 표시하지 않는다. UI JS asset의 HTTP 응답과 브라우저의 실제 조작도 구분한다. 선택 rembg background-removal 기능은 이번 gate 범위가 아니다.
+
+iTools 전용 lock은 GPU 기반층과 같은 torch 계열 pin을 유지한다. 다른 SAM3/DA3 venv의 임시 별칭을 사용한 초기 가능성 검사와 달리 최종 CPU gate는 별도로 구성한 frozen iTools prefix를 사용한다. 설정 변경에 따른 metadata cache 갱신, 영속 데이터 경로와 nonroot 권한은 P2/P3의 추가 시험 대상이다. comfy-env 0.3.89는 현재 metadata cache를 worker prefix에 쓰므로 운영 권한 분리 전에 cache 위치도 바꿔야 한다.
