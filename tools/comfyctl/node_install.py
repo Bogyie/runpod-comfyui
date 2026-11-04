@@ -89,10 +89,10 @@ def extract_source(data, destination, expected_files):
             target.chmod(0o755 if member.mode & 0o111 else 0o644)
 
 
-def stage_node(store, args):
+def stage_node(store, args, *, parent=None, reuse_environment=None):
     if not re.fullmatch(r'[a-z][a-z0-9-]{0,63}', args.name):
         raise NodeSourceError('Node name must be lowercase letters/digits/dashes, beginning with a letter')
-    parent = store.desired()
+    parent = store.desired() if parent is None else parent
     updating = getattr(args, 'action', 'add') == 'update'
     previous = parent['nodes'].get(args.name)
     if updating and (not previous or args.name in store.base['nodes']):
@@ -129,7 +129,7 @@ def stage_node(store, args):
     workflow = json.loads(args.smoke_workflow.read_text())
     if not isinstance(workflow, dict) or not any(item.get('class_type') in args.required_node for item in workflow.values() if isinstance(item, dict)):
         raise NodeSourceError('Smoke workflow must contain at least one required added node')
-    profile = store.fork_code()
+    profile = store.fork_code(parent)
     generation = store.generations / profile['id']
     archive_path = generation / ('source-'+args.name+'.tar.gz')
     archive_path.write_bytes(data)
@@ -168,9 +168,15 @@ def stage_node(store, args):
     keys = [environment_name(directory, config) for config in configs]
     if len(set(keys)) != len(keys) or any(key in profile['workers'] for key in keys):
         raise NodeSourceError('Node worker environment name collides with an existing mapping')
-    receipt = prepare_environment(generation, args.name, lock_data, hashlib.sha256(lock_data).hexdigest())
-    receipt_path = Path(receipt['prefix']).parent / 'receipt.json'
-    binding = {'lock_sha256': receipt['lock_sha256'], 'receipt_sha256': hashlib.sha256(receipt_path.read_bytes()).hexdigest()}
+    if reuse_environment is None:
+        receipt = prepare_environment(generation, args.name, lock_data, hashlib.sha256(lock_data).hexdigest())
+        receipt_path = Path(receipt['prefix']).parent / 'receipt.json'
+        binding = {'lock_sha256': receipt['lock_sha256'], 'receipt_sha256': hashlib.sha256(receipt_path.read_bytes()).hexdigest()}
+    else:
+        receipt = {'prefix':reuse_environment['prefix'], 'lock_sha256':hashlib.sha256(lock_data).hexdigest()}
+        binding = dict(reuse_environment['binding'])
+        if binding['lock_sha256']!=receipt['lock_sha256']:
+            raise NodeSourceError('Reused environment lock differs from its verified binding')
     profile.update(kind='managed-nodes-v1')
     bindings = profile.setdefault('environment_bindings', {})
     for key in keys:

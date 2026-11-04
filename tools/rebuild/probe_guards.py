@@ -51,7 +51,7 @@ def main() -> None:
     args = parser.parse_args()
     args.output.unlink(missing_ok=True)
     command = ["docker", "run", "--interactive", "--rm", "--platform", "linux/amd64",
-               args.image, "python", "-"]
+               "--entrypoint", "/opt/runtime/venv/bin/python", args.image, "-"]
     output = subprocess.check_output(command, input=PROGRAM, text=True)
     result = json.loads(output.strip().splitlines()[-1])
     result["image_id"] = subprocess.check_output([

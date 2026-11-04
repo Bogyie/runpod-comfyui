@@ -14,13 +14,13 @@ import urllib.request
 import uuid
 from pathlib import Path
 
-from probe_host import ROOT,docker,request
+from probe_host import ROOT,docker,request,cpu_arguments,service_python,storage_directory
 from probe_workers import execute,FINGERPRINT,ENVIRONMENT,PROCESSES
 from probe_itools import image_result
 
 
 def processes(container):
-    rows=json.loads(docker('exec',container,'python','-c',PROCESSES))
+    rows=json.loads(service_python(container,PROCESSES))
     found=[p for p in rows if p['cmd'][0]=='/opt/workers/kjnodes-workernodes/bin/python']
     if len(found)!=1 or found[0]['cpu_mode']!='1' or found[0]['attention_policy']!='pytorch':
         raise RuntimeError('Missing or incorrect KJ worker process')
@@ -37,7 +37,7 @@ def suite(container,base,timeout):
         raise RuntimeError('KJ dependencies leaked from host')
     graph={'1':{'class_type':'EmptyImage','inputs':{'width':64,'height':32,'batch_size':1,'color':0x202020}},'2':{'class_type':'EmptyImage','inputs':{'width':64,'height':32,'batch_size':1,'color':0xc0c0c0}},'3':{'class_type':'ColorMatchV2','inputs':{'image_target':['1',0],'image_ref':['2',0],'method':'hm','strength':1.0,'multithread':False}},'4':{'class_type':'SaveImage','inputs':{'images':['3',0],'filename_prefix':'kj-color-gate'}}}
     color=image_result(base,execute(base,graph,timeout),'4')
-    output='/opt/probe/ComfyUI/output/'+color['image']['filename']
+    output=storage_directory(container)+'/output/'+color['image']['filename']
     pixel=json.loads(docker('exec',container,'python','-c',"from PIL import Image;import json,sys;im=Image.open(sys.argv[1]);print(json.dumps(list(im.getpixel((0,0)))))",output))
     if pixel!=[192,192,192]:raise RuntimeError('KJ ColorMatch returned original/fallback pixels')
     original=processes(container)
@@ -94,7 +94,7 @@ def main():
     fixture=ROOT/'tests/fixtures/kjnodes-probe-nodes'
     websocket=ROOT/'tests/fixtures/kjnodes-websocket.py'
     name='runpod-kj-gate-'+uuid.uuid4().hex[:10]
-    container=docker('run','--detach','--platform','linux/amd64','--name',name,'--publish','127.0.0.1::8188','--volume',str(fixture)+':/opt/probe/ComfyUI/custom_nodes/comfyctl_kj_probe:ro','--volume',str(websocket)+':/gate/kjnodes-websocket.py:ro',args.image)
+    container=docker('run','--detach','--platform','linux/amd64','--name',name,'--publish','127.0.0.1::8188','--volume',str(fixture)+':/opt/probe/ComfyUI/custom_nodes/comfyctl_kj_probe:ro','--volume',str(websocket)+':/gate/kjnodes-websocket.py:ro',args.image,*cpu_arguments(args.image))
     try:
         port=json.loads(docker('inspect',container))[0]['NetworkSettings']['Ports']['8188/tcp'][0]['HostPort']
         base='http://127.0.0.1:'+port;end=time.monotonic()+args.timeout

@@ -19,7 +19,7 @@ import urllib.error
 import uuid
 from pathlib import Path
 
-from probe_host import ROOT, docker, request
+from probe_host import ROOT, docker, request, cpu_arguments, service_python
 
 FINGERPRINT = '''import hashlib,importlib.metadata,json,pathlib,sysconfig
 site=pathlib.Path(sysconfig.get_path('purelib'))
@@ -81,7 +81,7 @@ def points(entry: dict, expected_x: float) -> dict:
 
 
 def worker_processes(container: str) -> dict:
-    rows = json.loads(docker('exec',container,'python','-c',PROCESSES))
+    rows = json.loads(service_python(container,PROCESSES))
     workers = {}
     for row in rows:
         python = row['cmd'][0]
@@ -133,7 +133,7 @@ def main() -> None:
     if image['Architecture']!='amd64':
         raise RuntimeError('Expected actual Linux amd64 image')
     name='runpod-worker-gate-'+uuid.uuid4().hex[:10]
-    container=docker('run','--detach','--platform','linux/amd64','--name',name,'--publish','127.0.0.1::8188',args.image)
+    container=docker('run','--detach','--platform','linux/amd64','--name',name,'--publish','127.0.0.1::8188',args.image,*cpu_arguments(args.image))
     result=None
     try:
         details=json.loads(docker('inspect',container))[0]

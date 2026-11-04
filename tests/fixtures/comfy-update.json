@@ -1,0 +1,6 @@
+{
+  "repository": "Comfy-Org/ComfyUI",
+  "commit": "5f415e31abfd837870bbc733ba1e158de71ed985",
+  "archive_sha256": "357457166e678fd09c83e0810d53a83a78812b0a16ba4a34deed44bcda2490a1",
+  "frontend_lock": "comfyui-frontend-package==1.58.5 \\\n    --hash=sha256:d1eb47e5a3b71b0191e42b0633c66eb8b362c46c22cd0036524fd1f5ac9096ce \\\n    --hash=sha256:f407599249471e2e3c85084358f293f33d0bff8a59e2f2a6e26d638802268dec\n"
+}

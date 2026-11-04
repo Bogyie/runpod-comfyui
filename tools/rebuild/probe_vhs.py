@@ -10,7 +10,7 @@ import urllib.parse
 import urllib.request
 import uuid
 from pathlib import Path
-from probe_host import ROOT,docker,request
+from probe_host import ROOT,docker,request,cpu_arguments,service_python
 from probe_workers import execute,FINGERPRINT,PROCESSES,ENVIRONMENT
 
 DECODE='''import av,base64,io,json,numpy as np,sys
@@ -106,7 +106,7 @@ def suite(container,base,timeout):
     reset=json.loads(execute(base,reset_graph,timeout)['outputs']['23']['text'][0])
     host=json.loads(execute(base,{'1':{'class_type':'ComfyctlVHSHostState','inputs':{}}},timeout)['outputs']['1']['text'][0])
     if not host['queue_is_host'] or not host['latent_hook_preserved'] or host['worker_catalog_imported_on_host'] or host['ffmpeg_path']!='/usr/bin/ffmpeg':raise RuntimeError('VHS host hook/queue/FFmpeg boundary changed')
-    rows=json.loads(docker('exec',container,'python','-c',PROCESSES));workers=[p for p in rows if p['cmd'][0]=='/opt/workers/videohelpersuite-workernodes/bin/python']
+    rows=json.loads(service_python(container,PROCESSES));workers=[p for p in rows if p['cmd'][0]=='/opt/workers/videohelpersuite-workernodes/bin/python']
     if len(workers)!=1 or workers[0]['pid']==host['host_pid'] or any(s['host_pid']!=host['host_pid'] for s in states):raise RuntimeError('VHS state/tensor process boundary changed')
     for node in ['VHS_VideoCombine','VHS_LoadVideoPath','VHS_BatchManager']:
         if host['class_modules'][node]=='comfy_env.isolation.metadata':raise RuntimeError('Stateful VHS node crossed process boundary')
@@ -129,7 +129,7 @@ def main():
     parser.add_argument('--output',type=Path,default=ROOT/'tests/evidence/vhs-cpu-probe.json')
     args=parser.parse_args();args.output.unlink(missing_ok=True)
     fixture=ROOT/'tests/fixtures/vhs-probe-nodes'
-    container=docker('run','--detach','--platform','linux/amd64','--name','runpod-vhs-gate-'+uuid.uuid4().hex[:10],'--publish','127.0.0.1::8188','--volume',str(fixture)+':/opt/probe/ComfyUI/custom_nodes/comfyctl_vhs_probe:ro',args.image)
+    container=docker('run','--detach','--platform','linux/amd64','--name','runpod-vhs-gate-'+uuid.uuid4().hex[:10],'--publish','127.0.0.1::8188','--volume',str(fixture)+':/opt/probe/ComfyUI/custom_nodes/comfyctl_vhs_probe:ro',args.image,*cpu_arguments(args.image))
     try:
         port=json.loads(docker('inspect',container))[0]['NetworkSettings']['Ports']['8188/tcp'][0]['HostPort']
         base='http://127.0.0.1:'+port;end=time.monotonic()+args.timeout

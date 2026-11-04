@@ -116,6 +116,14 @@ def inspect_runtime(state, doctor=False, deep=False):
     result = {'runtime_id': identity['runtime_id'], 'diagnostic_uid': os.getuid(), 'diagnostic_python': sys.prefix,
               'generation': generation, 'scope': 'locked-versions-and-paths',
               'runtime': live_status(record, identity['runtime_id']), 'environments': {}, 'problems': []}
+    result['image']={'compatibility_id':store.base.get('compatibility_id'),
+                     'abi_id':store.base.get('abi_id'),'environment_id':store.base.get('environment_id'),
+                     'application_id':store.base.get('application_id')}
+    try:
+        result['image']['preserved_selections']=list(store.images.selections())
+    except (SelectionError,OSError,ValueError,KeyError) as error:
+        result['image']['history_error']=str(error)
+        result['problems'].append('image-history-error')
     if doctor and generation.get('active'):
         try:
             store.profile(generation['active'])

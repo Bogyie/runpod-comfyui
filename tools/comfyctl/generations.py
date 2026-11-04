@@ -96,8 +96,9 @@ def validate(store, profile, smoke_workflow=None):
                 receipt = {'kind': 'state-only-candidate-cpu-validation', 'required_nodes': sorted(required),
                            'node_catalog': 'passed', 'core_graph': 'passed',
                            'environment_bindings': 'unchanged-image-prefixes', 'gpu': 'not-run', 'validated_at': time.time()}
-                if smoke_workflow:
-                    request = urllib.request.Request(base + '/prompt', data=json.dumps({'prompt': smoke_workflow}).encode(), headers={'Content-Type': 'application/json'})
+                workflows = smoke_workflow if isinstance(smoke_workflow,list) else ([smoke_workflow] if smoke_workflow else [])
+                for workflow in workflows:
+                    request = urllib.request.Request(base + '/prompt', data=json.dumps({'prompt': workflow}).encode(), headers={'Content-Type': 'application/json'})
                     with urllib.request.urlopen(request, timeout=120) as response:
                         submitted = json.load(response)
                     if 'prompt_id' not in submitted or submitted.get('node_errors'):
@@ -203,6 +204,9 @@ def operate(args):
         except (OSError, json.JSONDecodeError):
             record = {}
         healthy = live_status(record, store.base['runtime_id'])['healthy']
+        if args.command=='env' and args.action=='rebase':
+            from .image_rebase import rebase
+            return rebase(store,args.from_image)
         if args.action != 'reset' and healthy:
             store.acknowledge(record, os.readlink('/proc/self/ns/pid'))
         if args.command == 'env' and args.action == 'gc':

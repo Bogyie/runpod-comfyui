@@ -107,15 +107,19 @@ class ImageHistory:
         # Supervisor enters recovery mode; only an explicit reset/rebase may
         # replace it. There is no silent image-base fallback.
 
-    def referenced_generations(self):
-        result=set()
-        if not self.enabled or not self.root.exists():return result
-        for directory in self.root.iterdir():
+    def selections(self):
+        if not self.enabled or not self.root.exists():return
+        for directory in sorted(self.root.iterdir()):
             if not directory.is_dir():continue
             path=self.directory(directory.name)/'selection.json'
             if not path.exists():continue
             state=self.load_selection(path)
             if state.get('compatibility_id')!=directory.name:
                 raise SelectionError('Malformed image history selection; cleanup refused')
+            yield state
+
+    def referenced_generations(self):
+        result=set()
+        for state in self.selections():
             result.update(value for value in [state.get('desired'),state.get('last_good'),state.get('previous_good')] if value)
         return result

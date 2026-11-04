@@ -8,9 +8,10 @@ on:
       - 'tools/**'
       - 'runtime/**'
       - 'tests/**'
+      - '!tests/evidence/**'
       - 'pyproject.toml'
       - 'uv.lock'
-      - '.github/workflows/rebuild-check.yml'
+      - '.github/workflows/*.yml'
   workflow_dispatch:
   workflow_call:
 
@@ -47,3 +48,9 @@ jobs:
         run: uv run --frozen python -m unittest discover -s tests -v
       - name: Syntax checks
         run: uv run --frozen python -m compileall -q runtime tools tests
+      - name: Validate current image and update workflows
+        run: |
+          curl -fsSL https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz -o "$RUNNER_TEMP/actionlint.tar.gz"
+          printf '%s  %s\n' '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8' "$RUNNER_TEMP/actionlint.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/actionlint.tar.gz" -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -shellcheck= -pyflakes= .github/workflows/rebuild-check.yml .github/workflows/rebuild-image.yml .github/workflows/comfy-update.yml

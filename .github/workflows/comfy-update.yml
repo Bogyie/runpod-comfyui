@@ -1,0 +1,104 @@
+name: comfy-update
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'ComfyUI release/ref to review; latest-release selects the latest stable release'
+        type: string
+        default: latest-release
+      create_pr:
+        description: 'Create a draft update PR and dispatch candidate checks when the commit changes'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comfy-update-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+      - name: Install pinned resolver
+        run: python -m pip install uv==0.10.8
+      - name: Restore development environment
+        run: uv sync --frozen
+      - name: Prepare a ComfyUI-only update with frozen GPU constraints
+        id: update
+        env:
+          COMFY_REF: ${{ inputs.ref }}
+        run: |
+          uv run --frozen python tools/rebuild/update_comfy.py --ref "$COMFY_REF" --apply
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          report=json.loads(Path('.work/comfy-update-report.json').read_text())
+          with open(os.environ['GITHUB_OUTPUT'],'a') as stream:
+              stream.write('changed='+str(report['changed']).lower()+'\n')
+              stream.write('sha='+report['to_commit']+'\n')
+          Path('.work/comfy-update-pr.md').write_text(
+              'Update ComfyUI from `'+report['from_commit']+'` to `'+report['to_commit']+'` ('+report['resolved_ref']+').\n\n'
+              'Keep node source pins and the GPU stack fixed. Resolve host requirements and only worker inputs that changed against the existing GPU lock. '
+              'Reuse byte-identical artifact locks when only resolver comments differ.\n\n'
+              'Prepared input/lock files; candidate CPU checks, both GPU workflows, and digest promotion remain required. '
+              'This draft does not promote a stable image.\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as stream:
+              stream.write('ComfyUI update preparation: `'+report['resolved_ref']+'`, changed='+str(report['changed']).lower()+'.\n')
+          PY
+      - name: Check prepared source and locks
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          uv run --frozen python tools/rebuild/prepare_workers.py --verify-locks
+          uv run --frozen python -m unittest discover -s tests -v
+          uv run --frozen python -m compileall -q runtime tools tests
+      - name: Create draft PR and dispatch candidate verification
+        if: steps.update.outputs.changed == 'true' && inputs.create_pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_BRANCH: ${{ github.ref_name }}
+          TARGET_SHA: ${{ steps.update.outputs.sha }}
+        run: |
+          UPDATE_BRANCH="codex/rebuild-comfy-${TARGET_SHA:0:12}"
+          existing="$(gh pr list --head "$UPDATE_BRANCH" --base "$BASE_BRANCH" --state open --json url --jq '.[0].url // empty')"
+          if [ -n "$existing" ]; then
+            printf 'Existing update draft: %s\n' "$existing" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git switch -c "$UPDATE_BRANCH"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add build/inputs build/upstream-audit.json locks/upstreams.lock.json locks/host locks/workers
+          git commit -m "Update ComfyUI to ${TARGET_SHA:0:12}"
+          git push origin "$UPDATE_BRANCH"
+          gh pr create --draft --base "$BASE_BRANCH" --head "$UPDATE_BRANCH" --title "Update ComfyUI to ${TARGET_SHA:0:12}" --body-file .work/comfy-update-pr.md
+          # Explicit dispatch works with GITHUB_TOKEN; do not depend on its push
+          # starting another workflow. Candidate verification never promotes stable.
+          gh workflow run rebuild-image.yml --ref "$UPDATE_BRANCH"
+      - name: Preserve preparation report and review patch
+        if: always()
+        env:
+          BASE_SHA: ${{ github.sha }}
+        run: |
+          mkdir -p .work/comfy-update-artifact
+          if [ -f .work/comfy-update-report.json ]; then
+            cp .work/comfy-update-report.json .work/comfy-update-artifact/
+          fi
+          git diff "$BASE_SHA" -- build/inputs build/upstream-audit.json locks > .work/comfy-update-artifact/update.patch
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: comfy-update-review
+          path: .work/comfy-update-artifact/

@@ -1,0 +1,23 @@
+{
+  "from_commit": "2c75dc1b379a59e0880619d029607af5169a62ef",
+  "gpu_lock_sha256": "a7471e51bd75cc8c6dd3470ba72bedb837b3de77f6f96e97f51e1b405e672549",
+  "gpu_stack_changed": false,
+  "host_lock_changed": true,
+  "host_version_changes": {
+    "comfyui-frontend-package": {
+      "after": "1.58.5",
+      "before": "1.57.6"
+    }
+  },
+  "kind": "comfy-only-update-preparation",
+  "node_source_pins_unchanged": true,
+  "scope": "Pinned official post-release source; Linux amd64 dependency resolution from macOS. Staged outputs only, no tracked pin update, PR creation, image promotion or GPU certification.",
+  "to_commit": "5f415e31abfd837870bbc733ba1e158de71ed985",
+  "worker_locks_changed": {
+    "depth-anything-v3": false,
+    "itools": false,
+    "kjnodes": false,
+    "sam3": false,
+    "video-helper-suite": false
+  }
+}

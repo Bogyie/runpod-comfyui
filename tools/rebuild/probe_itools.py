@@ -18,7 +18,7 @@ import uuid
 import zlib
 from pathlib import Path
 
-from probe_host import ROOT,docker,request
+from probe_host import ROOT,docker,request,cpu_arguments,service_python,storage_directory
 from probe_workers import execute,FINGERPRINT,PROCESSES,ENVIRONMENT
 
 
@@ -34,7 +34,7 @@ def rgba_png(rgba):
     return b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('!IIBBBBB',32,32,8,6,0,0,0))+chunk(b'IDAT',zlib.compress(raw))+chunk(b'IEND',b'')
 
 
-def upload_paint(base):
+def upload_paint(base,user_directory='/opt/probe/ComfyUI/user'):
     boundary='comfyctl-'+uuid.uuid4().hex
     parts=[];images={}
     for field,color in [('foreground',(255,0,0,128)),('background',(0,0,255,255))]:
@@ -46,7 +46,7 @@ def upload_paint(base):
     with urllib.request.urlopen(req,timeout=20) as response:result=json.load(response)
     if result['status']!='success':raise RuntimeError('Paint multipart upload failed')
     for field in images:
-        if not result[field].startswith('/opt/probe/ComfyUI/user/comfyctl/itools/paint/'):
+        if not result[field].startswith(user_directory+'/comfyctl/itools/paint/'):
             raise RuntimeError('Paint wrote outside user data')
     returned=form(base,'/itools/request_the_paint_file',{'filename_prefix':'iToolsPaintedImage'})
     if any(bytes.fromhex(returned['data'][field])!=data for field,data in images.items()):
@@ -91,17 +91,18 @@ def suite(container,base,timeout):
     if not styles:raise RuntimeError('Missing iTools styles')
     templates=form(base,'/itools/get_style_templates',{'file_name':styles[0]})['templates']
     if not templates:raise RuntimeError('Missing iTools style templates')
-    paint=upload_paint(base)
+    storage=storage_directory(container)
+    paint=upload_paint(base,storage+'/user')
     if 'iToolsPaintNode' not in objects:raise RuntimeError('Expected upstream default Paint beta node')
     g={'1':{'class_type':'iToolsPaintNode','inputs':{}},'2':{'class_type':'SaveImage','inputs':{'images':['1',0],'filename_prefix':'itools-paint-gate'}}}
     paint_image=image_result(base,execute(base,g,timeout),'2')
-    saved='/opt/probe/ComfyUI/output/'+paint_image['image']['filename']
+    saved=storage+'/output/'+paint_image['image']['filename']
     pixel=json.loads(docker('exec',container,'python','-c',"import json,sys;from PIL import Image;im=Image.open(sys.argv[1]);print(json.dumps({'size':list(im.size),'pixel':list(im.getpixel((0,0)))}))",saved))
     if pixel!={'size':[32,32],'pixel':[128,0,127]}:raise RuntimeError('Paint composition across host/worker disagrees with uploaded pixels')
     token='comfyctl-'+uuid.uuid4().hex
     g={'1':{'class_type':'iToolsPromptSaver','inputs':{'prompt':token,'file_path':'prompts.txt'}}}
     execute(base,g,timeout)
-    prompt_path='/opt/probe/ComfyUI/user/comfyctl/itools/prompts.txt'
+    prompt_path=storage+'/user/comfyctl/itools/prompts.txt'
     lines=json.loads(docker('exec',container,'python','-c',"from pathlib import Path;import json,sys;print(json.dumps([x for x in Path(sys.argv[1]).read_text().splitlines() if x.strip()]))",prompt_path))
     if lines[-1]!=token:raise RuntimeError('Default prompt saver did not write user data')
     g={'1':{'class_type':'iToolsPromptLoader','inputs':{'file_path':'prompts.txt','seed':len(lines)-1}},'2':{'class_type':'iToolsPromptRecord','inputs':{'text':['1',0],'timeline_data':''}}}
@@ -112,7 +113,7 @@ def suite(container,base,timeout):
     state=execute(base,{'1':{'class_type':'ComfyctlIToolsHostState','inputs':{}}},timeout)
     host=json.loads(state['outputs']['1']['text'][0])
     if host['worker_catalog_imported_on_host'] or {n.rsplit('.',1)[-1] for n in host['host_compute_imports']}!={'ksampler','vae_preview'}:raise RuntimeError('iTools compute imports leaked onto host')
-    rows=json.loads(docker('exec',container,'python','-c',PROCESSES))
+    rows=json.loads(service_python(container,PROCESSES))
     workers=[p for p in rows if '/opt/workers/itools-workernodes/bin/python'==p['cmd'][0]]
     if len(workers)!=1 or workers[0]['pid']==host['host_pid'] or workers[0]['cpu_mode']!='1':raise RuntimeError('iTools did not use a separate persistent worker')
     extensions=request(base,'/extensions');assets=[p for p in extensions if '/ComfyUI-iTools/' in p]
@@ -134,7 +135,7 @@ def main():
     args=parser.parse_args();args.output.unlink(missing_ok=True)
     fixture=ROOT/'tests/fixtures/itools-probe-nodes'
     name='runpod-itools-gate-'+uuid.uuid4().hex[:10]
-    container=docker('run','--detach','--platform','linux/amd64','--name',name,'--publish','127.0.0.1::8188','--volume',str(fixture)+':/opt/probe/ComfyUI/custom_nodes/comfyctl_itools_probe:ro',args.image)
+    container=docker('run','--detach','--platform','linux/amd64','--name',name,'--publish','127.0.0.1::8188','--volume',str(fixture)+':/opt/probe/ComfyUI/custom_nodes/comfyctl_itools_probe:ro',args.image,*cpu_arguments(args.image))
     try:
         port=json.loads(docker('inspect',container))[0]['NetworkSettings']['Ports']['8188/tcp'][0]['HostPort']
         base='http://127.0.0.1:'+port;end=time.monotonic()+args.timeout

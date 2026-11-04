@@ -98,7 +98,7 @@ class Store:
             raise SelectionError('Selection belongs to another image; use explicit env reset in recovery mode')
         return state
 
-    def profile(self, identifier, verify=True):
+    def profile(self, identifier, verify=True, *, verify_environments=True):
         if identifier == 'image-base':
             return dict(self.base, id='image-base', validation={'kind': 'image-base'})
         if not isinstance(identifier, str) or len(identifier) != 32 or any(c not in '0123456789abcdef' for c in identifier):
@@ -130,14 +130,14 @@ class Store:
                     for key, value in original.items() if key != 'enabled'):
                 raise SelectionError('Unreviewed node definition in state-only generation')
         if managed:
-            self.verify_managed(profile, verify)
+            self.verify_managed(profile, verify, verify_environments=verify_environments)
         if json.loads((directory / 'workers.json').read_text()) != profile['workers']:
             raise SelectionError('Generation worker mapping drift detected')
         if verify and code_hashes(directory / 'ComfyUI') != profile['files']:
             raise SelectionError('Generation code drift detected')
         return profile
 
-    def verify_managed(self, profile, verify):
+    def verify_managed(self, profile, verify, *, verify_environments=True):
         import re
         bindings = profile.get('environment_bindings', {})
         extras = set(profile['workers']) - self.base['workers'].keys()
@@ -188,6 +188,11 @@ class Store:
             if (not prefix.is_absolute() or len(prefix.parents) < 3 or prefix.name != 'venv' or prefix.parents[2] != self.generations or
                     not re.fullmatch(r'[0-9a-f]{32}', prefix.parents[1].name) or prefix.resolve() != prefix):
                 raise SelectionError('Candidate environment is not at a managed final prefix')
+            if not verify_environments:
+                # Rebase may recover verified source after private packages or
+                # the old image's GPU link targets disappeared. Never execute
+                # or reuse this environment without a separate full check.
+                continue
             root = prefix.parent
             receipt_data = (root / 'receipt.json').read_bytes()
             receipt = json.loads(receipt_data)

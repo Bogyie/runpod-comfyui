@@ -16,8 +16,8 @@
     "stack": {
       "base_image": "python:3.11-slim-bookworm@sha256:94a8fee35252d06ab75856f15f12c7bae67b10e8a6da93c7fded82b2610926cd",
       "candidate": {
-        "tag_prefix": "candidate-p0-workers",
-        "target": "worker-probe"
+        "tag_prefix": "candidate-runtime",
+        "target": "runtime-probe"
       },
       "gpu": {
         "attention_default": "pytorch",
@@ -115,7 +115,7 @@
         ]
       },
       "schema_version": 1,
-      "status": "experimental-p0",
+      "status": "runtime-candidate",
       "transitive_nodes": [
         "multiband",
         "geometry-pack"
@@ -216,5 +216,5 @@
     }
   },
   "kind": "candidate-input-identity",
-  "sha256": "3717c7b28c9f21e8f39b08da30ef1a62e31e3d658686b210ce259457b4965183"
+  "sha256": "9208efb052a0197e4ec38a37fede567d827d99df2279333281e865c23539d717"
 }

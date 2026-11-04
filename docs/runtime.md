@@ -40,10 +40,10 @@ uv run --frozen python tools/rebuild/probe_runtime.py
 
 [현재 runtime 검증 결과](../tests/evidence/dynamic-metadata-runtime-cpu.json)는 서비스 UID, host/native worker 데이터 경로, 모델 위치 marker, 업로드·저장, immutable 경로 쓰기 거부, CPU metadata 프로세스·비어 있는 CUDA_VISIBLE_DEVICES, 네트워크 없는 재기동과 데이터 보존, API 정지·회복 및 실패 상태를 기록한다. marker는 경로 검사용 텍스트이며 모델 추론에 사용하지 않는다. 시험용 관찰 노드는 bind mount로만 연결하며 이미지에 포함하지 않는다.
 
-CI는 기존 worker 후보 외에 runtime preview를 별도로 빌드·검사한다. preview는 아직 GHCR 게시 대상이 아니며, 게시한 worker 후보 digest와 runtime preview의 검증 범위를 혼동하지 않는다. 최종 사용자용 runtime target의 게시 경로 통합은 아직 남아 있다.
+CI의 게시 대상은 `runtime-probe` 하나다. 게시 전 nonroot runtime·격리 guard 검사, 게시한 manifest/config 일치 확인과 같은 digest의 runtime 재검사를 수행한다. 이어 네 독립 runner가 같은 digest에서 기본 노드 실연산, Manager/세대 전환, 추가 설치·업데이트·복구, metadata/이미지 변경을 검사한다. 한 그룹이라도 실패하면 CPU-qualified 기록을 만들지 않는다. 후보 게시는 전체 검증 완료를 뜻하지 않으며 두 GPU 검사와 stable 승격은 별도다. 이 새 원격 게시 경로의 실제 실행은 현재 검증 중이다.
 
 [환경 진단](environment-diagnostics.md)은 PID namespace·이미지 identity·heartbeat와 실제 host process를 대조해 이전 컨테이너의 상태 파일을 구분한다. 공개 다운로드는 선택적인 `probe_runtime.py --live-downloads` 검사이며 기본 CI에서는 외부 모델을 받지 않는다.
 
 ## Manager 읽기 전용 연결
 
-runtime preview는 5개 계산 worker 외에 Manager UI/catalog adapter를 포함한다. Manager가 켜져 있으면 `/comfyctl/manager/status`까지 응답해야 첫 readiness를 인정한다. 서비스는 원본 Manager 설치 엔진을 실행하지 않는다. 설치·복구는 관리자 `comfyctl`로 수행하며, [지원 범위와 검증](manager-integration.md)을 따른다. GHCR에 게시한 raw worker 후보와 이 runtime preview는 별도 이미지다.
+runtime은 5개 계산 worker 외에 Manager UI/catalog adapter를 포함한다. Manager가 켜져 있으면 `/comfyctl/manager/status`까지 응답해야 첫 readiness를 인정한다. 서비스는 원본 Manager 설치 엔진을 실행하지 않는다. 설치·복구는 관리자 `comfyctl`로 수행하며, [지원 범위와 검증](manager-integration.md)을 따른다.

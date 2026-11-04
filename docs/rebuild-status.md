@@ -399,4 +399,18 @@ CI의 별도 runtime preview에도 같은 빌더 gate를 추가했다. 아직 �
 
 [실제 로컬 컨테이너 검사](../tests/evidence/image-compatibility-cpu.json)는 CLI help를 변경한 이미지의 기존 비활성 세대 사용, 새 세대 생성 후 이전 이미지에서 사용·롤백, synthetic foreign contract의 recovery-required 대기·명시적 reset, 이전 이미지의 선택 복원, GC 보존, 사용자 데이터·패키지 fingerprint 불변을 통과했다. foreign contract는 거부 경로의 fixture이며 실제 ComfyUI 버전업 증거가 아니다. 손상된 image history의 추가 검사를 포함해 단위 검사 109개도 통과했다.
 
-추가 노드의 원본 archive와 실제 smoke workflow를 root 소유 세대에 보관하고 hash를 검증하도록 확장했다. 해당 변경의 native 자동 lock·업데이트·GC 회귀는 진행 중이다. 명시적 `env rebase`, 실제 ComfyUI 업데이트·업데이트 PR, 최종 runtime의 GHCR 게시와 두 GPU/RunPod 검증은 아직 완료하지 않았다. 이미지 호환성 gate는 CI runtime preview에도 추가했다.
+추가 노드의 원본 archive와 실제 smoke workflow를 root 소유 세대에 보관하고 hash를 검증하도록 확장했다. [해당 이미지의 native 자동 lock·업데이트·GC 회귀](../tests/evidence/image-compat-node-update-gc-cpu.json)는 원본 archive와 smoke 보존, 실연산 14→21→28, 실패한 업데이트의 선택 유지, 비활성 업데이트·롤백, 미참조 세대 5개 삭제, private 파일 손상 감지·reset과 사용자 패키지 보존을 통과했다. 임시 컨테이너·볼륨은 정리했다.
+
+명시적 `env rebase`의 실제 ComfyUI 변경 통합 검사는 아래에 기록했다. 업데이트 PR의 원격 실행, 최종 runtime의 GHCR 게시와 두 GPU/RunPod 검증은 아직 완료하지 않았다.
+
+## ComfyUI 업데이트 준비와 명시적 rebase 구현
+
+`env rebase --from-image ID --defer`를 추가했다. 이전 그룹의 검증된 source archive·smoke workflow에서 새 이미지의 코드 세대를 만들고, 전체 seal·ABI·새 core 요구사항·보호 pin이 맞으면 기존 private prefix를 재사용한다. private 파일 손상이나 ABI 변경 때는 원본 소스에서 새 환경을 만든다. 모든 추가 노드의 smoke를 검사한 뒤 비활성 상태를 복원하고, 최종 검사가 끝나야 selection을 바꾼다. 소스 손상이나 후보 실패는 이전 선택을 유지한다.
+
+[실제 Linux rebase](../tests/evidence/image-rebase-cpu.json)는 공식 post-release ComfyUI 소스와 프런트엔드 1.58.5의 실제 정적 asset을 사용했다. core 파일 hash 변경, 추가 노드 실연산 14, 기존 private prefix 재사용, private NumPy 파일 손상 뒤 별도 prefix 재생성, 비활성 iTools와 사용자 marker 보존, 원래 이미지의 코드·세대 복원을 확인했다. 실제 ABI 변경이나 GPU 모델 검증은 아니다.
+
+ComfyUI만 resolve하는 업데이트 준비 도구와 수동 초안 PR workflow를 추가했다. [실제 Linux 대상 의존성 해석](../tests/evidence/comfy-update-preparation.json)에서는 공식 post-release 커밋으로 host 프런트엔드 1개만 이동하고 GPU·5개 worker lock과 노드 pin이 유지됐다. 최신 안정 release의 무변경 경로도 직접 확인했다. [사용·권한·검증 범위](comfy-updates.md)에 원격 PR 생성과 기본 브랜치 반영이 아직 남아 있음을 기록했다.
+
+단위 검사 118개, Python 문법 검사와 checksum을 확인한 actionlint 1.7.12의 현재 세 workflow 검사가 통과했다. 증거 파일만 바뀔 때 이미지 빌드를 재실행하지 않도록 경로 조건을 보완했다.
+
+CI는 최종 runtime 게시 전후의 기본 검사를 유지하고, 게시한 같은 digest의 필수 CPU 검증을 네 runner로 나누도록 변경했다. 전체 성공 뒤에만 CPU-qualified artifact를 만든다. 새로운 기본 노드 conformance 검사도 최종 runtime의 nonroot 프로세스와 영속 경로를 사용한다. 이 pipeline의 원격 실행과 최종 두 GPU/RunPod 검증은 진행 중이다. 이전 한 job의 장시간 순차 검사를 새 workflow의 속도 실측 결과로 사용하지 않는다.

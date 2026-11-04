@@ -1,0 +1,29 @@
+{
+  "disabled_state_preserved": true,
+  "image_id": "sha256:22ee5bc684627826e592fb648f3beb1a60e9974bf668514481dfe53937740558",
+  "image_rollback": true,
+  "kind": "comfy-source-update-and-rebase-cpu-gate",
+  "old_generation": "64c23bec37cf4eab8413c2dd0d4afc33",
+  "original_prefix": "/workspace/runtime/generations/64c23bec37cf4eab8413c2dd0d4afc33/environment-fixture/venv",
+  "rebuilt_generation": "0666f0a3e27244e086c813461b3d0a10",
+  "rebuilt_prefix": "/workspace/runtime/generations/0666f0a3e27244e086c813461b3d0a10/environment-fixture/venv",
+  "reused_generation": "a25766f23ec04a73b5ec2a7ab2474885",
+  "scope": "Pinned official post-release ComfyUI source/frontend update, CPU core/node workflows, private-prefix reuse and drift rebuild. No stable release promotion, GPU or network-volume certification.",
+  "source_compatibility_id": "4fe7d8c98586f1118dd6e7b742d0cffc3b5e6e5a446d96aeb5547eff46e975b6",
+  "updated_frontend": {
+    "package_version": "1.58.5",
+    "root_http_status": 200,
+    "script": "/assets/index-BC2Z48A3.js",
+    "script_bytes": 6311,
+    "script_sha256": "83833f39140c0b18256219e23a548a528931a305bef42e61b097cfed1c2d51a1"
+  },
+  "updated_image": {
+    "archive_sha256": "357457166e678fd09c83e0810d53a83a78812b0a16ba4a34deed44bcda2490a1",
+    "build_seconds": 8.238,
+    "comfy_commit": "5f415e31abfd837870bbc733ba1e158de71ed985",
+    "compatibility_id": "2396314bbc1173dd0e185aeb4a377f3924018578be1d5272c94c21c422e4f845",
+    "execution_sha256": "6a8fc239c64f2579c2b75f769b49fbbdcfd90e18919416b1f8e511ea4c797742",
+    "image_id": "sha256:1c31fb06d03c34e72355f16c2b3f242121c11acb771049a753921314a36cfe51"
+  },
+  "user_data_preserved": true
+}

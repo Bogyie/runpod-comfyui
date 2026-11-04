@@ -38,11 +38,26 @@ root bootstrap은 `/workspace` 최상위와 `runtime/control`, `runtime/generati
 
 선택한 코드의 hash·노드 정의·worker 경로표가 다르면 부팅 전에 거부한다. 새 compatibility manifest에서는 전체 소스 fingerprint인 `runtime_id`와 실행 호환성인 `compatibility_id`를 구분한다. CLI만 변경되고 실행 계약이 같으면 부팅 때 selection의 runtime ID만 갱신하고 기존 세대·활성 상태·private prefix를 유지한다. 세대의 코드·환경 hash 검사는 생략하지 않는다.
 
-실행 계약에는 base/Python/GPU lock/SDK 패치 정책의 ABI, host·worker lock, ComfyUI·기본 노드·Manager 어댑터·런타임 API 소스가 포함된다. 이 중 하나라도 달라지면 기존 선택을 자동 적용하지 않는다. 서비스는 `recovery-required`로 대기하며 명시적 reset 또는 이전 이미지로 복귀해야 한다. ComfyUI 버전을 바꾼 뒤 추가 노드를 옮기는 명시적 `env rebase`는 아직 구현하지 않았다.
+실행 계약에는 base/Python/GPU lock/SDK 패치 정책의 ABI, host·worker lock, ComfyUI·기본 노드·Manager 어댑터·런타임 API 소스가 포함된다. 이 중 하나라도 달라지면 기존 선택을 자동 적용하지 않는다. 서비스는 `recovery-required`로 대기한다. 명시적 reset, 검증을 거치는 rebase 또는 이전 이미지로 복귀할 수 있다.
 
 이미지 그룹별 baseline과 selection은 `control/images/<compatibility_id>/`에 보존한다. 다른 그룹에서 reset하더라도 이전 이미지로 재배포하면 그 그룹의 선택을 복원한다. GC는 비활성 이미지 그룹의 선택과 그 세대가 참조하는 private 환경·원본 source archive도 보존한다. 이미지 그룹의 자동 만료는 없으므로 과거 그룹이 많으면 디스크 보존량이 늘어난다. 미완료 live 전환이 다른 그룹에 속하면 먼저 이전 이미지에서 복구해야 한다.
 
-추가 노드는 설치 당시 원본 archive와 실제 smoke workflow 및 hash도 보관한다. 향후 재구성의 입력이며, 이를 저장한 것만으로 이미지 간 rebase를 지원하는 것은 아니다. compatibility manifest가 없던 이전 preview의 상태는 자동 호환으로 간주하지 않는다. 명시적 reset은 사용자 모델·입출력·워크플로를 보존하고 현재 이미지 기본 노드를 선택하며 이전 선택은 archive에 남긴다.
+추가 노드는 설치 당시 원본 archive와 실제 smoke workflow 및 hash도 보관한다. compatibility manifest가 없던 이전 preview의 상태는 자동 호환으로 간주하지 않는다. 명시적 reset은 사용자 모델·입출력·워크플로를 보존하고 현재 이미지 기본 노드를 선택하며 이전 선택은 archive에 남긴다.
+
+## 명시적 이미지 rebase
+
+`comfyctl env status`의 `image.preserved_selections`에서 이전 이미지의 compatibility ID를 확인하고 새 이미지의 root 터미널에서 지정한다. [실제 Linux 통합 검사](../tests/evidence/image-rebase-cpu.json)는 공식 ComfyUI post-release 소스·프런트엔드 변경, private prefix 재사용·손상 후 재생성, 비활성 상태·사용자 데이터 보존과 이전 이미지 복귀를 통과했다. CPU 검증이며 GPU 모델·RunPod network volume은 별도다.
+
+```bash
+comfyctl env rebase --from-image PREVIOUS_COMPATIBILITY_ID --defer
+# 성공하면 컨테이너를 재기동한다.
+```
+
+새 이미지의 ComfyUI·기본 노드·host 환경을 기준으로 코드 세대를 만들고 이전 기본 노드의 활성 상태를 반영한다. 추가 노드는 hash가 일치하는 보존 archive에서 다시 구성한다. ABI·전체 파일 seal·새 ComfyUI 요구사항·보호 패키지 pin이 모두 맞으면 기존 private prefix를 재사용한다. ABI가 다르거나 private 파일이 손상됐으면 새 최종 경로에서 의존성을 해석·설치한다. 손상된 원본 소스나 smoke 기록은 재사용하지 않는다.
+
+추가 노드 전체의 보존 smoke workflow와 core 그래프를 후보에서 검사한 뒤 원래 비활성 상태를 복원하고 최종 catalog를 재검사한다. 마지막까지 통과해야 desired를 한 번에 바꾼다. 실패한 후보와 로그는 남지만 기존 selection·이미지 그룹 snapshot은 유지한다. 성공은 CPU 후보 검증이며 GPU 모델·커널 검증은 별도로 수행한다. 모델·입출력·워크플로는 rebase 대상이 아니다.
+
+rebase 후 이전 이미지로 되돌릴 때는 그 이미지의 원래 digest로 재배포한다. 이전 그룹의 선택이 복원된다. `env rollback`은 현재 이미지 그룹 안에서의 세대 복귀이며 이미지 자체를 교체하지 않는다. 새 기본 노드와 이전 추가 노드의 이름이 충돌하면 자동 덮어쓰기 대신 거부한다.
 
 검사 프로세스의 OS 임시 경로와 ComfyUI의 정리 대상 temp를 분리한다. Linux comfy-env subprocess에는 외부 `PYTHONPATH`, `PYTHONHOME`, `PYTHONSTARTUP`, `PYTHONUSERBASE`를 전달하지 않는다. host와 관리 bootstrap도 isolated Python 모드를 사용한다. 소스 경로는 검증된 명시적 경로로 전달한다.
 

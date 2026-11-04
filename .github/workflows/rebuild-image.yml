@@ -10,6 +10,7 @@ on:
       - 'tools/**'
       - 'runtime/**'
       - 'tests/**'
+      - '!tests/evidence/**'
       - 'pyproject.toml'
       - 'uv.lock'
       - '.github/workflows/rebuild-*.yml'
@@ -21,7 +22,6 @@ permissions:
 
 concurrency:
   group: rebuild-image-${{ github.ref }}
-  # Finish publication and immutable-image checks even if a newer commit queues.
   cancel-in-progress: false
 
 jobs:
@@ -30,11 +30,13 @@ jobs:
   image:
     needs: checks
     runs-on: ubuntu-24.04
-    # Full candidate install/recovery gates now exceed the old one-hour window.
-    timeout-minutes: 120
+    timeout-minutes: 75
     permissions:
       contents: read
       packages: write
+    outputs:
+      immutable: ${{ steps.verify.outputs.immutable }}
+      config: ${{ steps.verify.outputs.config }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Free disposable runner disk
@@ -42,7 +44,7 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.11'
-      - name: Prepare locked build context
+      - name: Prepare locked runtime context
         run: |
           python -m pip install uv==0.10.8
           uv sync --frozen
@@ -52,17 +54,18 @@ jobs:
         id: identity
         run: |
           uv run --frozen python - <<'PY'
-          import os, yaml
+          import os,yaml
           from pathlib import Path
-          stack = yaml.safe_load(Path('build/stack.yaml').read_text())
-          repository = os.environ['GITHUB_REPOSITORY'].lower()
-          tag = f"{stack['candidate']['tag_prefix']}-{os.environ['GITHUB_SHA'][:12]}-{os.environ['GITHUB_RUN_ID']}-{os.environ['GITHUB_RUN_ATTEMPT']}"
-          values = {'image': f'ghcr.io/{repository}:{tag}', 'cache': f'ghcr.io/{repository}:cache-rebuild-p0',
-                    'base': stack['base_image'], 'uv': stack['resolver']['uv'], 'backend': stack['gpu']['torch_backend'],
-                    'attention': stack['gpu']['attention_default'], 'target': stack['candidate']['target'], 'local_image': 'runpod-comfyui:probe-'+stack['candidate']['target']}
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
-              for key, value in values.items():
-                  print(f'{key}={value}', file=output)
+          stack=yaml.safe_load(Path('build/stack.yaml').read_text())
+          assert stack['candidate']['target']=='runtime-probe'
+          repository='ghcr.io/'+os.environ['GITHUB_REPOSITORY'].lower()
+          tag=f"{stack['candidate']['tag_prefix']}-{os.environ['GITHUB_SHA'][:12]}-{os.environ['GITHUB_RUN_ID']}-{os.environ['GITHUB_RUN_ATTEMPT']}"
+          values={'image':repository+':'+tag,'cache':repository+':cache-rebuild-runtime',
+                  'previous_cache':repository+':cache-rebuild-p0','base':stack['base_image'],
+                  'uv':stack['resolver']['uv'],'backend':stack['gpu']['torch_backend'],
+                  'attention':stack['gpu']['attention_default'],'local_image':'runpod-comfyui:probe-runtime-probe'}
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              for key,value in values.items():output.write(key+'='+value+'\n')
           PY
       - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
         with:
@@ -74,13 +77,13 @@ jobs:
           buildkitd-config-inline: |
             [worker.oci]
               max-parallelism = 2
-      - name: Build candidate with registry cache
+      - name: Build final runtime with registry cache
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .work/probe-context
           file: docker/Dockerfile.probe
           platforms: linux/amd64
-          target: ${{ steps.identity.outputs.target }}
+          target: runtime-probe
           load: true
           push: false
           provenance: false
@@ -92,90 +95,24 @@ jobs:
             UV_VERSION=${{ steps.identity.outputs.uv }}
             TORCH_BACKEND=${{ steps.identity.outputs.backend }}
             WORKER_ATTENTION=${{ steps.identity.outputs.attention }}
-          cache-from: type=registry,ref=${{ steps.identity.outputs.cache }}
+          cache-from: |
+            type=registry,ref=${{ steps.identity.outputs.cache }}
+            type=registry,ref=${{ steps.identity.outputs.previous_cache }}
           cache-to: type=registry,ref=${{ steps.identity.outputs.cache }},mode=max,image-manifest=true,oci-mediatypes=true
-      - name: Test candidate before publication
+      - name: Verify runtime and isolation guards before candidate publication
         env:
           LOCAL_IMAGE: ${{ steps.identity.outputs.local_image }}
         run: |
-          uv run --frozen python tools/rebuild/probe_host.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/host-before-push.json
+          uv run --frozen python tools/rebuild/probe_runtime.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/runtime-before-push.json
           uv run --frozen python tools/rebuild/probe_guards.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/guards-before-push.json
-          uv run --frozen python tools/rebuild/probe_workers.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/workers-before-push.json
-          uv run --frozen python tools/rebuild/probe_itools.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/itools-before-push.json
-          uv run --frozen python tools/rebuild/probe_kjnodes.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/kjnodes-before-push.json
-          uv run --frozen python tools/rebuild/probe_vhs.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/vhs-before-push.json
-      - name: Build runtime preview from the tested worker layers
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
-        with:
-          context: .work/probe-context
-          file: docker/Dockerfile.probe
-          platforms: linux/amd64
-          target: runtime-probe
-          load: true
-          push: false
-          provenance: false
-          tags: ${{ steps.identity.outputs.local_image }}-runtime
-          build-args: |
-            BASE_IMAGE=${{ steps.identity.outputs.base }}
-            UV_VERSION=${{ steps.identity.outputs.uv }}
-            TORCH_BACKEND=${{ steps.identity.outputs.backend }}
-            WORKER_ATTENTION=${{ steps.identity.outputs.attention }}
-      - name: Verify nonroot runtime preview
-        env:
-          RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
-        run: |
-          uv run --frozen python tools/rebuild/probe_runtime.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/runtime-preview.json
-          printf 'Nonroot runtime preview passed locally on this runner. It is a separate image and is not the published worker candidate digest.\n' >> "$GITHUB_STEP_SUMMARY"
-      - name: Verify deferred generation lifecycle in runtime preview
-        env:
-          RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
-        run: |
-          uv run --frozen python tools/rebuild/probe_generations.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/generations-preview.json
-      - name: Verify live node metadata and callback recovery
-        env:
-          RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
-        run: |
-          uv run --frozen python tools/rebuild/probe_metadata.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/dynamic-metadata-preview.json
-      - name: Verify compatible image adoption and image history recovery
-        env:
-          RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
-        run: |
-          uv run --frozen python tools/rebuild/probe_image_compatibility.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/image-compatibility-preview.json
-      - name: Verify Manager catalog and guarded changes
-        env:
-          RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
-        run: |
-          uv run --frozen python tools/rebuild/probe_manager.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/manager-preview.json
-      - name: Verify drained transitions and journal recovery in runtime preview
-        env:
-          RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
-        run: |
-          uv run --frozen python tools/rebuild/probe_live_transitions.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/live-transitions-preview.json
-      - name: Verify private candidate environment preparation
-        env:
-          RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
-        run: |
-          uv run --frozen python tools/rebuild/probe_candidate_env.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/candidate-environment-preview.json
-      - name: Verify added node installation and lifecycle
-        env:
-          RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
-        run: |
-          uv run --frozen python tools/rebuild/probe_node_install.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/node-install-adapter-preview.json
-          uv run --frozen python tools/rebuild/probe_node_install.py --native --auto-lock --update-gc --image "$RUNTIME_IMAGE" --output .work/ci-evidence/node-install-native-preview.json
-      - name: Verify constrained resolver and public node installation
-        env:
-          RUNTIME_IMAGE: ${{ steps.identity.outputs.local_image }}-runtime
-        run: |
-          uv run --frozen python tools/rebuild/probe_candidate_resolve.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/candidate-resolve-preview.json
-          uv run --frozen python tools/rebuild/probe_public_node_install.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/public-node-install-preview.json
-      - name: Publish tested candidate with BuildKit
+      - name: Publish unqualified runtime candidate
         id: publish
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .work/probe-context
           file: docker/Dockerfile.probe
           platforms: linux/amd64
-          target: ${{ steps.identity.outputs.target }}
+          target: runtime-probe
           push: true
           provenance: false
           tags: ${{ steps.identity.outputs.image }}
@@ -184,39 +121,149 @@ jobs:
             UV_VERSION=${{ steps.identity.outputs.uv }}
             TORCH_BACKEND=${{ steps.identity.outputs.backend }}
             WORKER_ATTENTION=${{ steps.identity.outputs.attention }}
-      - name: Verify immutable registry image
+      - name: Verify registry config and repeat runtime checks by immutable digest
+        id: verify
         env:
           IMAGE: ${{ steps.identity.outputs.image }}
           LOCAL_IMAGE: ${{ steps.identity.outputs.local_image }}
           PUBLISHED_DIGEST: ${{ steps.publish.outputs.digest }}
         run: |
           digest=$(docker buildx imagetools inspect "$IMAGE" --format '{{json .Manifest}}' | python -c 'import json,sys; print(json.load(sys.stdin)["digest"])')
-          [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
-          [[ "$digest" == "$PUBLISHED_DIGEST" ]]
+          [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ && "$digest" == "$PUBLISHED_DIGEST" ]]
           tested_config=$(docker image inspect "$LOCAL_IMAGE" --format '{{.Id}}')
-          registry_config=$(docker buildx imagetools inspect "$IMAGE" --raw | python -c 'import json,sys; print(json.load(sys.stdin)["config"]["digest"])')
+          docker buildx imagetools inspect "$IMAGE" --raw > .work/ci-evidence/manifest.json
+          registry_config=$(python -c 'import json; print(json.load(open(".work/ci-evidence/manifest.json"))["config"]["digest"])')
           [[ "$registry_config" == "$tested_config" ]]
-          TESTED_CONFIG="$tested_config" REGISTRY_CONFIG="$registry_config" IMAGE_DIGEST="$digest" python - <<'PY'
-          import json, os
-          from pathlib import Path
-          Path('.work/ci-evidence/publish.json').write_text(json.dumps({
-              'method': 'cached-buildkit-export', 'image_digest': os.environ['IMAGE_DIGEST'],
-              'tested_config': os.environ['TESTED_CONFIG'], 'registry_config': os.environ['REGISTRY_CONFIG'],
-              'same_tested_image_config': True}, indent=2)+'\n')
-          PY
           immutable="${IMAGE%:*}@$digest"
           docker pull "$immutable"
-          uv run --frozen python tools/rebuild/probe_host.py --image "$immutable" --output .work/ci-evidence/host-registry.json
-          uv run --frozen python tools/rebuild/probe_guards.py --image "$immutable" --output .work/ci-evidence/guards-registry.json
-          uv run --frozen python tools/rebuild/probe_workers.py --image "$immutable" --output .work/ci-evidence/workers-registry.json
-          uv run --frozen python tools/rebuild/probe_itools.py --image "$immutable" --output .work/ci-evidence/itools-registry.json
-          uv run --frozen python tools/rebuild/probe_kjnodes.py --image "$immutable" --output .work/ci-evidence/kjnodes-registry.json
-          uv run --frozen python tools/rebuild/probe_vhs.py --image "$immutable" --output .work/ci-evidence/vhs-registry.json
-          printf '%s\n' "$immutable" > .work/ci-evidence/image.txt
-          printf 'P0 native-worker candidate: `%s`\n\nImmutable image: `%s`\n\nCore CPU workflow, native SAM3/DA3 worker IPC/crash recovery and iTools/KJNodes/VHS CPU/HTTP/data/host-preview/meta-batch gates passed after registry pull. GPU/model gates are separate; this Actions run does not execute them.\n' "$IMAGE" "$immutable" >> "$GITHUB_STEP_SUMMARY"
+          [[ "$(docker image inspect "$immutable" --format '{{.Id}}')" == "$tested_config" ]]
+          uv run --frozen python tools/rebuild/probe_runtime.py --image "$immutable" --output .work/ci-evidence/runtime-registry.json
+          IMAGE_DIGEST="$digest" TESTED_CONFIG="$tested_config" IMMUTABLE="$immutable" uv run --frozen python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          manifest=json.loads(Path('.work/ci-evidence/manifest.json').read_text())
+          image=json.loads(subprocess.check_output(['docker','image','inspect',os.environ['IMMUTABLE']]))[0]
+          report={'kind':'runtime-candidate-publication','source_sha':os.environ['GITHUB_SHA'],
+                  'immutable':os.environ['IMMUTABLE'],'image_digest':os.environ['IMAGE_DIGEST'],
+                  'tested_config':os.environ['TESTED_CONFIG'],'registry_config':manifest['config']['digest'],
+                  'same_tested_image_config':True,'compressed_layer_bytes':sum(layer['size'] for layer in manifest['layers']),
+                  'local_uncompressed_bytes':image['Size'],'cpu_qualification':'pending-parallel-gates','stable_promoted':False}
+          Path('.work/ci-evidence/publish.json').write_text(json.dumps(report,indent=2)+'\n')
+          PY
+          printf 'immutable=%s\nconfig=%s\n' "$immutable" "$tested_config" >> "$GITHUB_OUTPUT"
+          printf 'Runtime candidate: `%s`\n\nPublished and pulled the same tested config. Full CPU qualification is pending; no stable promotion.\n' "$immutable" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: always()
         with:
-          name: p0-image-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          name: runtime-build-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           path: .work/ci-evidence/
           if-no-files-found: warn
+
+  cpu:
+    needs: image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        group: [conformance, runtime-lifecycle, node-lifecycle, metadata-updates]
+    env:
+      RUNTIME_IMAGE: ${{ needs.image.outputs.immutable }}
+      EXPECTED_CONFIG: ${{ needs.image.outputs.config }}
+      GATE_GROUP: ${{ matrix.group }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Free disposable runner disk
+        run: bash .github/scripts/free-disk-space.sh
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull the tested immutable runtime
+        run: |
+          python -m pip install uv==0.10.8
+          uv sync --frozen
+          mkdir -p .work/ci-evidence
+          docker pull "$RUNTIME_IMAGE"
+          [[ "$(docker image inspect "$RUNTIME_IMAGE" --format '{{.Id}}')" == "$EXPECTED_CONFIG" ]]
+      - name: Verify default node behavior in the real runtime
+        if: matrix.group == 'conformance'
+        run: |
+          for gate in host guards workers itools kjnodes vhs; do
+            uv run --frozen python "tools/rebuild/probe_${gate}.py" --image "$RUNTIME_IMAGE" --output ".work/ci-evidence/${gate}.json"
+          done
+      - name: Verify Manager and generation transitions
+        if: matrix.group == 'runtime-lifecycle'
+        run: |
+          uv run --frozen python tools/rebuild/probe_generations.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/generations.json
+          uv run --frozen python tools/rebuild/probe_manager.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/manager.json
+          uv run --frozen python tools/rebuild/probe_live_transitions.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/live-transitions.json
+      - name: Verify candidate install, update, drift recovery and cleanup
+        if: matrix.group == 'node-lifecycle'
+        run: |
+          uv run --frozen python tools/rebuild/probe_candidate_env.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/candidate-environment.json
+          uv run --frozen python tools/rebuild/probe_node_install.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/node-adapter.json
+          uv run --frozen python tools/rebuild/probe_node_install.py --native --auto-lock --update-gc --image "$RUNTIME_IMAGE" --output .work/ci-evidence/node-native.json
+          uv run --frozen python tools/rebuild/probe_candidate_resolve.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/candidate-resolve.json
+          uv run --frozen python tools/rebuild/probe_public_node_install.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/public-node.json
+      - name: Verify live metadata, image compatibility and actual ComfyUI update
+        if: matrix.group == 'metadata-updates'
+        run: |
+          uv run --frozen python tools/rebuild/probe_metadata.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/metadata.json
+          uv run --frozen python tools/rebuild/probe_image_compatibility.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/image-compatibility.json
+          uv run --frozen python tools/rebuild/probe_image_rebase.py --image "$RUNTIME_IMAGE" --output .work/ci-evidence/image-rebase.json
+      - name: Bind every gate report to the published config
+        run: |
+          uv run --frozen python - <<'PY'
+          import json,os
+          from pathlib import Path
+          expected={'conformance':6,'runtime-lifecycle':3,'node-lifecycle':5,'metadata-updates':3}
+          reports=list(Path('.work/ci-evidence').glob('*.json'))
+          assert len(reports)==expected[os.environ['GATE_GROUP']],reports
+          for path in reports:
+              report=json.loads(path.read_text())
+              assert report['image_id']==os.environ['EXPECTED_CONFIG'],(path,report.get('image_id'))
+          Path('.work/ci-evidence/group.json').write_text(json.dumps({'kind':'runtime-cpu-gate-group',
+              'group':os.environ['GATE_GROUP'],'immutable':os.environ['RUNTIME_IMAGE'],
+              'image_id':os.environ['EXPECTED_CONFIG'],'reports':[path.name for path in reports],
+              'status':'passed','gpu':'not-run'},indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        if: always()
+        with:
+          name: runtime-cpu-${{ matrix.group }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .work/ci-evidence/
+          if-no-files-found: warn
+
+  qualified:
+    needs: [image, cpu]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Record CPU-qualified runtime candidate
+        env:
+          RUNTIME_IMAGE: ${{ needs.image.outputs.immutable }}
+          EXPECTED_CONFIG: ${{ needs.image.outputs.config }}
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          report={'kind':'cpu-qualified-runtime-candidate','source_sha':os.environ['GITHUB_SHA'],
+                  'immutable':os.environ['RUNTIME_IMAGE'],'image_id':os.environ['EXPECTED_CONFIG'],
+                  'cpu_groups':['conformance','runtime-lifecycle','node-lifecycle','metadata-updates'],
+                  'gpu':'not-run','stable_promoted':False}
+          Path('cpu-qualified.json').write_text(json.dumps(report,indent=2)+'\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as stream:
+              stream.write('CPU-qualified runtime candidate: `'+os.environ['RUNTIME_IMAGE']+'`\n\nAll required CPU groups passed on this digest. Both GPU/model gates remain required; stable was not promoted.\n')
+          PY
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: runtime-cpu-qualified-${{ github.run_id }}-${{ github.run_attempt }}
+          path: cpu-qualified.json

@@ -34,6 +34,9 @@ def main(argv=None) -> int:
     gc = env_actions.add_parser('gc', help='Plan removal of unreferenced generation code/private environments')
     gc.add_argument('--apply', action='store_true', help='Remove the listed unreferenced generations; default is plan only')
     gc.add_argument('--min-age-hours', type=float, default=24)
+    rebase = env_actions.add_parser('rebase',help='Validate preserved node sources against the current image')
+    rebase.add_argument('--from-image',required=True,help='Previous image compatibility ID from its preserved history')
+    rebase.add_argument('--defer',action='store_true',required=True,help='Apply only on the next container restart')
     for name in ['rollback', 'reset']:
         operation = env_actions.add_parser(name, help="Select a preserved/default generation for the next restart")
         mode = operation.add_mutually_exclusive_group(required=True)
@@ -81,7 +84,7 @@ def main(argv=None) -> int:
     apply.add_argument('--drain-timeout', type=float, default=300)
     apply.add_argument('--startup-timeout', type=float, default=330)
     args = parser.parse_args(argv)
-    mutation = (args.command == 'node' and args.action != 'plan') or (args.command == 'env' and args.action in {'rollback', 'reset', 'apply', 'gc'})
+    mutation = (args.command == 'node' and args.action != 'plan') or (args.command == 'env' and args.action in {'rollback', 'reset', 'apply', 'gc', 'rebase'})
     if mutation:
         if os.geteuid() != 0 or not Path('/opt/runtime/control/baseline.json').is_file():
             print('comfyctl: Generation mutation requires the managed container administrator (uid 0)', file=sys.stderr)

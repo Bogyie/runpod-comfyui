@@ -22,6 +22,29 @@ def docker(*args: str) -> str:
     return subprocess.check_output(["docker", *args], text=True).strip()
 
 
+def cpu_arguments(image):
+    config=json.loads(docker('image','inspect',image))[0]['Config']
+    if '/opt/runtime/control/entrypoint.py' in (config.get('Entrypoint') or []):
+        return ['--cpu','--use-pytorch-cross-attention','--listen','0.0.0.0','--port','8188']
+    return []
+
+
+def container_environment(container):
+    return dict(value.split('=',1) for value in json.loads(docker('inspect',container))[0]['Config']['Env'])
+
+
+def service_python(container,program):
+    # A container root without CAP_SYS_PTRACE cannot inspect the service UID's
+    # /proc environment. Query process state using the same UID as the service.
+    uid=container_environment(container).get('COMFYCTL_SERVICE_UID')
+    user=['--user',uid+':'+uid] if uid else []
+    return docker('exec',*user,container,'python','-c',program)
+
+
+def storage_directory(container):
+    return container_environment(container).get('COMFYCTL_STORAGE_DIR','/opt/probe/ComfyUI')
+
+
 def request(base: str, path: str, value=None):
     data = json.dumps(value).encode() if value is not None else None
     req = urllib.request.Request(base + path, data=data, headers={"Content-Type": "application/json"})
@@ -69,7 +92,7 @@ def main() -> None:
         raise RuntimeError("CPU probe requires the actual amd64 image")
     name = "runpod-comfy-probe-" + uuid.uuid4().hex[:10]
     container = docker("run", "--detach", "--platform", "linux/amd64", "--name", name,
-                       "--publish", "127.0.0.1::8188", args.image)
+                       "--publish", "127.0.0.1::8188", args.image,*cpu_arguments(args.image))
     try:
         details = json.loads(docker("inspect", container))[0]
         port = details["NetworkSettings"]["Ports"]["8188/tcp"][0]["HostPort"]
