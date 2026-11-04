@@ -159,6 +159,7 @@ def main() -> None:
         if control.exists():
             shutil.rmtree(control)
         shutil.copytree(ROOT / 'runtime', control, ignore=shutil.ignore_patterns('__pycache__', 'comfyctl'))
+        shutil.copyfile(ROOT / 'tools/rebuild/link_gpu_packages.py', control / 'gpu_links.py')
         exported = subprocess.check_output(['uv', 'export', '--frozen', '--no-dev', '--no-emit-project',
                                             '--no-header', '--format', 'requirements-txt'], cwd=ROOT, text=True)
         if exported != (ROOT / 'locks/tools/requirements.txt').read_text():
@@ -175,6 +176,7 @@ def main() -> None:
                                         ROOT / 'locks/tools/requirements.txt', ROOT / 'uv.lock', ROOT / 'pyproject.toml',
                                         ROOT / 'locks/gpu/linux-amd64-cu128.txt', ROOT / 'locks/host/linux-amd64-cu128.txt',
                                         ROOT / 'tools/rebuild/apply_comfy_env_patch.py',
+                                        ROOT / 'tools/rebuild/link_gpu_packages.py',
                                         *sorted(p for p in (ROOT / 'runtime').rglob('*') if p.is_file() and '__pycache__' not in p.parts),
                                         *sorted((ROOT / 'tools/comfyctl').glob('*.py'))]}
         runtime_id = digest(json.dumps(identity_inputs, sort_keys=True).encode())

@@ -1,0 +1,351 @@
+{
+  "kind": "candidate-environment-installer-cpu-gate",
+  "image_id": "sha256:486b9339d720e730bd94c977fcf7bd744dceb97710f7d3a1081918f7091847ba",
+  "scope": "Internal final-prefix builder only; no node add/update, generation selection, Manager, GPU kernels or network-volume certification",
+  "status": "passed",
+  "receipt": {
+    "prefix": "/workspace/runtime/generations/93f52c50477a4601bcd4f0a1286ee1e0/environment-host-copy/venv",
+    "installer_uid": 1001,
+    "versions": {
+      "aiofiles": "25.1.0",
+      "matplotlib": "3.11.2",
+      "comfyui-workflow-templates-media-image": "0.3.160",
+      "tomli": "2.5.0",
+      "mako": "1.4.3",
+      "nvidia-cusparselt-cu12": "0.7.1",
+      "typing-inspection": "0.4.4",
+      "regex": "2026.9.29",
+      "pydantic-core": "2.50.2",
+      "numpy": "2.4.6",
+      "identify": "2.6.20",
+      "python-dotenv": "1.2.4",
+      "python-socks": "3.2.1",
+      "cuda-bindings": "12.9.4",
+      "certifi": "2026.10.23",
+      "comfyui-embedded-docs": "0.5.16",
+      "click": "8.5.0",
+      "pip": "26.3",
+      "uv": "0.10.8",
+      "shellingham": "1.5.4",
+      "multidict": "7.2.1",
+      "networkx": "3.6.1",
+      "cycler": "0.12.1",
+      "comfyui-workflow-templates-json": "0.1.127",
+      "torchvision": "0.25.0+cu128",
+      "comfyui-workflow-templates-media-assets-02": "0.1.27",
+      "comfyui-workflow-templates": "0.11.101",
+      "sympy": "1.14.0",
+      "chardet": "7.7.0",
+      "fsspec": "2026.9.0",
+      "cffi": "2.1.1",
+      "annotated-types": "0.8.0",
+      "hpack": "4.2.0",
+      "nvidia-cusolver-cu12": "11.7.3.90",
+      "matrix-nio": "0.26.0",
+      "torch": "2.10.0+cu128",
+      "attrs": "26.1.0",
+      "pyparsing": "3.3.3",
+      "hf-xet": "1.8.0",
+      "rpds-py": "2026.9.1",
+      "jinja2": "3.1.6",
+      "pynacl": "1.6.2",
+      "nvidia-nvshmem-cu12": "3.4.5",
+      "comfyui-workflow-templates-media-api": "0.3.84",
+      "comfy-aimdo": "0.6.0",
+      "cfgv": "3.5.0",
+      "toml": "0.10.2",
+      "charset-normalizer": "3.5.2",
+      "nvidia-nvtx-cu12": "12.8.90",
+      "fonttools": "4.68.0",
+      "comfy-3d-viewers": "0.2.44",
+      "simpleeval": "1.0.8",
+      "psutil": "7.2.2",
+      "torchsde": "0.2.6",
+      "huggingface-hub": "2.4.0",
+      "anyio": "4.16.0",
+      "pre-commit": "4.7.0",
+      "cuda-pathfinder": "1.8.5",
+      "idna": "3.20",
+      "httpcore2": "2.16.0",
+      "filelock": "4.2.7",
+      "markupsafe": "3.0.4",
+      "typer": "0.27.3",
+      "transformers": "5.22.1",
+      "pygithub": "2.10.0",
+      "tomli-w": "1.2.0",
+      "pycryptodome": "4.3.0",
+      "trampoline": "0.1.2",
+      "nvidia-cuda-runtime-cu12": "12.8.90",
+      "pyjwt": "2.15.1",
+      "pycparser": "3.12",
+      "safetensors": "0.8.0",
+      "python-discovery": "1.9.2",
+      "requests": "2.34.2",
+      "comfy-kitchen": "0.2.40",
+      "jsonschema-specifications": "2025.9.1",
+      "tzdata": "2026.6",
+      "gitpython": "3.2.1",
+      "urllib3": "2.8.0",
+      "triton": "3.6.0",
+      "platformdirs": "4.14.3",
+      "nvidia-cusparse-cu12": "12.5.8.93",
+      "nvidia-cuda-nvrtc-cu12": "12.8.93",
+      "unpaddedbase64": "2.1.0",
+      "sqlalchemy": "2.1.8",
+      "cryptography": "50.0.2",
+      "aiohappyeyeballs": "2.7.1",
+      "aiosignal": "1.4.0",
+      "jsonschema": "4.26.0",
+      "nvidia-nvjitlink-cu12": "12.8.93",
+      "xformers": "0.0.35",
+      "nvidia-cublas-cu12": "12.8.4.1",
+      "packaging": "26.3",
+      "distlib": "0.4.4",
+      "av": "18.1.0",
+      "comfy-env": "0.3.89",
+      "nvidia-cufile-cu12": "1.13.1.3",
+      "scipy": "1.17.1",
+      "rich": "15.0.0",
+      "nodeenv": "1.12.0",
+      "pyyaml": "6.0.3",
+      "comfy-angle": "0.1.1",
+      "python-dateutil": "4.0.0",
+      "annotated-doc": "0.0.5",
+      "pillow": "13.0.0",
+      "truststore": "0.10.5",
+      "mdurl": "0.1.2",
+      "nvidia-cuda-cupti-cu12": "12.8.90",
+      "markdown-it-py": "4.2.0",
+      "h2": "4.4.1",
+      "torchaudio": "2.10.0+cu128",
+      "comfyui-workflow-templates-media-assets-01": "0.1.48",
+      "propcache": "0.5.4",
+      "virtualenv": "21.15.4",
+      "comfyui-workflow-templates-core": "0.3.392",
+      "spandrel": "0.4.2",
+      "httpx2": "2.16.0",
+      "aiohttp": "3.14.5",
+      "typing-extensions": "4.16.0",
+      "tokenizers": "0.23.3",
+      "h11": "0.16.0",
+      "frozenlist": "1.8.0",
+      "nvidia-curand-cu12": "10.3.9.90",
+      "contourpy": "1.3.3",
+      "blake3": "1.0.11",
+      "pyopengl": "3.1.10",
+      "nvidia-nccl-cu12": "2.27.5",
+      "nvidia-cudnn-cu12": "9.10.2.21",
+      "pydantic-settings": "2.16.2",
+      "kornia": "0.9.0",
+      "tqdm": "4.70.1",
+      "sentencepiece": "0.2.2",
+      "referencing": "0.37.0",
+      "aiohttp-socks": "0.12.0",
+      "kornia-rs": "0.2.0",
+      "smmap": "5.0.3",
+      "opencv-python-headless": "5.0.0.93",
+      "hyperframe": "6.1.0",
+      "comfyui-workflow-templates-media-other": "0.3.229",
+      "comfyui-frontend-package": "1.57.6",
+      "pygments": "2.21.0",
+      "einops": "0.8.2",
+      "gitdb": "4.0.12",
+      "nh3": "0.3.7",
+      "comfyui-workflow-templates-media-video": "0.3.101",
+      "mpmath": "1.3.0",
+      "pydantic": "2.14.2",
+      "yarl": "1.25.1",
+      "nvidia-cufft-cu12": "11.3.3.83",
+      "kiwisolver": "1.5.1",
+      "alembic": "1.20.1"
+    },
+    "gpu_packages": {
+      "cuda-bindings": {
+        "version": "12.9.4",
+        "paths": [
+          "_cuda_bindings_redirector.pth",
+          "_cuda_bindings_redirector.py",
+          "cuda",
+          "cuda_bindings-12.9.4.dist-info"
+        ]
+      },
+      "cuda-pathfinder": {
+        "version": "1.8.5",
+        "paths": [
+          "cuda",
+          "cuda_pathfinder-1.8.5.dist-info"
+        ]
+      },
+      "nvidia-cublas-cu12": {
+        "version": "12.8.4.1",
+        "paths": [
+          "nvidia",
+          "nvidia_cublas_cu12-12.8.4.1.dist-info"
+        ]
+      },
+      "nvidia-cuda-cupti-cu12": {
+        "version": "12.8.90",
+        "paths": [
+          "nvidia",
+          "nvidia_cuda_cupti_cu12-12.8.90.dist-info"
+        ]
+      },
+      "nvidia-cuda-nvrtc-cu12": {
+        "version": "12.8.93",
+        "paths": [
+          "nvidia",
+          "nvidia_cuda_nvrtc_cu12-12.8.93.dist-info"
+        ]
+      },
+      "nvidia-cuda-runtime-cu12": {
+        "version": "12.8.90",
+        "paths": [
+          "nvidia",
+          "nvidia_cuda_runtime_cu12-12.8.90.dist-info"
+        ]
+      },
+      "nvidia-cudnn-cu12": {
+        "version": "9.10.2.21",
+        "paths": [
+          "nvidia",
+          "nvidia_cudnn_cu12-9.10.2.21.dist-info"
+        ]
+      },
+      "nvidia-cufft-cu12": {
+        "version": "11.3.3.83",
+        "paths": [
+          "nvidia",
+          "nvidia_cufft_cu12-11.3.3.83.dist-info"
+        ]
+      },
+      "nvidia-cufile-cu12": {
+        "version": "1.13.1.3",
+        "paths": [
+          "nvidia",
+          "nvidia_cufile_cu12-1.13.1.3.dist-info"
+        ]
+      },
+      "nvidia-curand-cu12": {
+        "version": "10.3.9.90",
+        "paths": [
+          "nvidia",
+          "nvidia_curand_cu12-10.3.9.90.dist-info"
+        ]
+      },
+      "nvidia-cusolver-cu12": {
+        "version": "11.7.3.90",
+        "paths": [
+          "nvidia",
+          "nvidia_cusolver_cu12-11.7.3.90.dist-info"
+        ]
+      },
+      "nvidia-cusparse-cu12": {
+        "version": "12.5.8.93",
+        "paths": [
+          "nvidia",
+          "nvidia_cusparse_cu12-12.5.8.93.dist-info"
+        ]
+      },
+      "nvidia-cusparselt-cu12": {
+        "version": "0.7.1",
+        "paths": [
+          "nvidia",
+          "nvidia_cusparselt_cu12-0.7.1.dist-info"
+        ]
+      },
+      "nvidia-nccl-cu12": {
+        "version": "2.27.5",
+        "paths": [
+          "nvidia",
+          "nvidia_nccl_cu12-2.27.5.dist-info"
+        ]
+      },
+      "nvidia-nvjitlink-cu12": {
+        "version": "12.8.93",
+        "paths": [
+          "nvidia",
+          "nvidia_nvjitlink_cu12-12.8.93.dist-info"
+        ]
+      },
+      "nvidia-nvshmem-cu12": {
+        "version": "3.4.5",
+        "paths": [
+          "nvidia",
+          "nvidia_nvshmem_cu12-3.4.5.dist-info"
+        ]
+      },
+      "nvidia-nvtx-cu12": {
+        "version": "12.8.90",
+        "paths": [
+          "nvidia",
+          "nvidia_nvtx_cu12-12.8.90.dist-info"
+        ]
+      },
+      "torch": {
+        "version": "2.10.0+cu128",
+        "paths": [
+          "functorch",
+          "torch",
+          "torch-2.10.0+cu128.dist-info",
+          "torchgen"
+        ]
+      },
+      "torchaudio": {
+        "version": "2.10.0+cu128",
+        "paths": [
+          "torchaudio",
+          "torchaudio-2.10.0+cu128.dist-info"
+        ]
+      },
+      "torchvision": {
+        "version": "0.25.0+cu128",
+        "paths": [
+          "torchvision",
+          "torchvision-0.25.0+cu128.dist-info",
+          "torchvision.libs"
+        ]
+      },
+      "triton": {
+        "version": "3.6.0",
+        "paths": [
+          "triton",
+          "triton-3.6.0.dist-info"
+        ]
+      },
+      "xformers": {
+        "version": "0.0.35",
+        "paths": [
+          "xformers",
+          "xformers-0.0.35.dist-info"
+        ]
+      }
+    },
+    "python_abi": "cpython-311",
+    "dependency_check": "passed",
+    "sdk_patch": "applied",
+    "gpu_payload_bindings": "unchanged",
+    "kind": "sealed-candidate-environment",
+    "lock_sha256": "9f3244bb6dd575b59fb805a1fc7a292dd9cd6d1ffa5653608e36805a6fa97243",
+    "gpu_lock_sha256": "a7471e51bd75cc8c6dd3470ba72bedb837b3de77f6f96e97f51e1b405e672549",
+    "selected": false,
+    "scope": "Wheel installation and dependency/GPU-binding checks; no node/API/GPU execution validation"
+  },
+  "runtime": {
+    "prefix": "/workspace/runtime/generations/93f52c50477a4601bcd4f0a1286ee1e0/environment-host-copy/venv",
+    "numpy_path": "/workspace/runtime/generations/93f52c50477a4601bcd4f0a1286ee1e0/environment-host-copy/venv/lib/python3.11/site-packages/numpy/__init__.py",
+    "torch_path": "/opt/runtime/venv/lib/python3.11/site-packages/torch/__init__.py",
+    "uid": 1000,
+    "candidate_write_denied": true
+  },
+  "failures": {
+    "gpu_mismatch": "rejected-before-prefix-creation",
+    "bad_artifact_hash": "failed-and-sealed",
+    "failed_prefix_reuse": "rejected",
+    "selection": "unchanged",
+    "user_data": "preserved"
+  },
+  "installer_user_data_write_denied": true,
+  "image_package_fingerprint_unchanged": true,
+  "resolver_cache_removed": true,
+  "container_and_volume_removed": true
+}

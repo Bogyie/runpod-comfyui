@@ -305,3 +305,13 @@ live 전환 커밋 `be4e12fbe1ea14f24ca98d2cfc129e6d822143ef`도 push했고 [후
 `comfyctl node plan`을 추가해 고정 SHA archive의 전체 파일 hash·설치 훅·의존성·comfy-env 설정과 등록 호출을 실행 없이 분석한다. archive 경로·link·중복·용량 경계를 검사하고, 불완전한 분석과 GPU/직접 URL 요구는 검토 대상으로 남긴다. 분류는 격리 후보이며 실행 성공으로 표시하지 않는다. [사용법과 범위](node-installation.md)에 기록했다. 이 단계만으로 새 노드 설치와 Manager 대체 경로가 완료된 것은 아니다.
 
 [설치된 Linux CLI](../tests/evidence/node-source-linux-cli.json)에서 고정 SAM3의 53개 파일을 네트워크 없이 분석했고 [보고서](../tests/evidence/node-source-sam3-plan.json)를 보존했다. 전체 단위 검사는 74개가 통과했다. 다음 작업은 이 source identity에 GPU/host/worker lock과 hook 정책을 결합한 실제 후보 환경 설치다.
+
+## 후보 환경의 최종 prefix 설치
+
+내부 `prepare_environment` 빌더를 추가했다. root가 예약한 세대 안에서 UID 1001이 exact-version/hash lock의 wheel만 설치한다. 이미지 GPU pin·SDK 버전·Python ABI를 유지하며 CPU 패키지는 새 환경에 따로 설치하고 GPU payload만 immutable 파일에 연결한다. 성공한 환경은 root 소유로 봉인하고 설치 캐시를 제거한다. 실패 prefix는 재사용하지 않는다. 선택 상태는 바꾸지 않으며 새 환경을 허용하는 세대 schema와 `node add` 조립은 후속 작업이다.
+
+[실제 설치/실패 검사](../tests/evidence/candidate-environment-cpu.json)는 151개 패키지 설치·dependency check·private CPU/공유 GPU 경로·서비스의 후보 파일 쓰기 거부, GPU pin 불일치·잘못된 wheel hash·실패 prefix 재사용 거부, 현재 선택·사용자 파일·이미지 fingerprint 보존을 통과했다. UID 1001의 private 사용자 fixture 쓰기 거부도 확인했다. 검사 자원은 삭제했다. 전체 단위 검사는 77개이며 상세 범위는 [노드 설치 문서](node-installation.md)에 있다.
+
+동일 image ID `sha256:486b9339d720e730bd94c977fcf7bd744dceb97710f7d3a1081918f7091847ba`의 [기존 runtime/CLI 회귀](../tests/evidence/candidate-builder-image-runtime-cpu.json)도 통과했다. 새 GPU-link helper를 runtime identity와 제어 코드 hash 검사에 포함했다.
+
+CI의 별도 runtime preview에도 같은 빌더 gate를 추가했다. 아직 해당 변경의 원격 결과는 없다. 이 내부 빌더만으로 새 노드 설치·Manager 대체 경로·GPU 검증을 완료했다고 판정하지 않는다.

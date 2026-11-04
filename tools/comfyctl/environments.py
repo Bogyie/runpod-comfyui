@@ -182,6 +182,8 @@ def inspect_runtime(state, doctor=False, deep=False):
     for name, expected in identity['inputs'].items():
         if name == 'runtime/comfyctl':
             path = Path('/usr/local/bin/comfyctl')
+        elif name == 'tools/rebuild/link_gpu_packages.py':
+            path = CONTROL / 'gpu_links.py'
         elif name.startswith('runtime/') and name.endswith('.py'):
             path = CONTROL / Path(name).name
         elif name.startswith('tools/comfyctl/') and name.endswith('.py'):
