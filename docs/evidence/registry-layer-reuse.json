@@ -1,0 +1,98 @@
+{
+  "old_image": "sha256:414962d4872aaff44e96767dd74f7f046561b52dc9664a8164e80afc15bf2c23",
+  "new_image": "sha256:8125a0f42366db8c18644a3c55234f2db3feb8d99b3de250802b4b17ff9c0c3d",
+  "common_uncompressed_layers": [
+    {
+      "diff_id": "sha256:44a87794b739d471ec360bec56cc0ceac640d06bbf579ee7d9061a0b88d09818",
+      "old_blob": "sha256:d9970ea1f37036a1c7fe4b314c2457f1a86e32f4c65c481bfff025d0771601bd",
+      "new_blob": "sha256:d9970ea1f37036a1c7fe4b314c2457f1a86e32f4c65c481bfff025d0771601bd",
+      "same_compressed_blob": true,
+      "old_size": 29167757,
+      "new_size": 29167757
+    },
+    {
+      "diff_id": "sha256:3a7a4b0d1bb1f8b4a91dcf08e472863049e9ba53b4ad6b16996ea9545d0cfb8d",
+      "old_blob": "sha256:7d94a600ec4db9376baf5256fe8930655328c1f5e0d170179a0180dcecf69098",
+      "new_blob": "sha256:7d94a600ec4db9376baf5256fe8930655328c1f5e0d170179a0180dcecf69098",
+      "same_compressed_blob": true,
+      "old_size": 3341499,
+      "new_size": 3341499
+    },
+    {
+      "diff_id": "sha256:3496cce332545ccf7377cbfd1bf179472f2ac03809b42e0fd16c08a4c657d520",
+      "old_blob": "sha256:8f7c262eb376d9d177f52c91b6a03c3b4996055a9e84ca2b7e92412ddd29d5ae",
+      "new_blob": "sha256:8f7c262eb376d9d177f52c91b6a03c3b4996055a9e84ca2b7e92412ddd29d5ae",
+      "same_compressed_blob": true,
+      "old_size": 16031646,
+      "new_size": 16031646
+    },
+    {
+      "diff_id": "sha256:65613e91118245ec492452aefa21eda4ea4a3f0e14f94ed33b8b67e7cd3d4d7d",
+      "old_blob": "sha256:1f235d1b4734e9d629d1705e7caf2db4ffc7775086658cc46a22b6eb2c7a726f",
+      "new_blob": "sha256:1f235d1b4734e9d629d1705e7caf2db4ffc7775086658cc46a22b6eb2c7a726f",
+      "same_compressed_blob": true,
+      "old_size": 250,
+      "new_size": 250
+    },
+    {
+      "diff_id": "sha256:b501ba75a3370f7746c9c3a5613bbd95ebce1b8b502ccaf954b58f37b5421325",
+      "old_blob": "sha256:7bd3107fdaa9b704c08f3b3fe53b073c825eca6e987f771624dca1f12b545f5a",
+      "new_blob": "sha256:7bd3107fdaa9b704c08f3b3fe53b073c825eca6e987f771624dca1f12b545f5a",
+      "same_compressed_blob": true,
+      "old_size": 23244800,
+      "new_size": 23244800
+    },
+    {
+      "diff_id": "sha256:b92f9a516d1e61fbac39f73e6bb6881b66056aca09275f19b0f5eef48a88c3f5",
+      "old_blob": "sha256:d7ee0dd5b6dfe2c5719f887ba3e07317d144136a430ae59b6050f7ec8a901f13",
+      "new_blob": "sha256:d7ee0dd5b6dfe2c5719f887ba3e07317d144136a430ae59b6050f7ec8a901f13",
+      "same_compressed_blob": true,
+      "old_size": 17832,
+      "new_size": 17832
+    },
+    {
+      "diff_id": "sha256:73a686d32d5031094f77443609f766bb72f0e2d7b10755548815752591d442b4",
+      "old_blob": "sha256:144a29ab9edc9b0939c53772fbe0d2a873c07323132e2b95f81a75de2dc6915f",
+      "new_blob": "sha256:144a29ab9edc9b0939c53772fbe0d2a873c07323132e2b95f81a75de2dc6915f",
+      "same_compressed_blob": true,
+      "old_size": 4187209003,
+      "new_size": 4187209003
+    },
+    {
+      "diff_id": "sha256:8e9939ea1165c3f0f94234a2e2033aa6a962736c5d0dfe878178ff17b2c830b9",
+      "old_blob": "sha256:58a594c6fff96ffb51851df2e8665fc786c255d8747ee61c27323eafba2982b8",
+      "new_blob": "sha256:58a594c6fff96ffb51851df2e8665fc786c255d8747ee61c27323eafba2982b8",
+      "same_compressed_blob": true,
+      "old_size": 200150467,
+      "new_size": 200150467
+    },
+    {
+      "diff_id": "sha256:3cb1c33e5aba16f0431439244c038db80e3d5b316df327908075b11d93bf2e87",
+      "old_blob": "sha256:4480b301c005cf5fdfd6440af2d72cbaf938fedec2f3f4bd5de443cfc90c379b",
+      "new_blob": "sha256:4480b301c005cf5fdfd6440af2d72cbaf938fedec2f3f4bd5de443cfc90c379b",
+      "same_compressed_blob": true,
+      "old_size": 104361,
+      "new_size": 104361
+    },
+    {
+      "diff_id": "sha256:2bb0d40ffe715b688fbab1690138ff3b4a6c1a754b05061eb64199414743454c",
+      "old_blob": "sha256:392d0b000bdba584e9f4f5dbb88574eaa20b30ad8e4990301aebf96137fa42ae",
+      "new_blob": "sha256:392d0b000bdba584e9f4f5dbb88574eaa20b30ad8e4990301aebf96137fa42ae",
+      "same_compressed_blob": true,
+      "old_size": 824067471,
+      "new_size": 824067471
+    },
+    {
+      "diff_id": "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "old_blob": "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1",
+      "new_blob": "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1",
+      "same_compressed_blob": true,
+      "old_size": 32,
+      "new_size": 32
+    }
+  ],
+  "scope": "Registry manifest/config comparison; compressed blob changes alone do not identify the encoder or prove a particular recompression cause",
+  "runtime_layers_already_in_registry_cache": 17,
+  "runtime_layer_count": 18,
+  "runtime_layer_bytes_not_in_cache": 29167757
+}

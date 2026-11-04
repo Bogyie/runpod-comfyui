@@ -124,4 +124,15 @@ SAM3·DepthAnythingV3는 upstream의 `register_nodes`와 `SubprocessWorker`를 �
 
 [CPU IPC·복구 결과](../tests/evidence/workers-cpu-probe.json), [코어·프런트엔드](../tests/evidence/worker-image-host-cpu.json), [설치 guard](../tests/evidence/worker-image-guards.json), [파일 공유 측정](../tests/evidence/worker-package-sharing.json)을 보존했다. 이 결과는 로컬 Docker의 amd64 에뮬레이션에서 얻었으며 이전 GHCR 핵심 이미지의 GPU 검사와 구분한다. **새 worker 이미지의 SAM3 분할/영상·DA3 깊이 모델 추론, GPU IPC/VRAM, 나머지 네 노드와 운영 권한은 아직 미검증이다.**
 
-`candidate.target`을 `worker-probe`로 바꿨다. CI는 worker 입력/lock 일치와 이 IPC·장애 복구 검사를 게시 전후에 수행하고 `candidate-p0-workers-*` 태그를 사용한다. 이 새 후보의 원격 CI 결과는 완료 후 기록한다. 실제 모델 GPU 시험에 쓸 공개 weight revision/hash도 `tests/fixtures/models-worker-smoke.yaml`에 잠갔다. weight는 이미지에 포함하지 않는다.
+`candidate.target`을 `worker-probe`로 바꿨다. CI는 worker 입력/lock 일치와 이 IPC·장애 복구 검사를 게시 전후에 수행하고 `candidate-p0-workers-*` 태그를 사용한다. 원격 CI도 통과했으며 아래 실행과 증거에 기록했다. 실제 모델 GPU 시험에 쓸 공개 weight revision/hash도 `tests/fixtures/models-worker-smoke.yaml`에 잠갔다. weight는 이미지에 포함하지 않는다.
+
+## Native worker 후보의 원격 게시 검증
+
+- [성공 실행 #41773238555](https://github.com/Bogyie/runpod-comfyui/actions/runs/41773238555), 소스 SHA `045795ea58e15a04b5c4ed5edfaaa105fe9b7ab5`.
+- 이미지: `ghcr.io/bogyie/runpod-comfyui:candidate-p0-workers-045795ea58e1-41773238555-1`
+- 고정 참조: `ghcr.io/bogyie/runpod-comfyui@sha256:8125a0f42366db8c18644a3c55234f2db3feb8d99b3de250802b4b17ff9c0c3d`
+- 빌드, 게시 전 코어/프런트엔드/guard/worker 검사, push, digest pull, 같은 검사 재실행이 모두 성공했다. 외부 익명 manifest 조회도 성공했다.
+- [원격 증거](evidence/actions-41773238555/run.json)에 게시 전후 worker PID 변경, 명시적 PyTorch 정책, host metadata/검사 GPU 파일 hash 불변과 출력 수치를 보존했다.
+- 압축 레이어 합계는 5,961,606,258바이트(약 5.96GB). 이전 핵심 후보 5.30GB 대비 약 0.67GB 증가했다. 모델 weight는 포함하지 않는다.
+- 단일 실행의 image job은 17분 20초, 빌드 5분 31초, 게시 전 검사 1분 46초, push/pull 및 게시 후 검사 6분 27초였다. 전체 배포 시간의 병목이 설치뿐 아니라 레지스트리 전송에도 있음을 확인했다.
+- 위 digest는 아직 P0 후보이며 두 GPU의 실제 SAM3/DA3 모델 추론을 통과한 이미지가 아니다. 이전 핵심 digest의 GPU 성공을 이 새 worker 이미지의 검증으로 대체하지 않는다.

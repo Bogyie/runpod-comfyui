@@ -98,13 +98,42 @@ jobs:
           uv run --frozen python tools/rebuild/probe_host.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/host-before-push.json
           uv run --frozen python tools/rebuild/probe_guards.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/guards-before-push.json
           uv run --frozen python tools/rebuild/probe_workers.py --image "$LOCAL_IMAGE" --output .work/ci-evidence/workers-before-push.json
-      - name: Push and verify immutable registry image
+      - name: Publish tested candidate with BuildKit
+        id: publish
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: .work/probe-context
+          file: docker/Dockerfile.probe
+          platforms: linux/amd64
+          target: ${{ steps.identity.outputs.target }}
+          push: true
+          provenance: false
+          tags: ${{ steps.identity.outputs.image }}
+          build-args: |
+            BASE_IMAGE=${{ steps.identity.outputs.base }}
+            UV_VERSION=${{ steps.identity.outputs.uv }}
+            TORCH_BACKEND=${{ steps.identity.outputs.backend }}
+            WORKER_ATTENTION=${{ steps.identity.outputs.attention }}
+      - name: Verify immutable registry image
         env:
           IMAGE: ${{ steps.identity.outputs.image }}
+          LOCAL_IMAGE: ${{ steps.identity.outputs.local_image }}
+          PUBLISHED_DIGEST: ${{ steps.publish.outputs.digest }}
         run: |
-          docker push "$IMAGE" | tee .work/ci-evidence/push.log
           digest=$(docker buildx imagetools inspect "$IMAGE" --format '{{json .Manifest}}' | python -c 'import json,sys; print(json.load(sys.stdin)["digest"])')
           [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
+          [[ "$digest" == "$PUBLISHED_DIGEST" ]]
+          tested_config=$(docker image inspect "$LOCAL_IMAGE" --format '{{.Id}}')
+          registry_config=$(docker buildx imagetools inspect "$IMAGE" --raw | python -c 'import json,sys; print(json.load(sys.stdin)["config"]["digest"])')
+          [[ "$registry_config" == "$tested_config" ]]
+          TESTED_CONFIG="$tested_config" REGISTRY_CONFIG="$registry_config" IMAGE_DIGEST="$digest" python - <<'PY'
+          import json, os
+          from pathlib import Path
+          Path('.work/ci-evidence/publish.json').write_text(json.dumps({
+              'method': 'cached-buildkit-export', 'image_digest': os.environ['IMAGE_DIGEST'],
+              'tested_config': os.environ['TESTED_CONFIG'], 'registry_config': os.environ['REGISTRY_CONFIG'],
+              'same_tested_image_config': True}, indent=2)+'\n')
+          PY
           immutable="${IMAGE%:*}@$digest"
           docker pull "$immutable"
           uv run --frozen python tools/rebuild/probe_host.py --image "$immutable" --output .work/ci-evidence/host-registry.json

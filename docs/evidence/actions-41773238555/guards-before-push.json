@@ -1,0 +1,8 @@
+{
+  "explicit_cuda_target": "passed",
+  "image_id": "sha256:c4987947a03778fa1a1b6c815bb6b148a13637117985bfe4e87fb44d68e246a5",
+  "kind": "installed-comfy-env-guard-gate",
+  "mismatched_cuda_target": "rejected",
+  "missing_worker_host_fallback": "rejected",
+  "scope": "Installed build/registration guards only; no worker execution or GPU certification"
+}

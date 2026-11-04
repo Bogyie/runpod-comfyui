@@ -1,0 +1,17 @@
+{
+  "kind": "native-worker-opaque-transfer-experiment",
+  "cases": {
+    "plain": {
+      "returned": "{'values': [1, 2, 3]}",
+      "result_type": "dict"
+    },
+    "generator": {
+      "error_type": "WorkerError",
+      "error": "Object of type generator is not JSON serializable\n\nWorker traceback:\nTraceback (most recent call last):\n  File \"/tmp/comfyui_pvenv_vk54_pu_/persistent_worker.py\", line 1801, in main\n    transport.send(response)\n  File \"/tmp/comfyui_pvenv_vk54_pu_/persistent_worker.py\", line 1073, in send\n    data = json.dumps(obj).encode(\"utf-8\")\n           ^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/json/__init__.py\", line 231, in dumps\n    return _default_encoder.encode(obj)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/json/encoder.py\", line 200, in encode\n    chunks = self.iterencode(o, _one_shot=True)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/json/encoder.py\", line 258, in iterencode\n    return _iterencode(o, 0)\n           ^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/json/encoder.py\", line 180, in default\n    raise TypeError(f'Object of type {o.__class__.__name__} '\nTypeError: Object of type generator is not JSON serializable\n"
+    }
+  },
+  "scope": "IPC generator feasibility only; not a VHS integration test",
+  "image_id": "sha256:88a7d05c77ad095798c6c0a501a6b185211333d0b39ec527a6a835b8316bdce2",
+  "case_source": "class Cases:\n    def plain(self):\n        return {\"values\":[1,2,3]}\n    def generator(self):\n        return {\"frames\":(i for i in range(3))}\n",
+  "source_sha256": "687e5f7b02767aa36305dd21bb392ff586c697c2c7844bac15377d5744296739"
+}

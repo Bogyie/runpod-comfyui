@@ -48,3 +48,13 @@ uv run python tools/rebuild/probe_workers.py
 - 실행 전후 host 패키지 metadata와 검사 대상 GPU 파일 hash 불변.
 
 `tests/evidence/workers-cpu-probe.json`은 이 CPU 연결·복구 검사 결과다. SAM3 분할/영상 추적, DA3 깊이 추론, GPU IPC·VRAM 회수, UI 브라우저 조작의 성공 증거로 확대 해석하지 않는다. 실제 모델 검증용 고정 다운로드 목록은 `tests/fixtures/models-worker-smoke.yaml`에 따로 둔다.
+
+## 다음 노드 어댑터에서 확인할 경계
+
+현재 고정 소스에서 확인한 내용이다. 아직 해당 노드의 실제 통합 시험 결과는 아니다.
+
+- iTools: `iTools_nodes.py`가 backend HTTP 모듈을 import하며, `backend/iserver.py`, `prompter.py`, `prompter_multi.py`가 PromptServer route를 직접 등록한다. multipart 업로드·이미지 파일 응답은 JSON 전용 worker route와 같지 않다. 계산 노드와 host HTTP 부분의 import 경계를 분리하고 원래 assets·styles 경로를 보존해야 한다.
+- KJNodes: 루트의 `/kjweb_async`, 모델 시간 조회 route와 일부 노드의 PromptServer 미리보기 호출이 있다. metadata 스캔 성공만으로 미리보기나 MODEL 패치의 동작을 인정하지 않는다. 모델 패치 및 host callback을 유지하는 격리 예외가 필요한지 실제 연결 시험으로 판단한다.
+- VHS: 영상·오디오 스트리밍 route, 전역 latent preview hook, host prompt queue를 다시 넣는 batch 동작이 있다. 열려 있는 입력 generator를 배치 상태에 보존하므로 일반 텐서만 전달하는 흐름과 다르다.
+
+실제 comfy-env SubprocessWorker에 일반 dict와 generator를 보낸 [IPC 가능성 실험](evidence/comfy-env-generator-capability.json)에서 전자는 정상 반환되고 후자는 `Object of type generator is not JSON serializable`로 거부됐다. 이는 generator 경계에 대한 증거이며 VHS 워크플로 전체의 실패 판정은 아니다. 배치 기능을 없애거나 통째로 격리됐다고 주장하는 대신, 상태 소유 위치와 host 연동을 명시한 뒤 실제 영상·배치 그래프로 검증한다.
