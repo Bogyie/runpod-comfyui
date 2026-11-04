@@ -9,7 +9,7 @@ uv run comfyctl model add 'https://civitai.com/models/MODEL_ID?modelVersionId=VE
 uv run comfyctl model status --verify
 ```
 
-기본 모델 경로는 `/workspace/storage/models`, 상태 기록은 `/workspace/state/comfyctl`이다. 환경변수 `STORAGE_DIR`, `COMFYCTL_STATE_DIR`로 바꾸거나 전역 옵션을 명령 앞에 지정할 수 있다.
+기본 모델 경로는 `/workspace/storage/models`, 상태 기록은 `/workspace/state/comfyctl`이다. 환경변수 `COMFYCTL_STORAGE_DIR`(우선) 또는 `STORAGE_DIR`, `COMFYCTL_STATE_DIR`로 바꾸거나 전역 옵션을 명령 앞에 지정할 수 있다.
 
 ```bash
 uv run comfyctl --storage /tmp/comfy-storage --state /tmp/comfy-state model status
@@ -46,3 +46,19 @@ uv run comfyctl model sync models.yaml
 구현 및 외부 서비스 검증의 진행 상태는 `rebuild-status.md`를 따른다.
 
 공개 파일 통합 시험은 `uv run python tools/rebuild/smoke_downloads.py`로 재현한다. 약 110 MB를 전송하며 모델은 `.work`에만 저장한다. 실제 HTTP 206 재개를 관측하지 못하면 성공 증거를 만들지 않는다.
+
+
+## 런타임 이미지의 CLI
+
+`runtime-probe`에는 `/opt/comfyctl/venv`의 별도 Python과 frozen `locks/tools/requirements.txt`로 CLI를 포함한다. host/worker site-packages와 섞지 않으며 기본 `python` 명령은 바꾸지 않는다. `comfyctl` 실행은 isolated Python 모드를 사용한다. 관리 이미지에서 root 터미널로 호출해도 다운로드·진단은 UID 1000으로 실행한다.
+
+```bash
+comfyctl model sync models.yaml
+comfyctl model status --verify
+comfyctl env status
+comfyctl env doctor
+```
+
+SAM3의 `sam3/…`와 DA3의 `depthanything3/…` 목적지도 지원한다. [고정 native 모델 목록](../tests/fixtures/models-worker-smoke.yaml)은 약 3.59 GB의 실제 모델이므로 명시적으로 받을 때만 사용한다. 이미지와 부팅 과정에는 weight 다운로드를 넣지 않는다.
+
+[Linux CLI 공개 다운로드 증거](../tests/evidence/tools-public-downloads-linux.json)는 별도 venv의 실제 HF/Civitai 다운로드·전체 hash와 서비스 UID 소유권을 기록한다. native 모델 유형을 추가하기 전 이미지에서 얻은 전송 증거이며 private/gated 계정이나 모델 추론 검증은 아니다. `probe_runtime.py --live-downloads`로 재현하며 기본 CI는 이 외부 다운로드를 반복하지 않는다. [환경 진단의 범위](environment-diagnostics.md)를 참고한다. 런타임 preview는 아직 정식 GHCR 이미지가 아니며 최종 Manager·설치/복구 CLI 통합이 남아 있다.

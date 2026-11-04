@@ -13,10 +13,11 @@ import time
 import urllib.request
 
 STATE = Path('/workspace/state/runtime-status.json')
+PORT = 8188
 
 
 def status(phase, **details):
-    value = {'phase': phase, 'updated_at': time.time(), 'uid': os.getuid(), 'runtime_id': os.environ['COMFYCTL_RUNTIME_ID'], **details}
+    value = {'phase': phase, 'updated_at': time.time(), 'uid': os.getuid(), 'runtime_id': os.environ['COMFYCTL_RUNTIME_ID'], 'pid_namespace': os.readlink('/proc/self/ns/pid'), 'port': PORT, **details}
     temporary = STATE.with_suffix('.tmp')
     temporary.write_text(json.dumps(value, indent=2) + '\n')
     temporary.replace(STATE)
@@ -25,7 +26,8 @@ def status(phase, **details):
 def main():
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument('--port', type=int, default=8188)
-    port = parser.parse_known_args()[0].port
+    global PORT
+    port = PORT = parser.parse_known_args()[0].port
     status('starting')
     log = logging.getLogger('comfyui')
     log.setLevel(logging.INFO)

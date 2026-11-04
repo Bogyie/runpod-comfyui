@@ -4,6 +4,7 @@ import argparse
 import json
 import struct
 import subprocess
+import tempfile
 import time
 import urllib.request
 import uuid
@@ -11,6 +12,7 @@ import zlib
 from pathlib import Path
 
 from probe_host import ROOT, docker, request, verify_frontend
+from comfyctl.environments import locked_versions
 from probe_workers import execute, points, PROCESSES, FINGERPRINT
 
 
@@ -44,10 +46,20 @@ def png():
     return b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('!2I5B', 1, 1, 8, 2, 0, 0, 0)) + chunk(b'IDAT', zlib.compress(b'\x00\x40\x80\xc0')) + chunk(b'IEND', b'')
 
 
+
+def cli(container, *arguments, expected=0):
+    process = subprocess.run(['docker', 'exec', '--env', 'PYTHONPATH=/opt/runtime/venv/lib/python3.11/site-packages',
+                              container, 'comfyctl', *arguments], text=True, capture_output=True, timeout=600)
+    if process.returncode != expected:
+        raise RuntimeError('CLI result disagrees: ' + (process.stderr + process.stdout)[-8000:])
+    return json.loads(process.stdout)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image', default='runpod-comfyui:probe-runtime-probe')
     parser.add_argument('--timeout', type=int, default=300)
+    parser.add_argument('--live-downloads', action='store_true', help='Also download pinned public HF/Civitai fixtures')
     parser.add_argument('--output', type=Path, default=ROOT / 'tests/evidence/runtime-cpu-probe.json')
     args = parser.parse_args()
     args.output.unlink(missing_ok=True)
@@ -59,13 +71,19 @@ def main():
     result = {'kind': 'nonroot-runtime-cpu-gate', 'image_id': image_id,
               'scope': 'Disposable local Linux amd64 runtime; no Manager integration, GPU, network volume or arbitrary node installation certification'}
     fixture = ROOT / 'tests/fixtures/runtime-probe-nodes'
+    temporary = tempfile.TemporaryDirectory(prefix='comfy-runtime-gate-')
+    corrupt_file = Path(temporary.name) / 'torch_version.py'
 
-    def launch(suffix, offline=False, invalid=False):
+    def launch(suffix, offline=False, invalid=False, corrupt=False):
         name = 'comfy-runtime-' + token + suffix
         command = ['run', '--detach', '--platform', 'linux/amd64', '--name', name, '--read-only',
                    '--tmpfs', '/tmp:rw,nosuid,nodev,size=256m', '--shm-size', '512m',
                    '--mount', 'type=volume,source=' + volume + ',target=/workspace',
                    '--mount', 'type=bind,source=' + str(fixture) + ',target=/opt/probe/ComfyUI/custom_nodes/RuntimeGate,readonly']
+        if corrupt:
+            command += ['--mount', 'type=bind,source=' + str(corrupt_file) + ',target=/opt/runtime/venv/lib/python3.11/site-packages/torch/version.py,readonly']
+        if args.live_downloads:
+            command += ['--mount', 'type=bind,source=' + str(ROOT / 'tests/fixtures/models-smoke.yaml') + ',target=/opt/runtime/provider-fixtures.yaml,readonly']
         command += ['--network', 'none'] if offline else ['--publish', '127.0.0.1::8188']
         command += [args.image, '--invalid-runtime-test-flag'] if invalid else [args.image, '--cpu', '--use-pytorch-cross-attention', '--listen', '0.0.0.0', '--port', '8188']
         container = docker(*command)
@@ -102,6 +120,26 @@ def main():
         assert recovered['child_pid'] == child_pid
         result['health_recovery'] = 'hung-api-detected-and-recovered-without-restart'
         result['packages_before'] = inside(first, FINGERPRINT)
+        status_report = cli(first, 'env', 'status')
+        assert status_report['ok'], status_report['problems']
+        assert status_report['diagnostic_uid'] == 1000
+        assert status_report['diagnostic_python'] == '/opt/comfyctl/venv'
+        assert status_report['environments']['tools']['origins']['torch'] is None
+        expected_hub = locked_versions(ROOT / 'locks/tools/requirements.txt')['huggingface-hub']
+        assert status_report['environments']['tools']['versions']['huggingface-hub'] == expected_hub
+        assert status_report['environments']['host']['versions']['huggingface-hub'] != expected_hub
+        result['cli_status'] = status_report
+        result['cli_doctor'] = cli(first, 'env', 'doctor', '--deep')
+        assert result['cli_doctor']['ok'], result['cli_doctor']['problems']
+        if args.live_downloads:
+            receipts = cli(first, 'model', 'sync', '/opt/runtime/provider-fixtures.yaml')
+            verified = cli(first, 'model', 'status', '--verify')
+            assert len(receipts) == len(verified) == 2
+            assert all(item['status'] == 'verified' for item in verified)
+            owners = inside(first, "import json;from pathlib import Path;print(json.dumps({str(p.relative_to('/workspace/storage/models')):p.stat().st_uid for p in Path('/workspace/storage/models').rglob('provider-smoke*') if p.is_file()}))")
+            assert len(owners) == 2 and set(owners.values()) == {1000}
+            result['public_model_cli'] = {'receipts': receipts, 'verified': verified, 'owners': owners,
+                                          'scope': 'Public pinned files only; gated/private credentials not certified'}
         boundary = 'runtime-upload-boundary'
         body = ('--' + boundary + '\r\nContent-Disposition: form-data; name="image"; filename="runtime.png"\r\nContent-Type: image/png\r\n\r\n').encode() + png() + ('\r\n--' + boundary + '--\r\n').encode()
         upload = urllib.request.Request(base + '/upload/image', data=body, headers={'Content-Type': 'multipart/form-data; boundary=' + boundary})
@@ -150,6 +188,7 @@ print(json.dumps(result))""")
         uids = inside(first, 'import json,psutil;print(json.dumps({str(pid):psutil.Process(pid).uids().effective for pid in ' + repr([row['pid'] for row in native.values()]) + '}))')
         assert set(uids.values()) == {1000}
         result['native_workers_before_shutdown'] = {name: {'pid': row['pid'], 'uid': uids[str(row['pid'])]} for name, row in native.items()}
+        corrupt_file.write_text(docker('exec', '--user', '1000:1000', first, 'cat', '/opt/runtime/venv/lib/python3.11/site-packages/torch/version.py') + '\n# injected file drift with unchanged version metadata\n')
         docker('stop', '--time', '25', first)
         assert json.loads(docker('inspect', first))[0]['State']['ExitCode'] == 0
         second = launch('-restart', offline=True)
@@ -160,6 +199,16 @@ print(json.dumps(result))""")
         assert result['packages_before'] == inside(second, FINGERPRINT)
         docker('stop', '--time', '25', second)
         assert json.loads(docker('inspect', second))[0]['State']['ExitCode'] == 0
+        drifted = launch('-drift', offline=True, corrupt=True)
+        await_ready(drifted, args.timeout)
+        same_versions = cli(drifted, 'env', 'status')
+        assert all(not any(report['drift'].values()) for report in same_versions['environments'].values())
+        drift_report = cli(drifted, 'env', 'doctor', '--deep', expected=2)
+        assert 'host:file-drift' in drift_report['problems']
+        assert any(row['path'].endswith('/torch/version.py') for row in drift_report['environments']['host']['record_hashes']['mismatches'])
+        result['file_drift_injection'] = {'unchanged_versions': True, 'problems': drift_report['problems'],
+                                         'host_hash_mismatches': drift_report['environments']['host']['record_hashes']['mismatches']}
+        docker('stop', '--time', '25', drifted)
         broken = launch('-failure', offline=True, invalid=True)
         deadline = time.monotonic() + 30
         while json.loads(docker('inspect', broken))[0]['State']['Running']:
@@ -178,6 +227,7 @@ print(json.dumps(result))""")
         for container in containers:
             docker('rm', '--force', container)
         docker('volume', 'rm', volume)
+        temporary.cleanup()
     result['containers_and_volume_removed'] = True
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2) + '\n')

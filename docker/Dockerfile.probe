@@ -22,6 +22,18 @@ RUN --mount=type=cache,id=rebuild-pip-cu128,target=/root/.cache/uv \
       --requirement /opt/locks/gpu.txt && \
     python -c 'import torch, torchvision, torchaudio, xformers; assert torch.version.cuda == "12.8"; print(torch.__version__, torch.version.cuda)'
 
+# CLI dependencies have their own prefix and never inherit the GPU/host site.
+FROM ${BASE_IMAGE} AS tools-builder
+ARG UV_VERSION
+ENV UV_LINK_MODE=copy
+RUN python -m pip install --no-cache-dir "uv==${UV_VERSION}" && \
+    uv venv --python /usr/local/bin/python /opt/comfyctl/venv
+COPY tools.txt /opt/locks/tools.txt
+RUN --mount=type=cache,id=rebuild-pip-tools,target=/root/.cache/uv \
+    uv pip install --python /opt/comfyctl/venv/bin/python --require-hashes \
+      --only-binary=:all: --requirement /opt/locks/tools.txt && \
+    uv pip check --python /opt/comfyctl/venv/bin/python
+
 # Each worker installs against only the GPU base, its own lock and installer.
 # Host/ComfyUI/SDK/adapter changes do not invalidate these package layers.
 FROM gpu-base AS worker-builder
@@ -102,8 +114,13 @@ CMD ["python", "main.py", "--cpu", "--use-pytorch-cross-attention", "--listen", 
 # service uid 1000, and managed storage separated from source/environment.
 FROM worker-probe AS runtime-probe
 RUN useradd --uid 1000 --user-group --no-create-home --home-dir /workspace/state/home comfy
+COPY --link --from=tools-builder /opt/comfyctl/venv/ /opt/comfyctl/venv/
+COPY tools.txt /opt/locks/tools.txt
+COPY cli-source/ /opt/comfyctl/src/comfyctl/
+COPY --chmod=0755 comfyctl /usr/local/bin/comfyctl
 COPY runtime/ /opt/runtime/control/
-ENV COMFYCTL_COMFY_ROOT=/opt/probe/ComfyUI \
+ENV COMFYCTL_SERVICE_UID=1000 \
+    COMFYCTL_COMFY_ROOT=/opt/probe/ComfyUI \
     COMFYCTL_STORAGE_DIR=/workspace/storage \
     COMFYCTL_METADATA_CACHE=/workspace/cache/metadata \
     COMFY_ENV_ROOT=/workspace/state/comfy-env \

@@ -158,13 +158,25 @@ def main() -> None:
         control = context / 'runtime'
         if control.exists():
             shutil.rmtree(control)
-        shutil.copytree(ROOT / 'runtime', control, ignore=shutil.ignore_patterns('__pycache__'))
+        shutil.copytree(ROOT / 'runtime', control, ignore=shutil.ignore_patterns('__pycache__', 'comfyctl'))
+        exported = subprocess.check_output(['uv', 'export', '--frozen', '--no-dev', '--no-emit-project',
+                                            '--no-header', '--format', 'requirements-txt'], cwd=ROOT, text=True)
+        if exported != (ROOT / 'locks/tools/requirements.txt').read_text():
+            raise ValueError('Management tool lock disagrees with uv.lock; reproduce the frozen export')
+        shutil.copyfile(ROOT / 'locks/tools/requirements.txt', context / 'tools.txt')
+        shutil.copyfile(ROOT / 'runtime/comfyctl', context / 'comfyctl')
+        cli = context / 'cli-source'
+        if cli.exists():
+            shutil.rmtree(cli)
+        shutil.copytree(ROOT / 'tools/comfyctl', cli, ignore=shutil.ignore_patterns('__pycache__'))
         identity_inputs = {str(path.relative_to(ROOT)): digest(path.read_bytes())
                            for path in [ROOT / 'build/stack.yaml', ROOT / 'docker/Dockerfile.probe',
                                         ROOT / 'locks/upstreams.lock.json', ROOT / 'locks/workers/manifest.json',
+                                        ROOT / 'locks/tools/requirements.txt', ROOT / 'uv.lock', ROOT / 'pyproject.toml',
                                         ROOT / 'locks/gpu/linux-amd64-cu128.txt', ROOT / 'locks/host/linux-amd64-cu128.txt',
                                         ROOT / 'tools/rebuild/apply_comfy_env_patch.py',
-                                        *sorted((ROOT / 'runtime').glob('*.py'))]}
+                                        *sorted(p for p in (ROOT / 'runtime').rglob('*') if p.is_file() and '__pycache__' not in p.parts),
+                                        *sorted((ROOT / 'tools/comfyctl').glob('*.py'))]}
         runtime_id = digest(json.dumps(identity_inputs, sort_keys=True).encode())
         (control / 'identity.json').write_text(json.dumps({'runtime_id': runtime_id, 'inputs': identity_inputs}, indent=2, sort_keys=True) + '\n')
     if args.prepare_only:

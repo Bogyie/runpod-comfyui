@@ -1,6 +1,6 @@
 # 런타임 후보
 
-`docker/Dockerfile.probe`의 `runtime-probe`는 P2 실험 target이다. Manager·설치/세대 복구 CLI·다운로드 CLI의 이미지 내 설치와 최종 두 GPU/RunPod 검증은 아직 남아 있다. 운영용 stable 이미지로 간주하지 않는다.
+`docker/Dockerfile.probe`의 `runtime-probe`는 P2 실험 target이다. Manager·설치/세대 복구 CLI와 최종 두 GPU/RunPod 검증은 아직 남아 있다. 모델 다운로드·환경 진단 CLI는 별도 venv로 포함했다. 운영용 stable 이미지로 간주하지 않는다.
 
 ## 실행과 경로
 
@@ -23,7 +23,7 @@ root bootstrap은 위 관리 디렉터리 항목만 준비하며 사용자 파�
 
 ## 캐시와 상태
 
-runtime identity는 스택/base 정의·Dockerfile·소스 lock·host/GPU/worker lock·SDK 패치·runtime 도구 hash에서 만든다. comfy-env 캐시는 prefix 밖으로 옮기며 runtime identity·worker prefix·노드 경로·환경 변수·storage·attention/CPU 설정을 key에 포함한다. 현재 정적 proxy metadata의 한계가 있으므로 캐시 hit를 새 입력 파일 목록/변경 감지 성공의 증거로 사용하지 않는다.
+runtime identity는 스택/base 정의·Dockerfile·소스 lock·host/GPU/worker/tools lock·uv.lock·SDK 패치·runtime/CLI 도구 hash에서 만든다. comfy-env 캐시는 prefix 밖으로 옮기며 runtime identity·worker prefix·노드 경로·환경 변수·storage·attention/CPU 설정을 key에 포함한다. 현재 정적 proxy metadata의 한계가 있으므로 캐시 hit를 새 입력 파일 목록/변경 감지 성공의 증거로 사용하지 않는다.
 
 supervisor는 처음에 필수 노드가 등록된 `/object_info`를 확인한 뒤 가벼운 `/system_stats`로 API 응답을 감시한다. API가 멈추면 복구 필요 상태를 기록하고, 응답이 돌아오면 같은 프로세스에서 ready로 회복한다. 실행 실패를 무한 재시작하지 않는다. 신호를 ComfyUI 프로세스 그룹으로 전달하고 bounded wait 후 남은 자식을 종료·회수한다. 모델 없는 readiness는 실제 GPU 커널/모델 추론 성공과 구분한다. 상태에는 runtime identity와 주기적인 ready heartbeat도 기록한다. 상태 파일만으로 RunPod 플랫폼의 자동 복구를 보장하지 않는다.
 
@@ -39,3 +39,5 @@ uv run --frozen python tools/rebuild/probe_runtime.py
 [로컬 검증 결과](../tests/evidence/runtime-cpu-probe.json)는 서비스 UID, host/native worker 데이터 경로, 모델 위치 marker, 업로드·저장, immutable 경로 쓰기 거부, prefix 외부 metadata 캐시, 네트워크 없는 재기동과 데이터 보존, API 정지·회복 및 실패 상태를 기록한다. marker는 경로 검사용 텍스트이며 모델 추론에 사용하지 않는다. 시험용 관찰 노드는 bind mount로만 연결하며 이미지에 포함하지 않는다.
 
 CI는 기존 worker 후보 외에 runtime preview를 별도로 빌드·검사한다. preview는 아직 GHCR 게시 대상이 아니며, 게시한 worker 후보 digest와 runtime preview의 검증 범위를 혼동하지 않는다. 최종 Manager·관리 CLI 통합 뒤 사용자용 target과 게시 경로를 합친다.
+
+[환경 진단](environment-diagnostics.md)은 PID namespace·이미지 identity·heartbeat와 실제 host process를 대조해 이전 컨테이너의 상태 파일을 구분한다. 공개 다운로드는 선택적인 `probe_runtime.py --live-downloads` 검사이며 기본 CI에서는 외부 모델을 받지 않는다.

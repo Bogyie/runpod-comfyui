@@ -224,3 +224,26 @@ Manager의 HTTP queue·즉시 enable·prestartup 예약·CLI·PIPFixer 경로도
 - 잘못된 시작 옵션에서 nonzero 종료와 recovery-required 상태, 테스트 컨테이너·볼륨 정리.
 
 단위 검사는 실제 pinned ComfyUI의 경로 해석과 충돌 옵션 거부를 포함해 49개다. 초기 종료 검사의 관찰 도구가 root에서 nonroot worker의 `/proc/environ`을 읽지 못한 문제는 service UID로 관찰하도록 고친 후 통과했다. 원격 CI에도 별도 runtime preview 빌드/검사를 추가했으며, 이 preview는 게시한 worker digest와 다른 이미지다. Manager·관리/다운로드 CLI의 이미지 내 통합·세대 전환/복구·전체 동적 schema와 최종 두 GPU/RunPod/network volume 검증은 남아 있다. `stable`/`latest`는 변경하지 않았다.
+
+
+## VHS 원격 게시 결과
+
+[성공 실행 #41790055944](https://github.com/Bogyie/runpod-comfyui/actions/runs/41790055944), 소스 `1910323df70ed150684ffb2d269e913bf155d551`에서 빌드·게시 전 여섯 CPU gate·GHCR 게시·immutable pull 후 같은 gate가 모두 성공했다. CPU TensorRef view/empty와 VHS 메타 배치·decoder 종료 검사도 원격에서 통과했다.
+
+- 고정 참조: `ghcr.io/bogyie/runpod-comfyui@sha256:23a02361723b95d1e3dc166e1c508495a2053fb59e4b9b99ac7cf8ea314242a5`.
+- local/registry config `sha256:31cd8bbcd0d84ea56d6e4ae8a5387c0254e8bc62622e5e568aa4003669637bcc` 일치. 별도 익명 manifest 조회·digest hash 검증도 통과했다.
+- 압축 레이어 합계 6,901,769,230바이트(약 6.90GB). 단일 실행에서 runner 정리 4분 48초, build/cache export/load 10분 41초, 게시 전 검사 7분 5초, 게시 3초, pull·게시 후 검사 6분 58초였다. 서로 다른 cache/검사 범위를 무시한 성능 비교는 하지 않는다.
+- [원격 증거](evidence/actions-41790055944/run.json)에 결과를 보존했다. 이 digest는 root P0 worker 후보이며 nonroot runtime preview나 GPU 모델 검증 결과와 구분한다. stable/latest는 변경하지 않았다.
+
+캐시 분리와 nonroot preview를 포함한 `f2c4323d553b020a2dcef8f25780cc85116abcc7`도 push했고 [후속 실행 #41794387656](https://github.com/Bogyie/runpod-comfyui/actions/runs/41794387656)이 진행 중이다. 작성 중인 CLI 변경은 이 실행에 포함하지 않았다.
+
+
+## 관리 CLI 이미지 통합과 환경 진단
+
+`runtime-probe`에 `/opt/comfyctl/venv`를 별도로 구성했다. 기존 uv.lock에서 tools hash lock을 frozen export하고 CLI source와 함께 runtime identity에 포함한다. 직접 의존성으로 packaging을 선언했으며 기존 17개 lock 항목의 버전은 모두 유지했다. 기본 `python`은 host 환경을 계속 사용하고, `comfyctl`만 isolated private Python으로 실행한다. root 터미널 호출도 다운로드·진단은 UID 1000으로 내려간다.
+
+`env status`는 일곱 환경의 버전·누락/추가/변경·prefix/import 경로를 읽는다. `env doctor`는 dependency check·API·제어 코드, `--deep`은 설치 RECORD hash와 명시한 SDK 패치 hash를 확인한다. PID namespace·runtime identity·heartbeat를 대조하여 이전 컨테이너의 ready 기록을 구분한다. 현재 세대는 이미지 기본값뿐이며 last-known-good나 rollback 지원을 임의로 표시하지 않는다. [진단 범위](environment-diagnostics.md)를 참고한다.
+
+[최종 Linux CPU 검사](../tests/evidence/tools-runtime-cpu-probe.json)는 private interpreter·host PYTHONPATH 차단·service UID, 일곱 환경의 정상 진단과 파일 hash, 버전 metadata를 유지한 torch 파일 손상 감지, 기존 nonroot 경로·기동·재기동·종료·native worker 검사를 통과했다. [공개 전송 증거](../tests/evidence/tools-public-downloads-linux.json)는 목적지 유형 추가 전 이미지의 실제 HF/Civitai 다운로드·전체 SHA256·서비스 UID 소유권이다. 두 이미지의 검증 범위를 구분한다. SAM3·DA3 모델 목록의 목적지도 허용했으며 단위 검사는 53개다.
+
+현재 노드 후보 설치·disable·세대 전환/rollback/reset, Manager 연결, 전체 동적 schema와 최종 GPU/RunPod 검증은 남아 있다. 새 CLI 이미지의 원격 게시도 아직 수행하지 않았다.

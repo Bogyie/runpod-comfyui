@@ -220,12 +220,14 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "huggingface-hub" },
+    { name = "packaging" },
     { name = "pyyaml" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "huggingface-hub", specifier = ">=1.0,<2" },
+    { name = "packaging", specifier = ">=26,<27" },
     { name = "pyyaml", specifier = ">=6,<7" },
 ]
 

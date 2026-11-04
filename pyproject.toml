@@ -7,7 +7,7 @@ name = "runpod-comfyctl"
 version = "0.1.0"
 description = "RunPod ComfyUI runtime and model management"
 requires-python = ">=3.11"
-dependencies = ["huggingface-hub>=1.0,<2", "PyYAML>=6,<7"]
+dependencies = ["huggingface-hub>=1.0,<2", "PyYAML>=6,<7", "packaging>=26,<27"]
 
 [project.scripts]
 comfyctl = "comfyctl.cli:main"

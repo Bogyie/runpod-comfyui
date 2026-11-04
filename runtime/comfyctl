@@ -1,0 +1,6 @@
+#!/opt/comfyctl/venv/bin/python -I
+"""Use only the management interpreter and its own application source."""
+import sys
+sys.path.insert(0, '/opt/comfyctl/src')
+from comfyctl.cli import main
+raise SystemExit(main())

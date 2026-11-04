@@ -20,7 +20,7 @@ from typing import Iterator
 MODEL_TYPES = frozenset({
     "checkpoints", "diffusion_models", "text_encoders", "clip", "clip_vision",
     "vae", "loras", "controlnet", "upscale_models", "embeddings", "model_patches",
-    "audio_encoders", "geometry_estimation", "diffusers", "style_models",
+    "audio_encoders", "geometry_estimation", "diffusers", "style_models", "sam3", "depthanything3",
 })
 HASH = re.compile(r"[0-9a-fA-F]{64}\Z")
 

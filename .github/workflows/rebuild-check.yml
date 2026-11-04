@@ -41,7 +41,8 @@ jobs:
           uv run --frozen python tools/rebuild/audit_upstreams.py
           uv run --frozen python tools/rebuild/prepare_lock_inputs.py
           uv run --frozen python tools/rebuild/prepare_workers.py --verify-locks
-          git diff --exit-code -- build/upstream-audit.json build/inputs
+          uv export --frozen --no-dev --no-emit-project --no-header --format requirements-txt --output-file locks/tools/requirements.txt
+          git diff --exit-code -- build/upstream-audit.json build/inputs locks/tools
       - name: Unit tests
         run: uv run --frozen python -m unittest discover -s tests -v
       - name: Syntax checks

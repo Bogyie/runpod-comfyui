@@ -1,0 +1,60 @@
+{
+  "kind": "isolated-cli-live-public-downloads",
+  "image_id": "sha256:53e885844ba2f9bdec70646ce43958d16db99f1f6bd2461656514778fc1d30d6",
+  "public_model_cli": {
+    "receipts": [
+      {
+        "provider": "huggingface",
+        "source": "https://huggingface.co/hf-internal-testing/tiny-random-bert/resolve/f171d7baecaf37b5da5a3616d8833b9969753535/model.safetensors",
+        "sha256": "965f02b6a7e5520fc12f710e4e3b6132f697f1c8f648819553c5ade86752d2de",
+        "size": 520212,
+        "target": "checkpoints/provider-smoke-bert.safetensors",
+        "revision": "f171d7baecaf37b5da5a3616d8833b9969753535",
+        "version_id": null,
+        "file_id": null
+      },
+      {
+        "provider": "civitai",
+        "source": "https://civitai.com/api/download/models/1558543",
+        "sha256": "df7c757437ef3696e76ee5cc18c063681478639132547b6292b0b4d773814ba5",
+        "size": 57420828,
+        "target": "loras/provider-smoke.safetensors",
+        "revision": null,
+        "version_id": 1558543,
+        "file_id": 1458454
+      }
+    ],
+    "verified": [
+      {
+        "file_id": null,
+        "provider": "huggingface",
+        "revision": "f171d7baecaf37b5da5a3616d8833b9969753535",
+        "sha256": "965f02b6a7e5520fc12f710e4e3b6132f697f1c8f648819553c5ade86752d2de",
+        "size": 520212,
+        "source": "https://huggingface.co/hf-internal-testing/tiny-random-bert/resolve/f171d7baecaf37b5da5a3616d8833b9969753535/model.safetensors",
+        "target": "checkpoints/provider-smoke-bert.safetensors",
+        "version_id": null,
+        "status": "verified"
+      },
+      {
+        "file_id": 1458454,
+        "provider": "civitai",
+        "revision": null,
+        "sha256": "df7c757437ef3696e76ee5cc18c063681478639132547b6292b0b4d773814ba5",
+        "size": 57420828,
+        "source": "https://civitai.com/api/download/models/1558543",
+        "target": "loras/provider-smoke.safetensors",
+        "version_id": 1558543,
+        "status": "verified"
+      }
+    ],
+    "owners": {
+      "loras/provider-smoke.safetensors": 1000,
+      "checkpoints/provider-smoke-bert.safetensors": 1000
+    },
+    "scope": "Public pinned files only; gated/private credentials not certified"
+  },
+  "cli_python": "/opt/comfyctl/venv",
+  "uid": 1000,
+  "scope": "Public files in Linux CLI venv before extending permitted destination types; not gated/private access or GPU inference"
+}
